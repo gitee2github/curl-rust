@@ -1,4 +1,12 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case, non_upper_case_globals, unused_assignments, unused_mut)]
+#![allow(
+    dead_code,
+    mutable_transmutes,
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    unused_assignments,
+    unused_mut
+)]
 #![register_tool(c2rust)]
 #![feature(extern_types, register_tool)]
 extern "C" {
@@ -21,11 +29,7 @@ extern "C" {
     pub type nghttp2_session;
     pub type ssl_backend_data;
     fn sscanf(_: *const libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
-    fn curl_strnequal(
-        s1: *const libc::c_char,
-        s2: *const libc::c_char,
-        n: size_t,
-    ) -> libc::c_int;
+    fn curl_strnequal(s1: *const libc::c_char, s2: *const libc::c_char, n: size_t) -> libc::c_int;
     fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
     fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     fn Curl_httpchunk_init(data: *mut Curl_easy);
@@ -110,11 +114,7 @@ extern "C" {
         size: size_t,
     ) -> libc::c_int;
     fn Curl_pgrsUpdate(data: *mut Curl_easy) -> libc::c_int;
-    fn Curl_timeleft(
-        data: *mut Curl_easy,
-        nowp: *mut curltime,
-        duringconnect: bool,
-    ) -> timediff_t;
+    fn Curl_timeleft(data: *mut Curl_easy, nowp: *mut curltime, duringconnect: bool) -> timediff_t;
     fn Curl_closesocket(
         data: *mut Curl_easy,
         conn: *mut connectdata,
@@ -136,11 +136,7 @@ extern "C" {
         sockindex: libc::c_int,
         done: *mut bool,
     ) -> CURLcode;
-    fn Curl_fillreadbuffer(
-        data: *mut Curl_easy,
-        bytes: size_t,
-        nreadp: *mut size_t,
-    ) -> CURLcode;
+    fn Curl_fillreadbuffer(data: *mut Curl_easy, bytes: size_t, nreadp: *mut size_t) -> CURLcode;
     fn Curl_get_upload_buffer(data: *mut Curl_easy) -> CURLcode;
     static mut Curl_cfree: curl_free_callback;
     static mut Curl_ccalloc: curl_calloc_callback;
@@ -345,7 +341,7 @@ pub struct WildcardData {
     pub dtor: wildcard_dtor,
     pub customptr: *mut libc::c_void,
 }
-pub type wildcard_dtor = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type wildcard_dtor = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_llist {
@@ -354,9 +350,7 @@ pub struct Curl_llist {
     pub dtor: Curl_llist_dtor,
     pub size: size_t,
 }
-pub type Curl_llist_dtor = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void) -> (),
->;
+pub type Curl_llist_dtor = Option<unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_llist_element {
@@ -393,7 +387,7 @@ pub struct UrlState {
     pub os_errno: libc::c_int,
     pub scratch: *mut libc::c_char,
     pub followlocation: libc::c_long,
-    pub prev_signal: Option::<unsafe extern "C" fn(libc::c_int) -> ()>,
+    pub prev_signal: Option<unsafe extern "C" fn(libc::c_int) -> ()>,
     pub digest: digestdata,
     pub proxydigest: digestdata,
     pub authhost: auth,
@@ -455,7 +449,8 @@ pub struct UrlState {
     #[bitfield(name = "url_alloc", ty = "bit", bits = "18..=18")]
     #[bitfield(name = "referer_alloc", ty = "bit", bits = "19..=19")]
     #[bitfield(name = "wildcard_resolve", ty = "bit", bits = "20..=20")]
-    pub multi_owned_by_easy_this_is_a_follow_refused_stream_errorbuf_allow_port_authproblem_ftp_trying_alternative_wildcardmatch_expect100header_disableexpect_use_range_rangestringalloc_done_stream_depends_e_previouslypending_cookie_engine_prefer_ascii_list_only_url_alloc_referer_alloc_wildcard_resolve: [u8; 3],
+    pub multi_owned_by_easy_this_is_a_follow_refused_stream_errorbuf_allow_port_authproblem_ftp_trying_alternative_wildcardmatch_expect100header_disableexpect_use_range_rangestringalloc_done_stream_depends_e_previouslypending_cookie_engine_prefer_ascii_list_only_url_alloc_referer_alloc_wildcard_resolve:
+        [u8; 3],
     #[bitfield(padding)]
     pub c2rust_padding_0: [u8; 5],
 }
@@ -510,9 +505,8 @@ pub struct urlpieces {
     pub query: *mut libc::c_char,
 }
 pub type CURLU = Curl_URL;
-pub type curl_read_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t,
->;
+pub type curl_read_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct time_node {
@@ -685,13 +679,10 @@ pub struct Curl_hash {
     pub slots: libc::c_int,
     pub size: size_t,
 }
-pub type Curl_hash_dtor = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
-pub type comp_function = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, size_t, *mut libc::c_void, size_t) -> size_t,
->;
-pub type hash_function = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, size_t, size_t) -> size_t,
->;
+pub type Curl_hash_dtor = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type comp_function =
+    Option<unsafe extern "C" fn(*mut libc::c_void, size_t, *mut libc::c_void, size_t) -> size_t>;
+pub type hash_function = Option<unsafe extern "C" fn(*mut libc::c_void, size_t, size_t) -> size_t>;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct Progress {
@@ -949,14 +940,12 @@ pub struct UserDefined {
     #[bitfield(name = "doh_verifystatus", ty = "bit", bits = "59..=59")]
     #[bitfield(name = "http09_allowed", ty = "bit", bits = "60..=60")]
     #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "61..=61")]
-    pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_ftp_use_port_ftp_use_epsv_ftp_use_eprt_ftp_use_pret_ftp_skip_ip_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails: [u8; 8],
+    pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_ftp_use_port_ftp_use_epsv_ftp_use_eprt_ftp_use_pret_ftp_skip_ip_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
+        [u8; 8],
 }
-pub type curl_trailer_callback = Option::<
-    unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int,
->;
-pub type multidone_func = Option::<
-    unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int,
->;
+pub type curl_trailer_callback =
+    Option<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int>;
+pub type multidone_func = Option<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int>;
 pub type CURLcode = libc::c_uint;
 pub const CURL_LAST: CURLcode = 99;
 pub const CURLE_SSL_CLIENTCERT: CURLcode = 98;
@@ -1058,12 +1047,8 @@ pub const CURLE_URL_MALFORMAT: CURLcode = 3;
 pub const CURLE_FAILED_INIT: CURLcode = 2;
 pub const CURLE_UNSUPPORTED_PROTOCOL: CURLcode = 1;
 pub const CURLE_OK: CURLcode = 0;
-pub type curl_resolver_start_callback = Option::<
-    unsafe extern "C" fn(
-        *mut libc::c_void,
-        *mut libc::c_void,
-        *mut libc::c_void,
-    ) -> libc::c_int,
+pub type curl_resolver_start_callback = Option<
+    unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void, *mut libc::c_void) -> libc::c_int,
 >;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1071,22 +1056,16 @@ pub struct Curl_http2_dep {
     pub next: *mut Curl_http2_dep,
     pub data: *mut Curl_easy,
 }
-pub type curl_fnmatch_callback = Option::<
+pub type curl_fnmatch_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         *const libc::c_char,
         *const libc::c_char,
     ) -> libc::c_int,
 >;
-pub type curl_chunk_end_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_void) -> libc::c_long,
->;
-pub type curl_chunk_bgn_callback = Option::<
-    unsafe extern "C" fn(
-        *const libc::c_void,
-        *mut libc::c_void,
-        libc::c_int,
-    ) -> libc::c_long,
+pub type curl_chunk_end_callback = Option<unsafe extern "C" fn(*mut libc::c_void) -> libc::c_long>;
+pub type curl_chunk_bgn_callback = Option<
+    unsafe extern "C" fn(*const libc::c_void, *mut libc::c_void, libc::c_int) -> libc::c_long,
 >;
 pub type Curl_RtspReq = libc::c_uint;
 pub const RTSPREQ_LAST: Curl_RtspReq = 12;
@@ -1113,7 +1092,7 @@ pub const CURL_NETRC_LAST: CURL_NETRC_OPTION = 3;
 pub const CURL_NETRC_REQUIRED: CURL_NETRC_OPTION = 2;
 pub const CURL_NETRC_OPTIONAL: CURL_NETRC_OPTION = 1;
 pub const CURL_NETRC_IGNORED: CURL_NETRC_OPTION = 0;
-pub type curl_sshkeycallback = Option::<
+pub type curl_sshkeycallback = Option<
     unsafe extern "C" fn(
         *mut CURL,
         *const curl_khkey,
@@ -1185,7 +1164,8 @@ pub struct ssl_config_data {
     #[bitfield(name = "revoke_best_effort", ty = "bit", bits = "5..=5")]
     #[bitfield(name = "native_ca_store", ty = "bit", bits = "6..=6")]
     #[bitfield(name = "auto_client_cert", ty = "bit", bits = "7..=7")]
-    pub certinfo_falsestart_enable_beast_no_revoke_no_partialchain_revoke_best_effort_native_ca_store_auto_client_cert: [u8; 1],
+    pub certinfo_falsestart_enable_beast_no_revoke_no_partialchain_revoke_best_effort_native_ca_store_auto_client_cert:
+        [u8; 1],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 3],
 }
@@ -1193,9 +1173,8 @@ pub type CURL_TLSAUTH = libc::c_uint;
 pub const CURL_TLSAUTH_LAST: CURL_TLSAUTH = 2;
 pub const CURL_TLSAUTH_SRP: CURL_TLSAUTH = 1;
 pub const CURL_TLSAUTH_NONE: CURL_TLSAUTH = 0;
-pub type curl_ssl_ctx_callback = Option::<
-    unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode,
->;
+pub type curl_ssl_ctx_callback =
+    Option<unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode>;
 pub type curl_proxytype = libc::c_uint;
 pub const CURLPROXY_SOCKS5_HOSTNAME: curl_proxytype = 7;
 pub const CURLPROXY_SOCKS4A: curl_proxytype = 6;
@@ -1247,15 +1226,9 @@ pub struct mime_encoder_state {
 #[repr(C)]
 pub struct mime_encoder {
     pub name: *const libc::c_char,
-    pub encodefunc: Option::<
-        unsafe extern "C" fn(
-            *mut libc::c_char,
-            size_t,
-            bool,
-            *mut curl_mimepart,
-        ) -> size_t,
-    >,
-    pub sizefunc: Option::<unsafe extern "C" fn(*mut curl_mimepart) -> curl_off_t>,
+    pub encodefunc:
+        Option<unsafe extern "C" fn(*mut libc::c_char, size_t, bool, *mut curl_mimepart) -> size_t>,
+    pub sizefunc: Option<unsafe extern "C" fn(*mut curl_mimepart) -> curl_off_t>,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1275,10 +1248,9 @@ pub const MIMESTATE_EOH: mimestate = 3;
 pub const MIMESTATE_USERHEADERS: mimestate = 2;
 pub const MIMESTATE_CURLHEADERS: mimestate = 1;
 pub const MIMESTATE_BEGIN: mimestate = 0;
-pub type curl_free_callback = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
-pub type curl_seek_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, curl_off_t, libc::c_int) -> libc::c_int,
->;
+pub type curl_free_callback = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type curl_seek_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_off_t, libc::c_int) -> libc::c_int>;
 pub type mimekind = libc::c_uint;
 pub const MIMEKIND_LAST: mimekind = 5;
 pub const MIMEKIND_MULTIPART: mimekind = 4;
@@ -1314,7 +1286,7 @@ pub struct curl_httppost {
     pub userp: *mut libc::c_void,
     pub contentlen: curl_off_t,
 }
-pub type curl_hstswrite_callback = Option::<
+pub type curl_hstswrite_callback = Option<
     unsafe extern "C" fn(
         *mut CURL,
         *mut curl_hstsentry,
@@ -1341,26 +1313,14 @@ pub type CURLSTScode = libc::c_uint;
 pub const CURLSTS_FAIL: CURLSTScode = 2;
 pub const CURLSTS_DONE: CURLSTScode = 1;
 pub const CURLSTS_OK: CURLSTScode = 0;
-pub type curl_hstsread_callback = Option::<
-    unsafe extern "C" fn(
-        *mut CURL,
-        *mut curl_hstsentry,
-        *mut libc::c_void,
-    ) -> CURLSTScode,
->;
-pub type curl_conv_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_char, size_t) -> CURLcode,
->;
-pub type curl_closesocket_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int,
->;
+pub type curl_hstsread_callback =
+    Option<unsafe extern "C" fn(*mut CURL, *mut curl_hstsentry, *mut libc::c_void) -> CURLSTScode>;
+pub type curl_conv_callback = Option<unsafe extern "C" fn(*mut libc::c_char, size_t) -> CURLcode>;
+pub type curl_closesocket_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int>;
 pub type curl_socket_t = libc::c_int;
-pub type curl_opensocket_callback = Option::<
-    unsafe extern "C" fn(
-        *mut libc::c_void,
-        curlsocktype,
-        *mut curl_sockaddr,
-    ) -> curl_socket_t,
+pub type curl_opensocket_callback = Option<
+    unsafe extern "C" fn(*mut libc::c_void, curlsocktype, *mut curl_sockaddr) -> curl_socket_t,
 >;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1375,18 +1335,16 @@ pub type curlsocktype = libc::c_uint;
 pub const CURLSOCKTYPE_LAST: curlsocktype = 2;
 pub const CURLSOCKTYPE_ACCEPT: curlsocktype = 1;
 pub const CURLSOCKTYPE_IPCXN: curlsocktype = 0;
-pub type curl_sockopt_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_void, curl_socket_t, curlsocktype) -> libc::c_int,
->;
-pub type curl_ioctl_callback = Option::<
-    unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr,
->;
+pub type curl_sockopt_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t, curlsocktype) -> libc::c_int>;
+pub type curl_ioctl_callback =
+    Option<unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr>;
 pub type curlioerr = libc::c_uint;
 pub const CURLIOE_LAST: curlioerr = 3;
 pub const CURLIOE_FAILRESTART: curlioerr = 2;
 pub const CURLIOE_UNKNOWNCMD: curlioerr = 1;
 pub const CURLIOE_OK: curlioerr = 0;
-pub type curl_debug_callback = Option::<
+pub type curl_debug_callback = Option<
     unsafe extern "C" fn(
         *mut CURL,
         curl_infotype,
@@ -1404,7 +1362,7 @@ pub const CURLINFO_DATA_IN: curl_infotype = 3;
 pub const CURLINFO_HEADER_OUT: curl_infotype = 2;
 pub const CURLINFO_HEADER_IN: curl_infotype = 1;
 pub const CURLINFO_TEXT: curl_infotype = 0;
-pub type curl_xferinfo_callback = Option::<
+pub type curl_xferinfo_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         curl_off_t,
@@ -1413,7 +1371,7 @@ pub type curl_xferinfo_callback = Option::<
         curl_off_t,
     ) -> libc::c_int,
 >;
-pub type curl_progress_callback = Option::<
+pub type curl_progress_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         libc::c_double,
@@ -1422,9 +1380,8 @@ pub type curl_progress_callback = Option::<
         libc::c_double,
     ) -> libc::c_int,
 >;
-pub type curl_write_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t,
->;
+pub type curl_write_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t>;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct SingleRequest {
@@ -1465,7 +1422,8 @@ pub struct SingleRequest {
     #[bitfield(name = "upload_chunky", ty = "bit", bits = "7..=7")]
     #[bitfield(name = "getheader", ty = "bit", bits = "8..=8")]
     #[bitfield(name = "forbidchunk", ty = "bit", bits = "9..=9")]
-    pub header_content_range_upload_done_ignorebody_http_bodyless_chunk_ignore_cl_upload_chunky_getheader_forbidchunk: [u8; 2],
+    pub header_content_range_upload_done_ignorebody_http_bodyless_chunk_ignore_cl_upload_chunky_getheader_forbidchunk:
+        [u8; 2],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 6],
 }
@@ -1676,11 +1634,10 @@ pub struct Curl_multi {
     pub ipv6_works: bool,
     pub ssl_seeded: bool,
 }
-pub type curl_multi_timer_callback = Option::<
-    unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int,
->;
+pub type curl_multi_timer_callback =
+    Option<unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int>;
 pub type CURLM = Curl_multi;
-pub type curl_push_callback = Option::<
+pub type curl_push_callback = Option<
     unsafe extern "C" fn(
         *mut CURL,
         *mut CURL,
@@ -1689,7 +1646,7 @@ pub type curl_push_callback = Option::<
         *mut libc::c_void,
     ) -> libc::c_int,
 >;
-pub type curl_socket_callback = Option::<
+pub type curl_socket_callback = Option<
     unsafe extern "C" fn(
         *mut CURL,
         curl_socket_t,
@@ -1787,8 +1744,8 @@ pub struct connectdata {
     pub sock: [curl_socket_t; 2],
     pub tempsock: [curl_socket_t; 2],
     pub tempfamily: [libc::c_int; 2],
-    pub recv: [Option::<Curl_recv>; 2],
-    pub send: [Option::<Curl_send>; 2],
+    pub recv: [Option<Curl_recv>; 2],
+    pub send: [Option<Curl_send>; 2],
     pub ssl: [ssl_connect_data; 2],
     pub proxy_ssl: [ssl_connect_data; 2],
     pub ssl_extra: *mut libc::c_void,
@@ -1967,7 +1924,7 @@ pub struct SASLproto {
     pub contcode: libc::c_int,
     pub finalcode: libc::c_int,
     pub maxirlen: size_t,
-    pub sendauth: Option::<
+    pub sendauth: Option<
         unsafe extern "C" fn(
             *mut Curl_easy,
             *mut connectdata,
@@ -1975,16 +1932,10 @@ pub struct SASLproto {
             *const libc::c_char,
         ) -> CURLcode,
     >,
-    pub sendcont: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *const libc::c_char,
-        ) -> CURLcode,
+    pub sendcont: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *const libc::c_char) -> CURLcode,
     >,
-    pub getmessage: Option::<
-        unsafe extern "C" fn(*mut libc::c_char, *mut *mut libc::c_char) -> (),
-    >,
+    pub getmessage: Option<unsafe extern "C" fn(*mut libc::c_char, *mut *mut libc::c_char) -> ()>,
 }
 pub type smtpstate = libc::c_uint;
 pub const SMTP_LAST: smtpstate = 13;
@@ -2015,10 +1966,8 @@ pub struct pingpong {
     pub response: curltime,
     pub response_time: timediff_t,
     pub sendbuf: dynbuf,
-    pub statemachine: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode,
-    >,
-    pub endofresp: Option::<
+    pub statemachine: Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode>,
+    pub endofresp: Option<
         unsafe extern "C" fn(
             *mut Curl_easy,
             *mut connectdata,
@@ -2181,8 +2130,8 @@ pub struct http_conn {
     pub binlen: size_t,
     pub trnsfr: *mut Curl_easy,
     pub h2: *mut nghttp2_session,
-    pub send_underlying: Option::<Curl_send>,
-    pub recv_underlying: Option::<Curl_recv>,
+    pub send_underlying: Option<Curl_send>,
+    pub recv_underlying: Option<Curl_recv>,
     pub inbuf: *mut libc::c_char,
     pub inbuflen: size_t,
     pub nread_inbuf: size_t,
@@ -2304,68 +2253,35 @@ pub const NTLMSTATE_NONE: curlntlm = 0;
 #[repr(C)]
 pub struct Curl_handler {
     pub scheme: *const libc::c_char,
-    pub setup_connection: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode,
+    pub setup_connection:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode>,
+    pub do_it: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub done: Option<unsafe extern "C" fn(*mut Curl_easy, CURLcode, bool) -> CURLcode>,
+    pub do_more: Option<unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_int) -> CURLcode>,
+    pub connect_it: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub connecting: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub doing: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub proto_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub do_it: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
-    pub done: Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode, bool) -> CURLcode>,
-    pub do_more: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_int) -> CURLcode,
+    pub doing_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub connect_it: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode,
+    pub domore_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub connecting: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode,
+    pub perform_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub doing: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
-    pub proto_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
+    pub disconnect:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, bool) -> CURLcode>,
+    pub readwrite: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut ssize_t, *mut bool) -> CURLcode,
     >,
-    pub doing_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
+    pub connection_check: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_uint) -> libc::c_uint,
     >,
-    pub domore_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
-    >,
-    pub perform_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
-    >,
-    pub disconnect: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, bool) -> CURLcode,
-    >,
-    pub readwrite: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut ssize_t,
-            *mut bool,
-        ) -> CURLcode,
-    >,
-    pub connection_check: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            libc::c_uint,
-        ) -> libc::c_uint,
-    >,
-    pub attach: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> ()>,
+    pub attach: Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> ()>,
     pub defport: libc::c_int,
     pub protocol: libc::c_uint,
     pub family: libc::c_uint,
@@ -2411,7 +2327,8 @@ pub struct ConnectBits {
     #[bitfield(name = "tls_upgraded", ty = "bit", bits = "32..=32")]
     #[bitfield(name = "sock_accepted", ty = "bit", bits = "33..=33")]
     #[bitfield(name = "parallel_connect", ty = "bit", bits = "34..=34")]
-    pub httpproxy_socksproxy_proxy_user_passwd_tunnel_proxy_proxy_connect_closed_close_reuse_altused_conn_to_host_conn_to_port_proxy_user_passwd_ipv6_ip_ipv6_do_more_protoconnstart_retry_authneg_rewindaftersend_ftp_use_epsv_ftp_use_eprt_ftp_use_data_ssl_ftp_use_control_ssl_netrc_bound_multiplex_tcp_fastopen_tls_enable_npn_tls_enable_alpn_connect_only_doh_abstract_unix_socket_tls_upgraded_sock_accepted_parallel_connect: [u8; 5],
+    pub httpproxy_socksproxy_proxy_user_passwd_tunnel_proxy_proxy_connect_closed_close_reuse_altused_conn_to_host_conn_to_port_proxy_user_passwd_ipv6_ip_ipv6_do_more_protoconnstart_retry_authneg_rewindaftersend_ftp_use_epsv_ftp_use_eprt_ftp_use_data_ssl_ftp_use_control_ssl_netrc_bound_multiplex_tcp_fastopen_tls_enable_npn_tls_enable_alpn_connect_only_doh_abstract_unix_socket_tls_upgraded_sock_accepted_parallel_connect:
+        [u8; 5],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 3],
 }
@@ -2501,9 +2418,7 @@ pub const CONNECT_SOCKS_READ_INIT: connect_t = 3;
 pub const CONNECT_SOCKS_SEND: connect_t = 2;
 pub const CONNECT_SOCKS_INIT: connect_t = 1;
 pub const CONNECT_INIT: connect_t = 0;
-pub type curl_calloc_callback = Option::<
-    unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void,
->;
+pub type curl_calloc_callback = Option<unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void>;
 pub type CHUNKcode = libc::c_int;
 pub const CHUNKE_LAST: CHUNKcode = 7;
 pub const CHUNKE_PASSTHRU_ERROR: CHUNKcode = 6;
@@ -2663,10 +2578,9 @@ pub unsafe extern "C" fn Curl_proxy_connect(
         if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
             return result_0;
         }
-        Curl_cfree
-            .expect(
-                "non-null function pointer",
-            )((*data).state.aptr.proxyuserpwd as *mut libc::c_void);
+        Curl_cfree.expect("non-null function pointer")(
+            (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+        );
         let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
         *fresh0 = 0 as *mut libc::c_char;
     }
@@ -2685,21 +2599,15 @@ pub unsafe extern "C" fn Curl_connect_ongoing(mut conn: *mut connectdata) -> boo
             <= TUNNEL_COMPLETE as libc::c_int as libc::c_uint;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_connect_getsock(
-    mut conn: *mut connectdata,
-) -> libc::c_int {
+pub unsafe extern "C" fn Curl_connect_getsock(mut conn: *mut connectdata) -> libc::c_int {
     let mut http: *mut HTTP = 0 as *mut HTTP;
     http = &mut (*(*conn).connect_state).http_proxy;
-    if (*http).sending as libc::c_uint == HTTPSEND_REQUEST as libc::c_int as libc::c_uint
-    {
+    if (*http).sending as libc::c_uint == HTTPSEND_REQUEST as libc::c_int as libc::c_uint {
         return (1 as libc::c_int) << 16 as libc::c_int + 0 as libc::c_int;
     }
     return (1 as libc::c_int) << 0 as libc::c_int;
 }
-unsafe extern "C" fn connect_init(
-    mut data: *mut Curl_easy,
-    mut reinit: bool,
-) -> CURLcode {
+unsafe extern "C" fn connect_init(mut data: *mut Curl_easy, mut reinit: bool) -> CURLcode {
     let mut s: *mut http_connect_state = 0 as *mut http_connect_state;
     let mut conn: *mut connectdata = (*data).conn;
     if !reinit {
@@ -2708,10 +2616,7 @@ unsafe extern "C" fn connect_init(
         if result as u64 != 0 {
             return result;
         }
-        s = Curl_ccalloc
-            .expect(
-                "non-null function pointer",
-            )(
+        s = Curl_ccalloc.expect("non-null function pointer")(
             1 as libc::c_int as size_t,
             ::std::mem::size_of::<http_connect_state>() as libc::c_ulong,
         ) as *mut http_connect_state;
@@ -2789,20 +2694,14 @@ unsafe extern "C" fn CONNECT_host(
     if hostheader.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
-    if (Curl_checkProxyheaders(
-        data,
-        conn,
-        b"Host\0" as *const u8 as *const libc::c_char,
-    ))
-        .is_null()
+    if (Curl_checkProxyheaders(data, conn, b"Host\0" as *const u8 as *const libc::c_char)).is_null()
     {
         host = curl_maprintf(
             b"Host: %s\r\n\0" as *const u8 as *const libc::c_char,
             hostheader,
         );
         if host.is_null() {
-            Curl_cfree
-                .expect("non-null function pointer")(hostheader as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);
             return CURLE_OUT_OF_MEMORY;
         }
     }
@@ -2832,23 +2731,17 @@ unsafe extern "C" fn CONNECT(
     (*fresh6).set_proxy_connect_closed(0 as libc::c_int as bit);
     loop {
         let mut check: timediff_t = 0;
-        if TUNNEL_INIT as libc::c_int as libc::c_uint
-            == (*s).tunnel_state as libc::c_uint
-        {
+        if TUNNEL_INIT as libc::c_int as libc::c_uint == (*s).tunnel_state as libc::c_uint {
             let mut req: *mut dynbuf = &mut (*s).req;
             let mut hostheader: *mut libc::c_char = 0 as *mut libc::c_char;
             let mut host: *mut libc::c_char = 0 as *mut libc::c_char;
             Curl_infof(
                 data,
-                b"Establish HTTP proxy tunnel to %s:%d\0" as *const u8
-                    as *const libc::c_char,
+                b"Establish HTTP proxy tunnel to %s:%d\0" as *const u8 as *const libc::c_char,
                 hostname,
                 remote_port,
             );
-            Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )((*data).req.newurl as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);
             let ref mut fresh7 = (*data).req.newurl;
             *fresh7 = 0 as *mut libc::c_char;
             Curl_dyn_init(req, (1024 as libc::c_int * 1024 as libc::c_int) as size_t);
@@ -2872,8 +2765,8 @@ unsafe extern "C" fn CONNECT(
                 1 as libc::c_int != 0,
             );
             if result as u64 == 0 {
-                let mut httpv: *const libc::c_char = if (*conn).http_proxy.proxytype
-                    as libc::c_uint == CURLPROXY_HTTP_1_0 as libc::c_int as libc::c_uint
+                let mut httpv: *const libc::c_char = if (*conn).http_proxy.proxytype as libc::c_uint
+                    == CURLPROXY_HTTP_1_0 as libc::c_int as libc::c_uint
                 {
                     b"1.0\0" as *const u8 as *const libc::c_char
                 } else {
@@ -2901,9 +2794,8 @@ unsafe extern "C" fn CONNECT(
                         conn,
                         b"User-Agent\0" as *const u8 as *const libc::c_char,
                     ))
-                        .is_null()
-                    && !((*data).set.str_0[STRING_USERAGENT as libc::c_int as usize])
-                        .is_null()
+                    .is_null()
+                    && !((*data).set.str_0[STRING_USERAGENT as libc::c_int as usize]).is_null()
                 {
                     result = Curl_dyn_addf(
                         req,
@@ -2917,22 +2809,18 @@ unsafe extern "C" fn CONNECT(
                         conn,
                         b"Proxy-Connection\0" as *const u8 as *const libc::c_char,
                     ))
-                        .is_null()
+                    .is_null()
                 {
                     result = Curl_dyn_add(
                         req,
-                        b"Proxy-Connection: Keep-Alive\r\n\0" as *const u8
-                            as *const libc::c_char,
+                        b"Proxy-Connection: Keep-Alive\r\n\0" as *const u8 as *const libc::c_char,
                     );
                 }
                 if result as u64 == 0 {
                     result = Curl_add_custom_headers(data, 1 as libc::c_int != 0, req);
                 }
                 if result as u64 == 0 {
-                    result = Curl_dyn_add(
-                        req,
-                        b"\r\n\0" as *const u8 as *const libc::c_char,
-                    );
+                    result = Curl_dyn_add(req, b"\r\n\0" as *const u8 as *const libc::c_char);
                 }
                 if result as u64 == 0 {
                     result = Curl_buffer_send(
@@ -2946,14 +2834,12 @@ unsafe extern "C" fn CONNECT(
                 if result as u64 != 0 {
                     Curl_failf(
                         data,
-                        b"Failed sending CONNECT to proxy\0" as *const u8
-                            as *const libc::c_char,
+                        b"Failed sending CONNECT to proxy\0" as *const u8 as *const libc::c_char,
                     );
                 }
             }
             Curl_cfree.expect("non-null function pointer")(host as *mut libc::c_void);
-            Curl_cfree
-                .expect("non-null function pointer")(hostheader as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);
             if result as u64 != 0 {
                 return result;
             }
@@ -2963,17 +2849,14 @@ unsafe extern "C" fn CONNECT(
         if check <= 0 as libc::c_int as libc::c_long {
             Curl_failf(
                 data,
-                b"Proxy CONNECT aborted due to timeout\0" as *const u8
-                    as *const libc::c_char,
+                b"Proxy CONNECT aborted due to timeout\0" as *const u8 as *const libc::c_char,
             );
             return CURLE_OPERATION_TIMEDOUT;
         }
         if !Curl_conn_data_pending(conn, sockindex) && (*http).sending as u64 == 0 {
             return CURLE_OK;
         }
-        if (*http).sending as libc::c_uint
-            == HTTPSEND_REQUEST as libc::c_int as libc::c_uint
-        {
+        if (*http).sending as libc::c_uint == HTTPSEND_REQUEST as libc::c_int as libc::c_uint {
             if (*s).nsend == 0 {
                 let mut fillcount: size_t = 0;
                 let ref mut fresh8 = (*k).upload_fromhere;
@@ -3006,8 +2889,8 @@ unsafe extern "C" fn CONNECT(
                     ) as CURLcode;
                 }
                 let ref mut fresh9 = (*s).nsend;
-                *fresh9 = (*fresh9 as libc::c_ulong)
-                    .wrapping_sub(bytes_written as libc::c_ulong) as size_t as size_t;
+                *fresh9 = (*fresh9 as libc::c_ulong).wrapping_sub(bytes_written as libc::c_ulong)
+                    as size_t as size_t;
                 let ref mut fresh10 = (*k).upload_fromhere;
                 *fresh10 = (*fresh10).offset(bytes_written as isize);
                 return result;
@@ -3035,15 +2918,15 @@ unsafe extern "C" fn CONNECT(
                 (*s).keepon = KEEPON_DONE;
                 break;
             } else if gotbytes <= 0 as libc::c_int as libc::c_long {
-                if (*data).set.proxyauth != 0 && (*data).state.authproxy.avail != 0
+                if (*data).set.proxyauth != 0
+                    && (*data).state.authproxy.avail != 0
                     && !((*data).state.aptr.proxyuserpwd).is_null()
                 {
                     let ref mut fresh11 = (*conn).bits;
                     (*fresh11).set_proxy_connect_closed(1 as libc::c_int as bit);
                     Curl_infof(
                         data,
-                        b"Proxy CONNECT connection closed\0" as *const u8
-                            as *const libc::c_char,
+                        b"Proxy CONNECT connection closed\0" as *const u8 as *const libc::c_char,
                     );
                 } else {
                     error = 1 as libc::c_int;
@@ -3054,9 +2937,7 @@ unsafe extern "C" fn CONNECT(
                 }
                 (*s).keepon = KEEPON_DONE;
                 break;
-            } else if (*s).keepon as libc::c_uint
-                    == KEEPON_IGNORE as libc::c_int as libc::c_uint
-                {
+            } else if (*s).keepon as libc::c_uint == KEEPON_IGNORE as libc::c_int as libc::c_uint {
                 if (*s).cl != 0 {
                     let ref mut fresh12 = (*s).cl;
                     *fresh12 -= 1;
@@ -3091,12 +2972,12 @@ unsafe extern "C" fn CONNECT(
                     &mut (*s).rcvbuf,
                     &mut byte as *mut libc::c_char as *const libc::c_void,
                     1 as libc::c_int as size_t,
-                ) as u64 != 0
+                ) as u64
+                    != 0
                 {
                     Curl_failf(
                         data,
-                        b"CONNECT response too large!\0" as *const u8
-                            as *const libc::c_char,
+                        b"CONNECT response too large!\0" as *const u8 as *const libc::c_char,
                     );
                     return CURLE_RECV_ERROR;
                 }
@@ -3111,8 +2992,7 @@ unsafe extern "C" fn CONNECT(
                 }
                 Curl_debug(data, CURLINFO_HEADER_IN, linep, perline);
                 if ((*data).set).suppress_connect_headers() == 0 {
-                    let mut writetype: libc::c_int = (1 as libc::c_int)
-                        << 1 as libc::c_int;
+                    let mut writetype: libc::c_int = (1 as libc::c_int) << 1 as libc::c_int;
                     if ((*data).set).include_header() != 0 {
                         writetype |= (1 as libc::c_int) << 0 as libc::c_int;
                     }
@@ -3124,12 +3004,9 @@ unsafe extern "C" fn CONNECT(
                 let ref mut fresh13 = (*data).info.header_size;
                 *fresh13 += perline as libc::c_long;
                 if '\r' as i32 == *linep.offset(0 as libc::c_int as isize) as libc::c_int
-                    || '\n' as i32
-                        == *linep.offset(0 as libc::c_int as isize) as libc::c_int
+                    || '\n' as i32 == *linep.offset(0 as libc::c_int as isize) as libc::c_int
                 {
-                    if 407 as libc::c_int == (*k).httpcode
-                        && ((*data).state).authproblem() == 0
-                    {
+                    if 407 as libc::c_int == (*k).httpcode && ((*data).state).authproblem() == 0 {
                         (*s).keepon = KEEPON_IGNORE;
                         if (*s).cl != 0 {
                             Curl_infof(
@@ -3173,8 +3050,8 @@ unsafe extern "C" fn CONNECT(
                     } else {
                         (*s).keepon = KEEPON_DONE;
                     }
-                    if (*s).keepon as libc::c_uint
-                        == KEEPON_DONE as libc::c_int as libc::c_uint && (*s).cl == 0
+                    if (*s).keepon as libc::c_uint == KEEPON_DONE as libc::c_int as libc::c_uint
+                        && (*s).cl == 0
                     {
                         (*s).tunnel_state = TUNNEL_COMPLETE;
                     }
@@ -3182,17 +3059,15 @@ unsafe extern "C" fn CONNECT(
                     if curl_strnequal(
                         b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char,
                         linep,
-                        strlen(
-                            b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char,
-                        ),
-                    ) != 0 && 401 as libc::c_int == (*k).httpcode
+                        strlen(b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char),
+                    ) != 0
+                        && 401 as libc::c_int == (*k).httpcode
                         || curl_strnequal(
                             b"Proxy-authenticate:\0" as *const u8 as *const libc::c_char,
                             linep,
-                            strlen(
-                                b"Proxy-authenticate:\0" as *const u8 as *const libc::c_char,
-                            ),
-                        ) != 0 && 407 as libc::c_int == (*k).httpcode
+                            strlen(b"Proxy-authenticate:\0" as *const u8 as *const libc::c_char),
+                        ) != 0
+                            && 407 as libc::c_int == (*k).httpcode
                     {
                         let mut proxy: bool = if (*k).httpcode == 407 as libc::c_int {
                             1 as libc::c_int
@@ -3204,89 +3079,79 @@ unsafe extern "C" fn CONNECT(
                             return CURLE_OUT_OF_MEMORY;
                         }
                         result = Curl_http_input_auth(data, proxy, auth);
-                        Curl_cfree
-                            .expect(
-                                "non-null function pointer",
-                            )(auth as *mut libc::c_void);
+                        Curl_cfree.expect("non-null function pointer")(auth as *mut libc::c_void);
                         if result as u64 != 0 {
                             return result;
                         }
                     } else if curl_strnequal(
-                            b"Content-Length:\0" as *const u8 as *const libc::c_char,
-                            linep,
-                            strlen(
-                                b"Content-Length:\0" as *const u8 as *const libc::c_char,
-                            ),
-                        ) != 0
-                        {
+                        b"Content-Length:\0" as *const u8 as *const libc::c_char,
+                        linep,
+                        strlen(b"Content-Length:\0" as *const u8 as *const libc::c_char),
+                    ) != 0
+                    {
                         if (*k).httpcode / 100 as libc::c_int == 2 as libc::c_int {
                             Curl_infof(
                                 data,
-                                b"Ignoring Content-Length in CONNECT %03d response\0"
-                                    as *const u8 as *const libc::c_char,
+                                b"Ignoring Content-Length in CONNECT %03d response\0" as *const u8
+                                    as *const libc::c_char,
                                 (*k).httpcode,
                             );
                         } else {
                             curlx_strtoofft(
-                                linep
-                                    .offset(
-                                        strlen(
-                                            b"Content-Length:\0" as *const u8 as *const libc::c_char,
-                                        ) as isize,
-                                    ),
+                                linep.offset(strlen(
+                                    b"Content-Length:\0" as *const u8 as *const libc::c_char,
+                                ) as isize),
                                 0 as *mut *mut libc::c_char,
                                 10 as libc::c_int,
                                 &mut (*s).cl,
                             );
                         }
                     } else if Curl_compareheader(
-                            linep,
-                            b"Connection:\0" as *const u8 as *const libc::c_char,
-                            b"close\0" as *const u8 as *const libc::c_char,
-                        ) {
+                        linep,
+                        b"Connection:\0" as *const u8 as *const libc::c_char,
+                        b"close\0" as *const u8 as *const libc::c_char,
+                    ) {
                         (*s).set_close_connection(1 as libc::c_int as bit);
                     } else if curl_strnequal(
-                            b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
-                            linep,
-                            strlen(
-                                b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
-                            ),
-                        ) != 0
-                        {
+                        b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
+                        linep,
+                        strlen(b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char),
+                    ) != 0
+                    {
                         if (*k).httpcode / 100 as libc::c_int == 2 as libc::c_int {
                             Curl_infof(
                                 data,
                                 b"Ignoring Transfer-Encoding in CONNECT %03d response\0"
-                                    as *const u8 as *const libc::c_char,
+                                    as *const u8
+                                    as *const libc::c_char,
                                 (*k).httpcode,
                             );
                         } else if Curl_compareheader(
-                                linep,
-                                b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
-                                b"chunked\0" as *const u8 as *const libc::c_char,
-                            ) {
+                            linep,
+                            b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
+                            b"chunked\0" as *const u8 as *const libc::c_char,
+                        ) {
                             Curl_infof(
                                 data,
-                                b"CONNECT responded chunked\0" as *const u8
-                                    as *const libc::c_char,
+                                b"CONNECT responded chunked\0" as *const u8 as *const libc::c_char,
                             );
                             (*s).set_chunked_encoding(1 as libc::c_int as bit);
                             Curl_httpchunk_init(data);
                         }
                     } else if Curl_compareheader(
-                            linep,
-                            b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
-                            b"close\0" as *const u8 as *const libc::c_char,
-                        ) {
+                        linep,
+                        b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
+                        b"close\0" as *const u8 as *const libc::c_char,
+                    ) {
                         (*s).set_close_connection(1 as libc::c_int as bit);
                     } else if 2 as libc::c_int
-                            == sscanf(
-                                linep,
-                                b"HTTP/1.%d %d\0" as *const u8 as *const libc::c_char,
-                                &mut subversion as *mut libc::c_int,
-                                &mut (*k).httpcode as *mut libc::c_int,
-                            )
-                        {
+                        == sscanf(
+                            linep,
+                            b"HTTP/1.%d %d\0" as *const u8 as *const libc::c_char,
+                            &mut subversion as *mut libc::c_int,
+                            &mut (*k).httpcode as *mut libc::c_int,
+                        )
+                    {
                         (*data).info.httpproxycode = (*k).httpcode;
                     }
                     Curl_dyn_reset(&mut (*s).rcvbuf);
@@ -3308,8 +3173,7 @@ unsafe extern "C" fn CONNECT(
                 (*s).set_close_connection(1 as libc::c_int as bit);
             }
         }
-        if (*s).close_connection() as libc::c_int != 0 && !((*data).req.newurl).is_null()
-        {
+        if (*s).close_connection() as libc::c_int != 0 && !((*data).req.newurl).is_null() {
             Curl_closesocket(data, conn, (*conn).sock[sockindex as usize]);
             (*conn).sock[sockindex as usize] = -(1 as libc::c_int);
             break;
@@ -3326,8 +3190,7 @@ unsafe extern "C" fn CONNECT(
         }
     }
     if (*data).info.httpproxycode / 100 as libc::c_int != 2 as libc::c_int {
-        if (*s).close_connection() as libc::c_int != 0 && !((*data).req.newurl).is_null()
-        {
+        if (*s).close_connection() as libc::c_int != 0 && !((*data).req.newurl).is_null() {
             let ref mut fresh14 = (*conn).bits;
             (*fresh14).set_proxy_connect_closed(1 as libc::c_int as bit);
             Curl_infof(
@@ -3336,10 +3199,7 @@ unsafe extern "C" fn CONNECT(
             );
             connect_done(data);
         } else {
-            Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )((*data).req.newurl as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);
             let ref mut fresh15 = (*data).req.newurl;
             *fresh15 = 0 as *mut libc::c_char;
             Curl_conncontrol(conn, 2 as libc::c_int);
@@ -3353,17 +3213,15 @@ unsafe extern "C" fn CONNECT(
         Curl_dyn_free(&mut (*s).rcvbuf);
         Curl_failf(
             data,
-            b"Received HTTP code %d from proxy after CONNECT\0" as *const u8
-                as *const libc::c_char,
+            b"Received HTTP code %d from proxy after CONNECT\0" as *const u8 as *const libc::c_char,
             (*data).req.httpcode,
         );
         return CURLE_RECV_ERROR;
     }
     (*s).tunnel_state = TUNNEL_COMPLETE;
-    Curl_cfree
-        .expect(
-            "non-null function pointer",
-        )((*data).state.aptr.proxyuserpwd as *mut libc::c_void);
+    Curl_cfree.expect("non-null function pointer")(
+        (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+    );
     let ref mut fresh16 = (*data).state.aptr.proxyuserpwd;
     *fresh16 = 0 as *mut libc::c_char;
     let ref mut fresh17 = (*data).state.aptr.proxyuserpwd;
