@@ -1,0 +1,16 @@
+[package]
+name = "rust_project"
+authors = ["CSS Group"]
+version = "0.1.0"
+edition = "2021"
+# build = "build.rs"
+
+[dependencies]
+libc = "0.2.9"
+c2rust-bitfields = "0.3.0"
+rust_ffi = {path = "../rust_ffi"}
+
+[lib]
+crate-type = ["staticlib"]
+name = "rust_project"
+path = "lib.rs"

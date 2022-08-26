@@ -44,7 +44,6 @@ LIB_VTLS_CFILES =           \
   vtls/bearssl.c            \
   vtls/gskit.c              \
   vtls/gtls.c               \
-  vtls/keylog.c             \
   vtls/mbedtls.c            \
   vtls/mbedtls_threadlock.c \
   vtls/mesalink.c           \
@@ -151,7 +150,6 @@ LIB_CFILES =         \
   http_chunks.c      \
   http_digest.c      \
   http_negotiate.c   \
-  http_ntlm.c        \
   http_proxy.c       \
   http_aws_sigv4.c   \
   idn_win32.c        \
