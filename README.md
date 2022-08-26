@@ -9,9 +9,9 @@ Rewrite memory leak related modules for curl using Rust
 
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.  进入`rust/`目录，执行`cargo build`
+2.  在项目根目录下，执行`LDFLAGS="-L./rust/target/debug" LIBS="-lrust_project -ldl" ./configure --disable-shared`
+3.  执行`make`完成编译
 
 #### 使用说明
 
