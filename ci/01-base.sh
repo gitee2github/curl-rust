@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ../rust
+cd rust/
 
 # 开始检查
 cargo fmt --all -- --check -v
