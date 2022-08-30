@@ -33,6 +33,6 @@ cd ../
 aclocal
 automake
 
-LDFLAGS="-L`pwd`/rust/target/release" LIBS="-lrust_project -ldl" ./configure --disable-shared
+LDFLAGS="-L`pwd`/rust/target/release" LIBS="-lrust_project -ldl" ./configure --without-ssl --disable-shared
 
 make
