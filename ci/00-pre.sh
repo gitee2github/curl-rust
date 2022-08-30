@@ -7,6 +7,8 @@ git config --global url."https://github.91chi.fun/https://github.com/".insteadOf
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rustlang.sh
 sh rustlang.sh -y
 
+source ~/.bashrc
+
 rustup install nightly
 rustup default nightly
 
