@@ -24,57 +24,49 @@ pub type _IO_lock_t = ();
 pub type curl_sslbackend = libc::c_uint;
 pub type bit = libc::c_uint;
 pub type CURLproxycode = libc::c_uint;
-pub type wildcard_dtor = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
-pub type Curl_llist_dtor = Option::<unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void) -> (),>;
+pub type wildcard_dtor = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type Curl_llist_dtor = Option<unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void) -> ()>;
 pub type wildcard_states = libc::c_uint;
 pub type trailers_state = libc::c_uint;
 pub type Curl_HttpReq = libc::c_uint;
 // pub type CURLU = Curl_URL;
-pub type curl_read_callback = Option::<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t,>;
+pub type curl_read_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t>;
 pub type expire_id = libc::c_uint;
-pub type Curl_hash_dtor = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
-pub type comp_function = Option::<unsafe extern "C" fn(*mut libc::c_void, size_t, *mut libc::c_void, size_t) -> size_t,>;
-pub type hash_function = Option::<unsafe extern "C" fn(*mut libc::c_void, size_t, size_t) -> size_t,>;
+pub type Curl_hash_dtor = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type comp_function =
+    Option<unsafe extern "C" fn(*mut libc::c_void, size_t, *mut libc::c_void, size_t) -> size_t>;
+pub type hash_function = Option<unsafe extern "C" fn(*mut libc::c_void, size_t, size_t) -> size_t>;
 pub type timediff_t = curl_off_t;
 // pub type curl_trailer_callback = Option::<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int,>;
 // pub type multidone_func = Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int,>;
 pub type CURLcode = libc::c_uint;
-pub type curl_resolver_start_callback = Option::<
-    unsafe extern "C" fn(
-        *mut libc::c_void,
-        *mut libc::c_void,
-        *mut libc::c_void,
-    ) -> libc::c_int,
+pub type curl_resolver_start_callback = Option<
+    unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void, *mut libc::c_void) -> libc::c_int,
 >;
-pub type curl_fnmatch_callback = Option::<
+pub type curl_fnmatch_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         *const libc::c_char,
         *const libc::c_char,
     ) -> libc::c_int,
 >;
-pub type curl_chunk_end_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_void) -> libc::c_long,
->;
-pub type curl_chunk_bgn_callback = Option::<
-unsafe extern "C" fn(
-    *const libc::c_void,
-    *mut libc::c_void,
-        libc::c_int,
-    ) -> libc::c_long,
+pub type curl_chunk_end_callback = Option<unsafe extern "C" fn(*mut libc::c_void) -> libc::c_long>;
+pub type curl_chunk_bgn_callback = Option<
+    unsafe extern "C" fn(*const libc::c_void, *mut libc::c_void, libc::c_int) -> libc::c_long,
 >;
 pub type Curl_RtspReq = libc::c_uint;
 pub type curl_usessl = libc::c_uint;
 pub type CURL_NETRC_OPTION = libc::c_uint;
 // pub type curl_sshkeycallback = Option::<
 //     unsafe extern "C" fn(
-    //         *mut CURL,
-    //         *const curl_khkey,
-    //         *const curl_khkey,
-    //         curl_khmatch,
-    //         *mut libc::c_void,
-    //     ) -> libc::c_int,
-    // >;
+//         *mut CURL,
+//         *const curl_khkey,
+//         *const curl_khkey,
+//         curl_khmatch,
+//         *mut libc::c_void,
+//     ) -> libc::c_int,
+// >;
 pub type curl_khmatch = libc::c_uint;
 pub type curl_khtype = libc::c_uint;
 // pub type CURL = Curl_easy;
@@ -88,8 +80,9 @@ pub type CURL_TLSAUTH = libc::c_uint;
 pub type curl_proxytype = libc::c_uint;
 pub type curl_TimeCond = libc::c_uint;
 pub type mimestate = libc::c_uint;
-pub type curl_free_callback = Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
-pub type curl_seek_callback = Option::<unsafe extern "C" fn(*mut libc::c_void, curl_off_t, libc::c_int) -> libc::c_int,>;
+pub type curl_free_callback = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type curl_seek_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_off_t, libc::c_int) -> libc::c_int>;
 pub type mimekind = libc::c_uint;
 // pub type curl_hstswrite_callback = Option::<
 //     unsafe extern "C" fn(
@@ -107,8 +100,9 @@ pub type CURLSTScode = libc::c_uint;
 //         *mut libc::c_void,
 //     ) -> CURLSTScode,
 // >;
-pub type curl_conv_callback = Option::<unsafe extern "C" fn(*mut libc::c_char, size_t) -> CURLcode,>;
-pub type curl_closesocket_callback = Option::<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int,>;
+pub type curl_conv_callback = Option<unsafe extern "C" fn(*mut libc::c_char, size_t) -> CURLcode>;
+pub type curl_closesocket_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int>;
 pub type curl_socket_t = libc::c_int;
 // pub type curl_opensocket_callback = Option::<
 //     unsafe extern "C" fn(
@@ -118,7 +112,8 @@ pub type curl_socket_t = libc::c_int;
 //     ) -> curl_socket_t,
 // >;
 pub type curlsocktype = libc::c_uint;
-pub type curl_sockopt_callback = Option::<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t, curlsocktype) -> libc::c_int,>;
+pub type curl_sockopt_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t, curlsocktype) -> libc::c_int>;
 // pub type curl_ioctl_callback = Option::<
 //     unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr,
 // >;
@@ -133,7 +128,7 @@ pub type curlioerr = libc::c_uint;
 //     ) -> libc::c_int,
 // >;
 pub type curl_infotype = libc::c_uint;
-pub type curl_xferinfo_callback = Option::<
+pub type curl_xferinfo_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         curl_off_t,
@@ -142,7 +137,7 @@ pub type curl_xferinfo_callback = Option::<
         curl_off_t,
     ) -> libc::c_int,
 >;
-pub type curl_progress_callback = Option::<
+pub type curl_progress_callback = Option<
     unsafe extern "C" fn(
         *mut libc::c_void,
         libc::c_double,
@@ -151,9 +146,8 @@ pub type curl_progress_callback = Option::<
         libc::c_double,
     ) -> libc::c_int,
 >;
-pub type curl_write_callback = Option::<
-    unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t,
->;
+pub type curl_write_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t>;
 pub type curl_pp_transfer = libc::c_uint;
 pub type uint8_t = __uint8_t;
 pub type uint32_t = __uint32_t;
@@ -215,7 +209,6 @@ pub type C2RustUnnamed_5 = libc::c_uint;
 pub type ChunkyState = libc::c_uint;
 pub type connect_t = libc::c_uint;
 pub type dupstring = libc::c_uint;
-
 
 // ----------------------Constants----------------------
 // curl_sslbackend
