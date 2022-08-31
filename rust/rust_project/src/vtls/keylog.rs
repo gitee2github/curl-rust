@@ -16,11 +16,7 @@ extern "C" {
         __n: size_t,
     ) -> libc::c_int;
     fn fputs(__s: *const libc::c_char, __stream: *mut FILE) -> libc::c_int;
-    fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
     fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     static mut Curl_cfree: curl_free_callback;
 }
@@ -64,14 +60,9 @@ static mut keylog_file_fp: *mut FILE = 0 as *const FILE as *mut FILE;
 pub unsafe extern "C" fn Curl_tls_keylog_open() {
     let mut keylog_file_name: *mut libc::c_char = 0 as *mut libc::c_char;
     if keylog_file_fp.is_null() {
-        keylog_file_name = curl_getenv(
-            b"SSLKEYLOGFILE\0" as *const u8 as *const libc::c_char,
-        );
+        keylog_file_name = curl_getenv(b"SSLKEYLOGFILE\0" as *const u8 as *const libc::c_char);
         if !keylog_file_name.is_null() {
-            keylog_file_fp = fopen(
-                keylog_file_name,
-                b"a\0" as *const u8 as *const libc::c_char,
-            );
+            keylog_file_fp = fopen(keylog_file_name, b"a\0" as *const u8 as *const libc::c_char);
             if !keylog_file_fp.is_null() {
                 if setvbuf(
                     keylog_file_fp,
@@ -84,10 +75,7 @@ pub unsafe extern "C" fn Curl_tls_keylog_open() {
                     keylog_file_fp = 0 as *mut FILE;
                 }
             }
-            Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )(keylog_file_name as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")(keylog_file_name as *mut libc::c_void);
             keylog_file_name = 0 as *mut libc::c_char;
         }
     }
@@ -104,9 +92,7 @@ pub unsafe extern "C" fn Curl_tls_keylog_enabled() -> bool {
     return !keylog_file_fp.is_null();
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_tls_keylog_write_line(
-    mut line: *const libc::c_char,
-) -> bool {
+pub unsafe extern "C" fn Curl_tls_keylog_write_line(mut line: *const libc::c_char) -> bool {
     let mut linelen: size_t = 0;
     let mut buf: [libc::c_char; 256] = [0; 256];
     if keylog_file_fp.is_null() || line.is_null() {
@@ -120,9 +106,13 @@ pub unsafe extern "C" fn Curl_tls_keylog_write_line(
     {
         return 0 as libc::c_int != 0;
     }
-    memcpy(buf.as_mut_ptr() as *mut libc::c_void, line as *const libc::c_void, linelen);
-    if *line.offset(linelen.wrapping_sub(1 as libc::c_int as libc::c_ulong) as isize)
-        as libc::c_int != '\n' as i32
+    memcpy(
+        buf.as_mut_ptr() as *mut libc::c_void,
+        line as *const libc::c_void,
+        linelen,
+    );
+    if *line.offset(linelen.wrapping_sub(1 as libc::c_int as libc::c_ulong) as isize) as libc::c_int
+        != '\n' as i32
     {
         let fresh0 = linelen;
         linelen = linelen.wrapping_add(1);
@@ -139,8 +129,7 @@ pub unsafe extern "C" fn Curl_tls_keylog_write(
     mut secret: *const libc::c_uchar,
     mut secretlen: size_t,
 ) -> bool {
-    let mut hex: *const libc::c_char = b"0123456789ABCDEF\0" as *const u8
-        as *const libc::c_char;
+    let mut hex: *const libc::c_char = b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char;
     let mut pos: size_t = 0;
     let mut i: size_t = 0;
     let mut line: [libc::c_char; 195] = [0; 195];
@@ -150,12 +139,17 @@ pub unsafe extern "C" fn Curl_tls_keylog_write(
     pos = strlen(label);
     if pos
         > (::std::mem::size_of::<[libc::c_char; 32]>() as libc::c_ulong)
-            .wrapping_sub(1 as libc::c_int as libc::c_ulong) || secretlen == 0
+            .wrapping_sub(1 as libc::c_int as libc::c_ulong)
+        || secretlen == 0
         || secretlen > 48 as libc::c_int as libc::c_ulong
     {
         return 0 as libc::c_int != 0;
     }
-    memcpy(line.as_mut_ptr() as *mut libc::c_void, label as *const libc::c_void, pos);
+    memcpy(
+        line.as_mut_ptr() as *mut libc::c_void,
+        label as *const libc::c_void,
+        pos,
+    );
     let fresh1 = pos;
     pos = pos.wrapping_add(1);
     line[fresh1 as usize] = ' ' as i32 as libc::c_char;
@@ -163,20 +157,14 @@ pub unsafe extern "C" fn Curl_tls_keylog_write(
     while i < 32 as libc::c_int as libc::c_ulong {
         let fresh2 = pos;
         pos = pos.wrapping_add(1);
-        line[fresh2
-            as usize] = *hex
-            .offset(
-                (*client_random.offset(i as isize) as libc::c_int >> 4 as libc::c_int)
-                    as isize,
-            );
+        line[fresh2 as usize] = *hex.offset(
+            (*client_random.offset(i as isize) as libc::c_int >> 4 as libc::c_int) as isize,
+        );
         let fresh3 = pos;
         pos = pos.wrapping_add(1);
-        line[fresh3
-            as usize] = *hex
-            .offset(
-                (*client_random.offset(i as isize) as libc::c_int & 0xf as libc::c_int)
-                    as isize,
-            );
+        line[fresh3 as usize] = *hex.offset(
+            (*client_random.offset(i as isize) as libc::c_int & 0xf as libc::c_int) as isize,
+        );
         i = i.wrapping_add(1);
     }
     let fresh4 = pos;
@@ -186,18 +174,12 @@ pub unsafe extern "C" fn Curl_tls_keylog_write(
     while i < secretlen {
         let fresh5 = pos;
         pos = pos.wrapping_add(1);
-        line[fresh5
-            as usize] = *hex
-            .offset(
-                (*secret.offset(i as isize) as libc::c_int >> 4 as libc::c_int) as isize,
-            );
+        line[fresh5 as usize] =
+            *hex.offset((*secret.offset(i as isize) as libc::c_int >> 4 as libc::c_int) as isize);
         let fresh6 = pos;
         pos = pos.wrapping_add(1);
-        line[fresh6
-            as usize] = *hex
-            .offset(
-                (*secret.offset(i as isize) as libc::c_int & 0xf as libc::c_int) as isize,
-            );
+        line[fresh6 as usize] =
+            *hex.offset((*secret.offset(i as isize) as libc::c_int & 0xf as libc::c_int) as isize);
         i = i.wrapping_add(1);
     }
     let fresh7 = pos;

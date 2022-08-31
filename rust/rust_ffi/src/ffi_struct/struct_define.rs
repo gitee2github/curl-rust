@@ -1,5 +1,5 @@
-use c2rust_bitfields::BitfieldStruct;
 use crate::src::ffi_alias::type_alias::*;
+use c2rust_bitfields::BitfieldStruct;
 
 // http_ntlm.rs + vtls/keylog.rs
 #[derive(Copy, Clone)]
@@ -1475,7 +1475,8 @@ pub struct ConnectBits {
     #[bitfield(name = "tls_upgraded", ty = "bit", bits = "32..=32")]
     #[bitfield(name = "sock_accepted", ty = "bit", bits = "33..=33")]
     #[bitfield(name = "parallel_connect", ty = "bit", bits = "34..=34")]
-    pub httpproxy_socksproxy_proxy_user_passwd_tunnel_proxy_proxy_connect_closed_close_reuse_altused_conn_to_host_conn_to_port_proxy_user_passwd_ipv6_ip_ipv6_do_more_protoconnstart_retry_authneg_rewindaftersend_ftp_use_epsv_ftp_use_eprt_ftp_use_data_ssl_ftp_use_control_ssl_netrc_bound_multiplex_tcp_fastopen_tls_enable_npn_tls_enable_alpn_connect_only_doh_abstract_unix_socket_tls_upgraded_sock_accepted_parallel_connect: [u8; 5],
+    pub httpproxy_socksproxy_proxy_user_passwd_tunnel_proxy_proxy_connect_closed_close_reuse_altused_conn_to_host_conn_to_port_proxy_user_passwd_ipv6_ip_ipv6_do_more_protoconnstart_retry_authneg_rewindaftersend_ftp_use_epsv_ftp_use_eprt_ftp_use_data_ssl_ftp_use_control_ssl_netrc_bound_multiplex_tcp_fastopen_tls_enable_npn_tls_enable_alpn_connect_only_doh_abstract_unix_socket_tls_upgraded_sock_accepted_parallel_connect:
+        [u8; 5],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 3],
 }
@@ -1525,7 +1526,7 @@ pub struct connstate {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct bufref {
-    pub dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    pub dtor: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
 }

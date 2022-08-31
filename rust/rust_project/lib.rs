@@ -7,12 +7,7 @@
     unused_assignments,
     unused_mut
 )]
-#![feature(
-    c_variadic,
-    extern_types,
-    label_break_value,
-    register_tool
-)]
+#![feature(c_variadic, extern_types, label_break_value, register_tool)]
 #![register_tool(c2rust)]
 
 #[macro_use]
