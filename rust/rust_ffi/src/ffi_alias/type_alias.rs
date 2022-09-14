@@ -180,6 +180,8 @@ pub type C2RustUnnamed_1 = libc::c_uint;
 pub type C2RustUnnamed_2 = libc::c_uint;
 pub type CURLMSG = libc::c_uint;
 pub type CURLMstate = libc::c_uint;
+pub type C2RustUnnamed_4 = libc::c_uint;
+pub type keeponval = libc::c_uint;
 pub type mqttstate = libc::c_uint;
 pub type smb_conn_state = libc::c_uint;
 pub type saslstate = libc::c_uint;
@@ -206,9 +208,15 @@ pub type curlntlm = libc::c_uint;
 pub type ssl_connect_state = libc::c_uint;
 pub type ssl_connection_state = libc::c_uint;
 pub type C2RustUnnamed_5 = libc::c_uint;
+pub type C2RustUnnamed_6 = libc::c_uint;
 pub type ChunkyState = libc::c_uint;
 pub type connect_t = libc::c_uint;
+pub type curl_calloc_callback = Option<unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void>;
+pub type CHUNKcode = libc::c_int;
 pub type dupstring = libc::c_uint;
+pub type CURLofft = libc::c_uint;
+pub type curl_strdup_callback =
+    Option<unsafe extern "C" fn(*const libc::c_char) -> *mut libc::c_char>;
 
 // ----------------------Constants----------------------
 // curl_sslbackend
@@ -590,6 +598,17 @@ pub const MSTATE_CONNECT: CURLMstate = 2;
 pub const MSTATE_PENDING: CURLMstate = 1;
 pub const MSTATE_INIT: CURLMstate = 0;
 
+// C2RustUnnamed_4
+pub const TUNNEL_EXIT: C2RustUnnamed_4 = 3;
+pub const TUNNEL_COMPLETE: C2RustUnnamed_4 = 2;
+pub const TUNNEL_CONNECT: C2RustUnnamed_4 = 1;
+pub const TUNNEL_INIT: C2RustUnnamed_4 = 0;
+
+// keeponval
+pub const KEEPON_IGNORE: keeponval = 2;
+pub const KEEPON_CONNECT: keeponval = 1;
+pub const KEEPON_DONE: keeponval = 0;
+
 // mqttstate
 pub const MQTT_NOSTATE: mqttstate = 7;
 pub const MQTT_PUB_REMAIN: mqttstate = 6;
@@ -832,6 +851,17 @@ pub const CONNECT_SOCKS_SEND: connect_t = 2;
 pub const CONNECT_SOCKS_INIT: connect_t = 1;
 pub const CONNECT_INIT: connect_t = 0;
 
+// CHUNKcode
+pub const CHUNKE_LAST: CHUNKcode = 7;
+pub const CHUNKE_PASSTHRU_ERROR: CHUNKcode = 6;
+pub const CHUNKE_OUT_OF_MEMORY: CHUNKcode = 5;
+pub const CHUNKE_BAD_ENCODING: CHUNKcode = 4;
+pub const CHUNKE_BAD_CHUNK: CHUNKcode = 3;
+pub const CHUNKE_ILLEGAL_HEX: CHUNKcode = 2;
+pub const CHUNKE_TOO_LONG_HEX: CHUNKcode = 1;
+pub const CHUNKE_OK: CHUNKcode = 0;
+pub const CHUNKE_STOP: CHUNKcode = -1;
+
 // dupstring
 pub const STRING_LAST: dupstring = 80;
 pub const STRING_AWS_SIGV4: dupstring = 79;
@@ -914,3 +944,8 @@ pub const STRING_CERT_TYPE_PROXY: dupstring = 3;
 pub const STRING_CERT_TYPE: dupstring = 2;
 pub const STRING_CERT_PROXY: dupstring = 1;
 pub const STRING_CERT: dupstring = 0;
+
+// CURLofft
+pub const CURL_OFFT_INVAL: CURLofft = 2;
+pub const CURL_OFFT_FLOW: CURLofft = 1;
+pub const CURL_OFFT_OK: CURLofft = 0;
