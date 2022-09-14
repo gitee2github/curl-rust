@@ -20,10 +20,10 @@ pub mod src {
     // pub mod ftplistparser;
     // pub mod http_aws_sigv4;
     // pub mod http_chunks;
-    // pub mod http_digest;
+    pub mod http_digest;
     // pub mod http_negotiate;
     pub mod http_ntlm;
-    // pub mod http_proxy;
+    pub mod http_proxy;
     // pub mod http;
     // pub mod http2;
     pub mod vtls {

@@ -148,9 +148,7 @@ LIB_CFILES =         \
   http.c             \
   http2.c            \
   http_chunks.c      \
-  http_digest.c      \
   http_negotiate.c   \
-  http_proxy.c       \
   http_aws_sigv4.c   \
   idn_win32.c        \
   if2ip.c            \
