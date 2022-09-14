@@ -211,12 +211,18 @@ pub type C2RustUnnamed_5 = libc::c_uint;
 pub type C2RustUnnamed_6 = libc::c_uint;
 pub type ChunkyState = libc::c_uint;
 pub type connect_t = libc::c_uint;
+pub type curl_malloc_callback = Option<unsafe extern "C" fn(size_t) -> *mut libc::c_void>;
 pub type curl_calloc_callback = Option<unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void>;
 pub type CHUNKcode = libc::c_int;
 pub type dupstring = libc::c_uint;
 pub type CURLofft = libc::c_uint;
 pub type curl_strdup_callback =
     Option<unsafe extern "C" fn(*const libc::c_char) -> *mut libc::c_char>;
+pub type HMAC_hfinal_func =
+    Option<unsafe extern "C" fn(*mut libc::c_uchar, *mut libc::c_void) -> ()>;
+pub type HMAC_hupdate_func =
+    Option<unsafe extern "C" fn(*mut libc::c_void, *const libc::c_uchar, libc::c_uint) -> ()>;
+pub type HMAC_hinit_func = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
 
 // ----------------------Constants----------------------
 // curl_sslbackend

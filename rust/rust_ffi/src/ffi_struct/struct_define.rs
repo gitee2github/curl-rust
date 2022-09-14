@@ -41,6 +41,21 @@ pub struct sockaddr {
 //     pub _mode: libc::c_int,
 //     pub _unused2: [libc::c_char; 20],
 // }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct tm {
+    pub tm_sec: libc::c_int,
+    pub tm_min: libc::c_int,
+    pub tm_hour: libc::c_int,
+    pub tm_mday: libc::c_int,
+    pub tm_mon: libc::c_int,
+    pub tm_year: libc::c_int,
+    pub tm_wday: libc::c_int,
+    pub tm_yday: libc::c_int,
+    pub tm_isdst: libc::c_int,
+    pub tm_gmtoff: libc::c_long,
+    pub tm_zone: *const libc::c_char,
+}
 // #[derive(Copy, Clone)]
 // #[repr(C)]
 // pub struct Curl_easy {
@@ -1574,4 +1589,14 @@ pub struct bufref {
     pub dtor: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct HMAC_params {
+    pub hmac_hinit: HMAC_hinit_func,
+    pub hmac_hupdate: HMAC_hupdate_func,
+    pub hmac_hfinal: HMAC_hfinal_func,
+    pub hmac_ctxtsize: libc::c_uint,
+    pub hmac_maxkeylen: libc::c_uint,
+    pub hmac_resultlen: libc::c_uint,
 }
