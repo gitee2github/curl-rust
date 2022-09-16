@@ -23,7 +23,7 @@ make, rustup, cargo, nightly 版的 rustc, gcc, openssl-libs, automake 等。
 
 1.  进入`rust/`目录，执行`cargo build --release -v`
 2.  在项目根目录下，执行`aclocal`和`automake`
-3.  在项目根目录下，执行`LDFLAGS="-L./rust/target/debug" LIBS="-lrust_project -ldl" ./configure --without-ssl --disable-shared`
+3.  在项目根目录下，执行`LDFLAGS="-L./rust/target/release" LIBS="-lrust_project -ldl" ./configure --without-ssl --disable-shared`
 4.  执行`make`完成编译
 5.  还可以执行`make test`进行测试
 
