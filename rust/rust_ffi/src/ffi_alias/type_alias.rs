@@ -1,6 +1,29 @@
 // use crate::src::ffi_struct::struct_define::*;
 
 // ---------------------Type Alias--------------------
+
+// extern C
+extern "C" {
+    pub type _IO_wide_data;
+    pub type _IO_codecvt;
+    pub type _IO_marker;
+    pub type Curl_URL;
+    pub type thread_data;
+    pub type altsvcinfo;
+    pub type hsts;
+    pub type TELNET;
+    pub type smb_request;
+    pub type ldapreqinfo;
+    pub type contenc_writer;
+    pub type Curl_share;
+    pub type curl_pushheaders;
+    pub type http_connect_state;
+    pub type ldapconninfo;
+    pub type tftp_state_data;
+    pub type nghttp2_session;
+    pub type ssl_backend_data;
+}
+
 pub type __uint8_t = libc::c_uchar;
 pub type __int32_t = libc::c_int;
 pub type __uint32_t = libc::c_uint;
