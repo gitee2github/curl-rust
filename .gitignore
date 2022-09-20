@@ -3,7 +3,7 @@
 # *.d
 
 # Object files
-# *.o
+*.o
 # *.ko
 # *.obj
 # *.elf
@@ -81,3 +81,65 @@
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Copy from Curl Git Repository 7.79.1
+*.asc
+*.dll
+*.exe
+*.exp
+*.la
+*.lib
+*.lo
+*.o
+*.obj
+*.pdb
+*.pyc
+*~
+.*.sw?
+.cproject
+.deps
+.dirstamp
+.libs
+.project
+.settings
+/.vs
+/build/
+/builds/
+/stats/
+__pycache__
+CHANGES.dist
+Debug
+INSTALL
+Makefile
+Makefile.in
+Release
+TAGS
+aclocal.m4
+aclocal.m4.bak
+autom4te.cache
+compile
+config.cache
+config.guess
+config.log
+config.status
+config.sub
+configure
+curl-*.tar.bz2
+curl-*.tar.gz
+curl-*.tar.xz
+curl-*.zip
+curl-config
+depcomp
+install-sh
+libcurl.pc
+libtool
+ltmain.sh
+missing
+mkinstalldirs
+tags
+test-driver
+scripts/_curl
+scripts/curl.fish
+curl_fuzzer
+curl_fuzzer_seed_corpus.zip
+libstandaloneengine.a
