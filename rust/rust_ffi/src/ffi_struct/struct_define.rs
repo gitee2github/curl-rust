@@ -8,39 +8,39 @@ pub struct sockaddr {
     pub sa_family: sa_family_t,
     pub sa_data: [libc::c_char; 14],
 }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct _IO_FILE {
-//     pub _flags: libc::c_int,
-//     pub _IO_read_ptr: *mut libc::c_char,
-//     pub _IO_read_end: *mut libc::c_char,
-//     pub _IO_read_base: *mut libc::c_char,
-//     pub _IO_write_base: *mut libc::c_char,
-//     pub _IO_write_ptr: *mut libc::c_char,
-//     pub _IO_write_end: *mut libc::c_char,
-//     pub _IO_buf_base: *mut libc::c_char,
-//     pub _IO_buf_end: *mut libc::c_char,
-//     pub _IO_save_base: *mut libc::c_char,
-//     pub _IO_backup_base: *mut libc::c_char,
-//     pub _IO_save_end: *mut libc::c_char,
-//     pub _markers: *mut _IO_marker,
-//     pub _chain: *mut _IO_FILE,
-//     pub _fileno: libc::c_int,
-//     pub _flags2: libc::c_int,
-//     pub _old_offset: __off_t,
-//     pub _cur_column: libc::c_ushort,
-//     pub _vtable_offset: libc::c_schar,
-//     pub _shortbuf: [libc::c_char; 1],
-//     pub _lock: *mut libc::c_void,
-//     pub _offset: __off64_t,
-//     pub _codecvt: *mut _IO_codecvt,
-//     pub _wide_data: *mut _IO_wide_data,
-//     pub _freeres_list: *mut _IO_FILE,
-//     pub _freeres_buf: *mut libc::c_void,
-//     pub __pad5: size_t,
-//     pub _mode: libc::c_int,
-//     pub _unused2: [libc::c_char; 20],
-// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct _IO_FILE {
+    pub _flags: libc::c_int,
+    pub _IO_read_ptr: *mut libc::c_char,
+    pub _IO_read_end: *mut libc::c_char,
+    pub _IO_read_base: *mut libc::c_char,
+    pub _IO_write_base: *mut libc::c_char,
+    pub _IO_write_ptr: *mut libc::c_char,
+    pub _IO_write_end: *mut libc::c_char,
+    pub _IO_buf_base: *mut libc::c_char,
+    pub _IO_buf_end: *mut libc::c_char,
+    pub _IO_save_base: *mut libc::c_char,
+    pub _IO_backup_base: *mut libc::c_char,
+    pub _IO_save_end: *mut libc::c_char,
+    pub _markers: *mut _IO_marker,
+    pub _chain: *mut _IO_FILE,
+    pub _fileno: libc::c_int,
+    pub _flags2: libc::c_int,
+    pub _old_offset: __off_t,
+    pub _cur_column: libc::c_ushort,
+    pub _vtable_offset: libc::c_schar,
+    pub _shortbuf: [libc::c_char; 1],
+    pub _lock: *mut libc::c_void,
+    pub _offset: __off64_t,
+    pub _codecvt: *mut _IO_codecvt,
+    pub _wide_data: *mut _IO_wide_data,
+    pub _freeres_list: *mut _IO_FILE,
+    pub _freeres_buf: *mut libc::c_void,
+    pub __pad5: size_t,
+    pub _mode: libc::c_int,
+    pub _unused2: [libc::c_char; 20],
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct tm {
@@ -305,20 +305,20 @@ pub struct Curl_tree {
     pub key: curltime,
     pub payload: *mut libc::c_void,
 }
-// #[derive(Copy, Clone, BitfieldStruct)]
-// #[repr(C)]
-// pub struct Curl_async {
-//     pub hostname: *mut libc::c_char,
-//     pub dns: *mut Curl_dns_entry,
-//     pub tdata: *mut thread_data,
-//     pub resolver: *mut libc::c_void,
-//     pub port: libc::c_int,
-//     pub status: libc::c_int,
-//     #[bitfield(name = "done", ty = "bit", bits = "0..=0")]
-//     pub done: [u8; 1],
-//     #[bitfield(padding)]
-//     pub c2rust_padding: [u8; 7],
-// }
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct Curl_async {
+    pub hostname: *mut libc::c_char,
+    pub dns: *mut Curl_dns_entry,
+    pub tdata: *mut thread_data,
+    pub resolver: *mut libc::c_void,
+    pub port: libc::c_int,
+    pub status: libc::c_int,
+    #[bitfield(name = "done", ty = "bit", bits = "0..=0")]
+    pub done: [u8; 1],
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 7],
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_dns_entry {
@@ -374,45 +374,45 @@ pub struct tempbuf {
     pub b: dynbuf,
     pub type_0: libc::c_int,
 }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct Curl_ssl_session {
-//     pub name: *mut libc::c_char,
-//     pub conn_to_host: *mut libc::c_char,
-//     pub scheme: *const libc::c_char,
-//     pub sessionid: *mut libc::c_void,
-//     pub idsize: size_t,
-//     pub age: libc::c_long,
-//     pub remote_port: libc::c_int,
-//     pub conn_to_port: libc::c_int,
-//     pub ssl_config: ssl_primary_config,
-// }
-// #[derive(Copy, Clone, BitfieldStruct)]
-// #[repr(C)]
-// pub struct ssl_primary_config {
-//     pub version: libc::c_long,
-//     pub version_max: libc::c_long,
-//     pub CApath: *mut libc::c_char,
-//     pub CAfile: *mut libc::c_char,
-//     pub issuercert: *mut libc::c_char,
-//     pub clientcert: *mut libc::c_char,
-//     pub random_file: *mut libc::c_char,
-//     pub egdsocket: *mut libc::c_char,
-//     pub cipher_list: *mut libc::c_char,
-//     pub cipher_list13: *mut libc::c_char,
-//     pub pinned_key: *mut libc::c_char,
-//     pub cert_blob: *mut curl_blob,
-//     pub ca_info_blob: *mut curl_blob,
-//     pub issuercert_blob: *mut curl_blob,
-//     pub curves: *mut libc::c_char,
-//     #[bitfield(name = "verifypeer", ty = "bit", bits = "0..=0")]
-//     #[bitfield(name = "verifyhost", ty = "bit", bits = "1..=1")]
-//     #[bitfield(name = "verifystatus", ty = "bit", bits = "2..=2")]
-//     #[bitfield(name = "sessionid", ty = "bit", bits = "3..=3")]
-//     pub verifypeer_verifyhost_verifystatus_sessionid: [u8; 1],
-//     #[bitfield(padding)]
-//     pub c2rust_padding: [u8; 7],
-// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct Curl_ssl_session {
+    pub name: *mut libc::c_char,
+    pub conn_to_host: *mut libc::c_char,
+    pub scheme: *const libc::c_char,
+    pub sessionid: *mut libc::c_void,
+    pub idsize: size_t,
+    pub age: libc::c_long,
+    pub remote_port: libc::c_int,
+    pub conn_to_port: libc::c_int,
+    pub ssl_config: ssl_primary_config,
+}
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct ssl_primary_config {
+    pub version: libc::c_long,
+    pub version_max: libc::c_long,
+    pub CApath: *mut libc::c_char,
+    pub CAfile: *mut libc::c_char,
+    pub issuercert: *mut libc::c_char,
+    pub clientcert: *mut libc::c_char,
+    pub random_file: *mut libc::c_char,
+    pub egdsocket: *mut libc::c_char,
+    pub cipher_list: *mut libc::c_char,
+    pub cipher_list13: *mut libc::c_char,
+    pub pinned_key: *mut libc::c_char,
+    pub cert_blob: *mut curl_blob,
+    pub ca_info_blob: *mut curl_blob,
+    pub issuercert_blob: *mut curl_blob,
+    pub curves: *mut libc::c_char,
+    #[bitfield(name = "verifypeer", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "verifyhost", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "verifystatus", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "sessionid", ty = "bit", bits = "3..=3")]
+    pub verifypeer_verifyhost_verifystatus_sessionid: [u8; 1],
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 7],
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct curl_blob {
