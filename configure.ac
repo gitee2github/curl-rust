@@ -21,6 +21,7 @@
 #***************************************************************************
 dnl Process this file with autoconf to produce a configure script.
 
+dnl 确保使用的是最新版 autoconf
 AC_PREREQ(2.59)
 
 dnl We don't know the version number "statically" so we use a dash here
@@ -35,7 +36,9 @@ AC_COPYRIGHT([Copyright (c) 1998 - 2021 Daniel Stenberg, <daniel@haxx.se>
 This configure script may be copied, distributed and modified under the
 terms of the curl license; see COPYING for more details])
 
+dnl configure 会检查文件 lib/urldata.h 是否存在，以确保它被告知的目录包含源代码
 AC_CONFIG_SRCDIR([lib/urldata.h])
+dnl 关注 curl_config.h
 AC_CONFIG_HEADERS(lib/curl_config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE
