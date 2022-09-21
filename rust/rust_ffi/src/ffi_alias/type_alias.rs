@@ -61,7 +61,8 @@ pub type comp_function =
     Option<unsafe extern "C" fn(*mut libc::c_void, size_t, *mut libc::c_void, size_t) -> size_t>;
 pub type hash_function = Option<unsafe extern "C" fn(*mut libc::c_void, size_t, size_t) -> size_t>;
 pub type timediff_t = curl_off_t;
-pub type curl_trailer_callback = Option::<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int,>;
+pub type curl_trailer_callback =
+    Option<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int>;
 // pub type multidone_func = Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int,>;
 pub type CURLcode = libc::c_uint;
 pub type curl_resolver_start_callback = Option<
@@ -127,12 +128,8 @@ pub type curl_conv_callback = Option<unsafe extern "C" fn(*mut libc::c_char, siz
 pub type curl_closesocket_callback =
     Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int>;
 pub type curl_socket_t = libc::c_int;
-pub type curl_opensocket_callback = Option::<
-    unsafe extern "C" fn(
-        *mut libc::c_void,
-        curlsocktype,
-        *mut curl_sockaddr,
-    ) -> curl_socket_t,
+pub type curl_opensocket_callback = Option<
+    unsafe extern "C" fn(*mut libc::c_void, curlsocktype, *mut curl_sockaddr) -> curl_socket_t,
 >;
 pub type curlsocktype = libc::c_uint;
 pub type curl_sockopt_callback =
