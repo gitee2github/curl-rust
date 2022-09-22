@@ -7,47 +7,7 @@ extern "C" {
     // ftplistparser.rs
 
     // http_aws_sigv4.rs
-    pub fn time(__timer: *mut time_t) -> time_t;
-    pub fn strftime(
-        __s: *mut libc::c_char,
-        __maxsize: size_t,
-        __format: *const libc::c_char,
-        __tp: *const tm,
-    ) -> size_t;
-    pub fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
-    // pub fn Curl_http_method(
-    //     data: *mut Curl_easy,
-    //     conn: *mut connectdata,
-    //     method: *mut *const libc::c_char,
-    //     _: *mut Curl_HttpReq,
-    // );
-    pub fn Curl_raw_toupper(in_0: libc::c_char) -> libc::c_char;
-    pub fn Curl_strntoupper(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
-    pub fn Curl_strntolower(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
-    pub fn Curl_memdup(src: *const libc::c_void, buffer_length: size_t) -> *mut libc::c_void;
-    // static Curl_HMAC_SHA256: [HMAC_params; 1];
-    pub fn Curl_hmacit(
-        hashparams: *const HMAC_params,
-        key: *const libc::c_uchar,
-        keylen: size_t,
-        data: *const libc::c_uchar,
-        datalen: size_t,
-        output: *mut libc::c_uchar,
-    ) -> CURLcode;
-    pub fn Curl_sha256it(outbuffer: *mut libc::c_uchar, input: *const libc::c_uchar, len: size_t);
-    // pub fn Curl_checkheaders(
-    //     data: *const Curl_easy,
-    //     thisheader: *const libc::c_char,
-    // ) -> *mut libc::c_char;
-    pub fn Curl_gmtime(intime: time_t, store: *mut tm) -> CURLcode;
-    // pub fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    pub fn curl_msnprintf(
-        buffer: *mut libc::c_char,
-        maxlength: size_t,
-        format: *const libc::c_char,
-        _: ...
-    ) -> libc::c_int;
-    pub fn curl_maprintf(format: *const libc::c_char, _: ...) -> *mut libc::c_char;
+
     // http_chunks.rs
     pub fn Curl_isxdigit(c: libc::c_int) -> libc::c_int;
     pub fn Curl_dyn_init(s: *mut dynbuf, toobig: size_t);
@@ -80,7 +40,61 @@ extern "C" {
     // http_negotiate.rs
 
     // http_ntlm.rs
-
+    pub fn curl_strnequal(
+        s1: *const libc::c_char,
+        s2: *const libc::c_char,
+        n: size_t,
+    ) -> libc::c_int;
+    pub fn Curl_isspace(c: libc::c_int) -> libc::c_int;
+    pub fn curl_free(p: *mut libc::c_void);
+    pub fn strlen(_: *const libc::c_char) -> libc::c_ulong;
+    // fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
+    // fn Curl_http_auth_cleanup_ntlm_wb(conn: *mut connectdata);
+    // fn Curl_base64_encode(
+    //     data: *mut Curl_easy,
+    //     inputbuff: *const libc::c_char,
+    //     insize: size_t,
+    //     outptr: *mut *mut libc::c_char,
+    //     outlen: *mut size_t,
+    // ) -> CURLcode;
+    pub fn Curl_base64_decode(
+        src: *const libc::c_char,
+        outptr: *mut *mut libc::c_uchar,
+        outlen: *mut size_t,
+    ) -> CURLcode;
+    // fn Curl_auth_create_ntlm_type1_message(
+    //     data: *mut Curl_easy,
+    //     userp: *const libc::c_char,
+    //     passwdp: *const libc::c_char,
+    //     service: *const libc::c_char,
+    //     host: *const libc::c_char,
+    //     ntlm: *mut ntlmdata,
+    //     out: *mut bufref,
+    // ) -> CURLcode;
+    // fn Curl_auth_decode_ntlm_type2_message(
+    //     data: *mut Curl_easy,
+    //     type2: *const bufref,
+    //     ntlm: *mut ntlmdata,
+    // ) -> CURLcode;
+    // fn Curl_auth_create_ntlm_type3_message(
+    //     data: *mut Curl_easy,
+    //     userp: *const libc::c_char,
+    //     passwdp: *const libc::c_char,
+    //     ntlm: *mut ntlmdata,
+    //     out: *mut bufref,
+    // ) -> CURLcode;
+    pub fn Curl_bufref_init(br: *mut bufref);
+    pub fn Curl_bufref_set(
+        br: *mut bufref,
+        ptr: *const libc::c_void,
+        len: size_t,
+        dtor: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    );
+    pub fn Curl_bufref_ptr(br: *const bufref) -> *const libc::c_uchar;
+    pub fn Curl_bufref_len(br: *const bufref) -> size_t;
+    pub fn Curl_bufref_free(br: *mut bufref);
+    pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata);
+    pub fn curl_maprintf(format: *const libc::c_char, _: ...) -> *mut libc::c_char;
     // http_proxy.rs
 
     // http.rs
@@ -95,21 +109,20 @@ extern "C" {
 
     // vtls/keylog.rs
     pub fn curl_getenv(variable: *const libc::c_char) -> *mut libc::c_char;
-    pub fn fclose(__stream: *mut FILE) -> libc::c_int;
-    pub fn fopen(_: *const libc::c_char, _: *const libc::c_char) -> *mut FILE;
-    pub fn setvbuf(
-        __stream: *mut FILE,
-        __buf: *mut libc::c_char,
-        __modes: libc::c_int,
-        __n: size_t,
-    ) -> libc::c_int;
+    // fn fclose(__stream: *mut FILE) -> libc::c_int;
+    // fn fopen(_: *const libc::c_char, _: *const libc::c_char) -> *mut FILE;
+    // fn setvbuf(
+    //     __stream: *mut FILE,
+    //     __buf: *mut libc::c_char,
+    //     __modes: libc::c_int,
+    //     __n: size_t,
+    // ) -> libc::c_int;
     pub fn fputs(__s: *const libc::c_char, __stream: *mut FILE) -> libc::c_int;
     pub fn memcpy(
         _: *mut libc::c_void,
         _: *const libc::c_void,
         _: libc::c_ulong,
     ) -> *mut libc::c_void;
-    pub fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     // vtls/mbedtls_threadlock.rs
 
     // vtls/mbedtls.rs

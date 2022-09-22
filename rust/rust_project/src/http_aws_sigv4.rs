@@ -1,7 +1,7 @@
 use ::libc;
 use c2rust_bitfields::BitfieldStruct;
 use rust_ffi::src::ffi_alias::type_alias::*;
-use rust_ffi::src::ffi_fun::fun_call::*;
+// use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
 extern "C" {
     // pub type _IO_wide_data;
@@ -9,7 +9,7 @@ extern "C" {
     // pub type _IO_marker;
     // pub type Curl_URL;
     // pub type thread_data;
-    // pub type altsvcinfo;
+    pub type altsvcinfo;
     // pub type TELNET;
     // pub type smb_request;
     // pub type ldapreqinfo;
@@ -20,49 +20,49 @@ extern "C" {
     // pub type ldapconninfo;
     // pub type tftp_state_data;
     // pub type nghttp2_session;
-    // fn time(__timer: *mut time_t) -> time_t;
-    // fn strftime(
-    //     __s: *mut libc::c_char,
-    //     __maxsize: size_t,
-    //     __format: *const libc::c_char,
-    //     __tp: *const tm,
-    // ) -> size_t;
-    // fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    // fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
-    // fn strlen(_: *const libc::c_char) -> libc::c_ulong;
+    fn time(__timer: *mut time_t) -> time_t;
+    fn strftime(
+        __s: *mut libc::c_char,
+        __maxsize: size_t,
+        __format: *const libc::c_char,
+        __tp: *const tm,
+    ) -> size_t;
+    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
+    fn strlen(_: *const libc::c_char) -> libc::c_ulong;
     fn Curl_http_method(
         data: *mut Curl_easy,
         conn: *mut connectdata,
         method: *mut *const libc::c_char,
         _: *mut Curl_HttpReq,
     );
-    // fn Curl_raw_toupper(in_0: libc::c_char) -> libc::c_char;
-    // fn Curl_strntoupper(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
-    // fn Curl_strntolower(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
-    // fn Curl_memdup(src: *const libc::c_void, buffer_length: size_t) -> *mut libc::c_void;
+    fn Curl_raw_toupper(in_0: libc::c_char) -> libc::c_char;
+    fn Curl_strntoupper(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
+    fn Curl_strntolower(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
+    fn Curl_memdup(src: *const libc::c_void, buffer_length: size_t) -> *mut libc::c_void;
     static Curl_HMAC_SHA256: [HMAC_params; 1];
-    // fn Curl_hmacit(
-    //     hashparams: *const HMAC_params,
-    //     key: *const libc::c_uchar,
-    //     keylen: size_t,
-    //     data: *const libc::c_uchar,
-    //     datalen: size_t,
-    //     output: *mut libc::c_uchar,
-    // ) -> CURLcode;
-    // fn Curl_sha256it(outbuffer: *mut libc::c_uchar, input: *const libc::c_uchar, len: size_t);
+    fn Curl_hmacit(
+        hashparams: *const HMAC_params,
+        key: *const libc::c_uchar,
+        keylen: size_t,
+        data: *const libc::c_uchar,
+        datalen: size_t,
+        output: *mut libc::c_uchar,
+    ) -> CURLcode;
+    fn Curl_sha256it(outbuffer: *mut libc::c_uchar, input: *const libc::c_uchar, len: size_t);
     fn Curl_checkheaders(
         data: *const Curl_easy,
         thisheader: *const libc::c_char,
     ) -> *mut libc::c_char;
-    // fn Curl_gmtime(intime: time_t, store: *mut tm) -> CURLcode;
+    fn Curl_gmtime(intime: time_t, store: *mut tm) -> CURLcode;
     fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    // fn curl_msnprintf(
-    //     buffer: *mut libc::c_char,
-    //     maxlength: size_t,
-    //     format: *const libc::c_char,
-    //     _: ...
-    // ) -> libc::c_int;
-    // fn curl_maprintf(format: *const libc::c_char, _: ...) -> *mut libc::c_char;
+    fn curl_msnprintf(
+        buffer: *mut libc::c_char,
+        maxlength: size_t,
+        format: *const libc::c_char,
+        _: ...
+    ) -> libc::c_int;
+    fn curl_maprintf(format: *const libc::c_char, _: ...) -> *mut libc::c_char;
     static mut Curl_cmalloc: curl_malloc_callback;
     static mut Curl_cfree: curl_free_callback;
     static mut Curl_cstrdup: curl_strdup_callback;

@@ -1,12 +1,19 @@
 use crate::src::ffi_alias::type_alias::*;
 use c2rust_bitfields::BitfieldStruct;
 
-// http_ntlm.rs + http_digest.rs + http_proxy.rs + http_chuncks.rs + vtls/keylog.rs
+// ftp.rs + http_aws_sigv4.rs + http_ntlm.rs + http_digest.rs + http_proxy.rs + http_chunks.rs + http.rs + http2.rs + vtls/keylog.rs
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct sockaddr {
     pub sa_family: sa_family_t,
     pub sa_data: [libc::c_char; 14],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct sockaddr_storage {
+    pub ss_family: sa_family_t,
+    pub __ss_padding: [libc::c_char; 118],
+    pub __ss_align: libc::c_ulong,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -475,6 +482,13 @@ pub struct Progress {
     pub callback_is_t_startransfer_set: [u8; 1],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 3],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct altsvcinfo {
+    pub filename: *mut libc::c_char,
+    pub list: Curl_llist,
+    pub flags: libc::c_long,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1049,6 +1063,22 @@ pub struct FILEPROTO {
 // }
 // #[derive(Copy, Clone)]
 // #[repr(C)]
+// pub struct Curl_share {
+//     pub magic: libc::c_uint,
+//     pub specifier: libc::c_uint,
+//     pub dirty: libc::c_uint,
+//     pub lockfunc: curl_lock_function,
+//     pub unlockfunc: curl_unlock_function,
+//     pub clientdata: *mut libc::c_void,
+//     pub conn_cache: conncache,
+//     pub hostcache: Curl_hash,
+//     pub cookies: *mut CookieInfo,
+//     pub sslsession: *mut Curl_ssl_session,
+//     pub max_ssl_sessions: size_t,
+//     pub sessionage: libc::c_long,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
 // pub struct Curl_multi {
 //     pub magic: libc::c_uint,
 //     pub easyp: *mut Curl_easy,
@@ -1079,6 +1109,40 @@ pub struct FILEPROTO {
 //     pub ipv6_works: bool,
 //     pub ssl_seeded: bool,
 // }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct curl_pushheaders {
+//     pub data: *mut Curl_easy,
+//     pub frame: *const nghttp2_push_promise,
+// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_push_promise {
+    pub hd: nghttp2_frame_hd,
+    pub padlen: size_t,
+    pub nva: *mut nghttp2_nv,
+    pub nvlen: size_t,
+    pub promised_stream_id: int32_t,
+    pub reserved: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_nv {
+    pub name: *mut uint8_t,
+    pub value: *mut uint8_t,
+    pub namelen: size_t,
+    pub valuelen: size_t,
+    pub flags: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_frame_hd {
+    pub length: size_t,
+    pub stream_id: int32_t,
+    pub type_0: uint8_t,
+    pub flags: uint8_t,
+    pub reserved: uint8_t,
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Names {
@@ -1599,4 +1663,226 @@ pub struct HMAC_params {
     pub hmac_ctxtsize: libc::c_uint,
     pub hmac_maxkeylen: libc::c_uint,
     pub hmac_resultlen: libc::c_uint,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_info {
+    pub age: libc::c_int,
+    pub version_num: libc::c_int,
+    pub version_str: *const libc::c_char,
+    pub proto_str: *const libc::c_char,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_data_provider {
+    pub source: nghttp2_data_source,
+    pub read_callback: nghttp2_data_source_read_callback,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_data {
+    pub hd: nghttp2_frame_hd,
+    pub padlen: size_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_priority_spec {
+    pub stream_id: int32_t,
+    pub weight: int32_t,
+    pub exclusive: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_headers {
+    pub hd: nghttp2_frame_hd,
+    pub padlen: size_t,
+    pub pri_spec: nghttp2_priority_spec,
+    pub nva: *mut nghttp2_nv,
+    pub nvlen: size_t,
+    pub cat: nghttp2_headers_category,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_priority {
+    pub hd: nghttp2_frame_hd,
+    pub pri_spec: nghttp2_priority_spec,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_rst_stream {
+    pub hd: nghttp2_frame_hd,
+    pub error_code: uint32_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_settings {
+    pub hd: nghttp2_frame_hd,
+    pub niv: size_t,
+    pub iv: *mut nghttp2_settings_entry,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_ping {
+    pub hd: nghttp2_frame_hd,
+    pub opaque_data: [uint8_t; 8],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_goaway {
+    pub hd: nghttp2_frame_hd,
+    pub last_stream_id: int32_t,
+    pub error_code: uint32_t,
+    pub opaque_data: *mut uint8_t,
+    pub opaque_data_len: size_t,
+    pub reserved: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_window_update {
+    pub hd: nghttp2_frame_hd,
+    pub window_size_increment: int32_t,
+    pub reserved: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct nghttp2_extension {
+    pub hd: nghttp2_frame_hd,
+    pub payload: *mut libc::c_void,
+}
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct curl_fileinfo {
+//     pub filename: *mut libc::c_char,
+//     pub filetype: curlfiletype,
+//     pub time: time_t,
+//     pub perm: libc::c_uint,
+//     pub uid: libc::c_int,
+//     pub gid: libc::c_int,
+//     pub size: curl_off_t,
+//     pub hardlinks: libc::c_long,
+//     pub strings: C2RustUnnamed_7,
+//     pub flags: libc::c_uint,
+//     pub b_data: *mut libc::c_char,
+//     pub b_size: size_t,
+//     pub b_used: size_t,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct C2RustUnnamed_7 {
+//     pub time: *mut libc::c_char,
+//     pub perm: *mut libc::c_char,
+//     pub user: *mut libc::c_char,
+//     pub group: *mut libc::c_char,
+//     pub target: *mut libc::c_char,
+// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct in_addr {
+    pub s_addr: in_addr_t,
+}
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct in6_addr {
+//     pub __in6_u: C2RustUnnamed_8,
+// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct sockaddr_in {
+    pub sin_family: sa_family_t,
+    pub sin_port: in_port_t,
+    pub sin_addr: in_addr,
+    pub sin_zero: [libc::c_uchar; 8],
+}
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct sockaddr_in6 {
+//     pub sin6_family: sa_family_t,
+//     pub sin6_port: in_port_t,
+//     pub sin6_flowinfo: uint32_t,
+//     pub sin6_addr: in6_addr,
+//     pub sin6_scope_id: uint32_t,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct Curl_sockaddr_storage {
+//     pub buffer: C2RustUnnamed_9,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct Curl_sockaddr_ex {
+//     pub family: libc::c_int,
+//     pub socktype: libc::c_int,
+//     pub protocol: libc::c_int,
+//     pub addrlen: libc::c_uint,
+//     pub _sa_ex_u: C2RustUnnamed_10,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct ftp_wc {
+//     pub parser: *mut ftp_parselist_data,
+//     pub backup: C2RustUnnamed_11,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct C2RustUnnamed_11 {
+//     pub write_function: curl_write_callback,
+//     pub file_descriptor: *mut FILE,
+// }
+
+// -----------------Union-----------------
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub union C2RustUnnamed {
+//     pub file: *mut FILEPROTO,
+//     pub ftp: *mut FTP,
+//     pub http: *mut HTTP,
+//     pub imap: *mut IMAP,
+//     pub ldap: *mut ldapreqinfo,
+//     pub mqtt: *mut MQTT,
+//     pub pop3: *mut POP3,
+//     pub rtsp: *mut RTSP,
+//     pub smb: *mut smb_request,
+//     pub smtp: *mut SMTP,
+//     pub ssh: *mut SSHPROTO,
+//     pub telnet: *mut TELNET,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub union pl_winNT_substate {
+//     pub time: C2RustUnnamed_12,
+//     pub dirorsize: C2RustUnnamed_11,
+//     pub filename: C2RustUnnamed_10,
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub union pl_unix_substate {
+//     pub total_dirsize: C2RustUnnamed_21,
+//     pub hlinks: C2RustUnnamed_20,
+//     pub user: C2RustUnnamed_19,
+//     pub group: C2RustUnnamed_18,
+//     pub size: C2RustUnnamed_17,
+//     pub time: C2RustUnnamed_16,
+//     pub filename: C2RustUnnamed_15,
+//     pub symlink: C2RustUnnamed_14,
+// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub union nghttp2_data_source {
+    pub fd: libc::c_int,
+    pub ptr: *mut libc::c_void,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub union nghttp2_frame {
+    pub hd: nghttp2_frame_hd,
+    pub data: nghttp2_data,
+    pub headers: nghttp2_headers,
+    pub priority: nghttp2_priority,
+    pub rst_stream: nghttp2_rst_stream,
+    pub settings: nghttp2_settings,
+    pub push_promise: nghttp2_push_promise,
+    pub ping: nghttp2_ping,
+    pub goaway: nghttp2_goaway,
+    pub window_update: nghttp2_window_update,
+    pub ext: nghttp2_extension,
 }
