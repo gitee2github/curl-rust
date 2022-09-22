@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set +e
 cd rust/
 
 # 开始检查
