@@ -4427,7 +4427,12 @@ unsafe extern "C" fn ftp_block_statemach(
     let mut ftpc: *mut ftp_conn = &mut (*conn).proto.ftpc;
     let mut pp: *mut pingpong = &mut (*ftpc).pp;
     let mut result: CURLcode = CURLE_OK;
-    while (*ftpc).state as libc::c_uint != FTP_STOP as libc::c_int as libc::c_uint {
+    // 解决clippy错误
+    loop {
+        if (*ftpc).state as libc::c_uint == FTP_STOP as libc::c_int as libc::c_uint {
+            break;
+        }
+        // while (*ftpc).state as libc::c_uint != FTP_STOP as libc::c_int as libc::c_uint {
         result = Curl_pp_statemach(data, pp, 1 as libc::c_int != 0, 1 as libc::c_int != 0);
         if result as u64 != 0 {
             break;

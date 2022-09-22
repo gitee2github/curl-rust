@@ -1523,10 +1523,11 @@ unsafe extern "C" fn http_perhapsrewind(
         _ => {}
     }
     bytessent = (*data).req.writebytecount;
-    if ((*conn).bits).authneg() != 0 {
+    // 解决clippy错误
+    if ((*conn).bits).authneg() != 0 || ((*conn).bits).protoconnstart() == 0 {
         expectsend = 0 as libc::c_int as curl_off_t;
-    } else if ((*conn).bits).protoconnstart() == 0 {
-        expectsend = 0 as libc::c_int as curl_off_t;
+    // } else if ((*conn).bits).protoconnstart() == 0 {
+    //     expectsend = 0 as libc::c_int as curl_off_t;
     } else {
         match (*data).state.httpreq as libc::c_uint {
             1 | 4 => {
@@ -5007,17 +5008,25 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                         (*k).keepon |= (1 as libc::c_int) << 1 as libc::c_int;
                     }
                 }
+                // 解决clippy错误
                 if (*k).header() == 0 {
-                    if ((*data).set).opt_no_body() != 0 {
-                        *stop_reading = 1 as libc::c_int != 0;
-                    } else if (*(*conn).handler).protocol
-                        & ((1 as libc::c_int) << 18 as libc::c_int) as libc::c_uint
-                        != 0
-                        && (*data).set.rtspreq as libc::c_uint
-                            == RTSPREQ_DESCRIBE as libc::c_int as libc::c_uint
-                        && (*k).size <= -(1 as libc::c_int) as libc::c_long
+                    if ((*data).set).opt_no_body() != 0
+                        || (*(*conn).handler).protocol
+                            & ((1 as libc::c_int) << 18 as libc::c_int) as libc::c_uint
+                            != 0
+                            && (*data).set.rtspreq as libc::c_uint
+                                == RTSPREQ_DESCRIBE as libc::c_int as libc::c_uint
+                            && (*k).size <= -(1 as libc::c_int) as libc::c_long
                     {
                         *stop_reading = 1 as libc::c_int != 0;
+                    // } else if (*(*conn).handler).protocol
+                    //     & ((1 as libc::c_int) << 18 as libc::c_int) as libc::c_uint
+                    //     != 0
+                    //     && (*data).set.rtspreq as libc::c_uint
+                    //         == RTSPREQ_DESCRIBE as libc::c_int as libc::c_uint
+                    //     && (*k).size <= -(1 as libc::c_int) as libc::c_long
+                    // {
+                    //     *stop_reading = 1 as libc::c_int != 0;
                     } else if (*k).chunk() != 0 {
                         let ref mut fresh89 = (*k).size;
                         *fresh89 = -(1 as libc::c_int) as curl_off_t;
