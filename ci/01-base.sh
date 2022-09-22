@@ -34,7 +34,7 @@ aclocal
 automake
 
 LIBS=-ldl ./configure --without-ssl --disable-shared
-make
+make || true
 cd lib/.libs/
 mkdir temp
 mv libcurl.a temp/
