@@ -16,16 +16,16 @@ extern crate c2rust_bitfields;
 extern crate rust_ffi;
 
 pub mod src {
-    // pub mod ftp;
-    // pub mod ftplistparser;
+    pub mod ftp;
+    pub mod ftplistparser;
     pub mod http_aws_sigv4;
     pub mod http_chunks;
     pub mod http_digest;
     // pub mod http_negotiate;
+    pub mod http;
+    pub mod http2;
     pub mod http_ntlm;
     pub mod http_proxy;
-    // pub mod http;
-    // pub mod http2;
     pub mod vtls {
         // pub mod bearssl;
         // pub mod gskit;
@@ -37,10 +37,7 @@ pub mod src {
         // pub mod nss;
         // pub mod openssl;
         // pub mod rustls;
-        // pub mod schannel_verify;
-        // pub mod schannel;
-        // pub mod sectransp;
-        // pub mod vtls;
+        pub mod vtls;
         // pub mod wolfssl;
     }
 }

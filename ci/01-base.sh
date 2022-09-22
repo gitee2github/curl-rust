@@ -33,6 +33,23 @@ cd ../
 aclocal
 automake
 
-LDFLAGS="-L`pwd`/rust/target/release" LIBS="-lrust_project -ldl" ./configure --without-ssl --disable-shared
-
+LIBS=-ldl ./configure --without-ssl --disable-shared
 make
+cd lib/.libs/
+mkdir temp
+mv libcurl.a temp/
+cp ../../rust/target/release/librust_project.a temp/
+cd temp
+ar x libcurl.a
+ar x librust_project.a
+rm libcurl.a librust_project.a
+ar r libcurl.a *.o
+cp libcurl.a ../
+cd ..
+rm -r temp/
+cd ../../
+make
+
+# LDFLAGS="-L`pwd`/rust/target/release" LIBS="-lrust_project -ldl" ./configure --without-ssl --disable-shared
+
+# make

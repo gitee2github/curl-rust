@@ -9,7 +9,7 @@ extern "C" {
     // pub type _IO_marker;
     // pub type Curl_URL;
     // pub type thread_data;
-    // pub type altsvcinfo;
+    pub type altsvcinfo;
     // pub type TELNET;
     // pub type smb_request;
     // pub type ldapreqinfo;
@@ -947,27 +947,27 @@ pub struct imap_conn {
     pub mailbox_uidvalidity: *mut libc::c_char,
     pub dyn_0: dynbuf,
 }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct ssh_conn {
-//     pub authlist: *const libc::c_char,
-//     pub passphrase: *const libc::c_char,
-//     pub rsa_pub: *mut libc::c_char,
-//     pub rsa: *mut libc::c_char,
-//     pub authed: bool,
-//     pub acceptfail: bool,
-//     pub state: sshstate,
-//     pub nextstate: sshstate,
-//     pub actualcode: CURLcode,
-//     pub quote_item: *mut curl_slist,
-//     pub quote_path1: *mut libc::c_char,
-//     pub quote_path2: *mut libc::c_char,
-//     pub homedir: *mut libc::c_char,
-//     pub readdir_line: *mut libc::c_char,
-//     pub secondCreateDirs: libc::c_int,
-//     pub orig_waitfor: libc::c_int,
-//     pub slash_pos: *mut libc::c_char,
-// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct ssh_conn {
+    pub authlist: *const libc::c_char,
+    pub passphrase: *const libc::c_char,
+    pub rsa_pub: *mut libc::c_char,
+    pub rsa: *mut libc::c_char,
+    pub authed: bool,
+    pub acceptfail: bool,
+    pub state: sshstate,
+    pub nextstate: sshstate,
+    pub actualcode: CURLcode,
+    pub quote_item: *mut curl_slist,
+    pub quote_path1: *mut libc::c_char,
+    pub quote_path2: *mut libc::c_char,
+    pub homedir: *mut libc::c_char,
+    pub readdir_line: *mut libc::c_char,
+    pub secondCreateDirs: libc::c_int,
+    pub orig_waitfor: libc::c_int,
+    pub slash_pos: *mut libc::c_char,
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct http_conn {

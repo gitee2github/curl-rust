@@ -53,7 +53,6 @@ LIB_VTLS_CFILES =           \
   vtls/schannel.c           \
   vtls/schannel_verify.c    \
   vtls/sectransp.c          \
-  vtls/vtls.c               \
   vtls/wolfssl.c
 
 LIB_VTLS_HFILES =           \
@@ -131,8 +130,6 @@ LIB_CFILES =         \
   file.c             \
   fileinfo.c         \
   formdata.c         \
-  ftp.c              \
-  ftplistparser.c    \
   getenv.c           \
   getinfo.c          \
   gopher.c           \
@@ -145,8 +142,6 @@ LIB_CFILES =         \
   hostip6.c          \
   hostsyn.c          \
   hsts.c             \
-  http.c             \
-  http2.c            \
   http_negotiate.c   \
   idn_win32.c        \
   if2ip.c            \

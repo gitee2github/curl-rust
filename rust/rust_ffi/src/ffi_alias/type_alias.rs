@@ -1,15 +1,13 @@
 use crate::src::ffi_struct::struct_define::*;
 
-// ---------------------Type Alias--------------------
-
-// extern C
+// ---------------------Extern C----------------------
 extern "C" {
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
     pub type Curl_URL;
     pub type thread_data;
-    pub type altsvcinfo;
+    // pub type altsvcinfo;
     pub type hsts;
     pub type TELNET;
     pub type smb_request;
@@ -21,10 +19,14 @@ extern "C" {
     pub type ldapconninfo;
     pub type tftp_state_data;
     pub type nghttp2_session;
+    pub type nghttp2_session_callbacks;
+    pub type ftp_parselist_data;
     pub type ssl_backend_data;
 }
 
+// ---------------------Type Alias--------------------
 pub type __uint8_t = libc::c_uchar;
+pub type __uint16_t = libc::c_ushort;
 pub type __int32_t = libc::c_int;
 pub type __uint32_t = libc::c_uint;
 pub type __off_t = libc::c_long;
@@ -175,6 +177,19 @@ pub type C2RustUnnamed_0 = libc::c_uint;
 pub type upgrade101 = libc::c_uint;
 pub type expect100 = libc::c_uint;
 pub type C2RustUnnamed_1 = libc::c_uint;
+// pub type curl_unlock_function = Option::<
+//     unsafe extern "C" fn(*mut CURL, curl_lock_data, *mut libc::c_void) -> (),
+// >;
+pub type curl_lock_data = libc::c_uint;
+// pub type curl_lock_function = Option::<
+//     unsafe extern "C" fn(
+//         *mut CURL,
+//         curl_lock_data,
+//         curl_lock_access,
+//         *mut libc::c_void,
+//     ) -> (),
+// >;
+pub type curl_lock_access = libc::c_uint;
 // pub type curl_multi_timer_callback = Option::<
 //     unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int,
 // >;
@@ -231,18 +246,110 @@ pub type C2RustUnnamed_5 = libc::c_uint;
 pub type C2RustUnnamed_6 = libc::c_uint;
 pub type ChunkyState = libc::c_uint;
 pub type connect_t = libc::c_uint;
+pub type curlfiletype = libc::c_uint;
 pub type curl_malloc_callback = Option<unsafe extern "C" fn(size_t) -> *mut libc::c_void>;
-pub type curl_calloc_callback = Option<unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void>;
-pub type CHUNKcode = libc::c_int;
-pub type dupstring = libc::c_uint;
-pub type CURLofft = libc::c_uint;
+pub type curl_realloc_callback =
+    Option<unsafe extern "C" fn(*mut libc::c_void, size_t) -> *mut libc::c_void>;
 pub type curl_strdup_callback =
     Option<unsafe extern "C" fn(*const libc::c_char) -> *mut libc::c_char>;
+pub type curl_calloc_callback = Option<unsafe extern "C" fn(size_t, size_t) -> *mut libc::c_void>;
+pub type C2RustUnnamed_7 = libc::c_uint;
+pub type CURLMcode = libc::c_int;
+pub type CURLSHcode = libc::c_uint;
+pub type CURLUcode = libc::c_uint;
+pub type CURLUPart = libc::c_uint;
+pub type mimestrategy = libc::c_uint;
+pub type proxy_use = libc::c_uint;
+pub type alpnid = libc::c_uint;
+pub type CHUNKcode = libc::c_int;
+pub type CURLofft = libc::c_uint;
+pub type statusline = libc::c_uint;
+pub type dupstring = libc::c_uint;
 pub type HMAC_hfinal_func =
     Option<unsafe extern "C" fn(*mut libc::c_uchar, *mut libc::c_void) -> ()>;
 pub type HMAC_hupdate_func =
     Option<unsafe extern "C" fn(*mut libc::c_void, *const libc::c_uchar, libc::c_uint) -> ()>;
 pub type HMAC_hinit_func = Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>;
+pub type nghttp2_settings_id = libc::c_uint;
+pub type nghttp2_data_source_read_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        int32_t,
+        *mut uint8_t,
+        size_t,
+        *mut uint32_t,
+        *mut nghttp2_data_source,
+        *mut libc::c_void,
+    ) -> ssize_t,
+>;
+pub type nghttp2_headers_category = libc::c_uint;
+// pub type nghttp2_send_callback = Option::<
+//     unsafe extern "C" fn(
+//         *mut nghttp2_session,
+//         *const uint8_t,
+//         size_t,
+//         libc::c_int,
+//         *mut libc::c_void,
+//     ) -> ssize_t,
+// >;
+pub type nghttp2_on_frame_recv_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        *const nghttp2_frame,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type nghttp2_on_data_chunk_recv_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        uint8_t,
+        int32_t,
+        *const uint8_t,
+        size_t,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type nghttp2_on_stream_close_callback = Option<
+    unsafe extern "C" fn(*mut nghttp2_session, int32_t, uint32_t, *mut libc::c_void) -> libc::c_int,
+>;
+pub type nghttp2_on_begin_headers_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        *const nghttp2_frame,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type nghttp2_on_header_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        *const nghttp2_frame,
+        *const uint8_t,
+        size_t,
+        *const uint8_t,
+        size_t,
+        uint8_t,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type nghttp2_error_callback = Option<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        *const libc::c_char,
+        size_t,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type header_instruction = libc::c_uint;
+pub type uint16_t = __uint16_t;
+pub type in_addr_t = uint32_t;
+pub type in_port_t = uint16_t;
+pub type resolve_t = libc::c_int;
+pub type ftpport = libc::c_uint;
+pub type if2ip_result_t = libc::c_uint;
+pub type urlreject = libc::c_uint;
+pub type timerid = libc::c_uint;
+pub type pl_winNT_mainstate = libc::c_uint;
+pub type pl_unix_mainstate = libc::c_uint;
 
 // ----------------------Constants----------------------
 // curl_sslbackend
@@ -594,6 +701,22 @@ pub const HEADER_ALLBAD: C2RustUnnamed_1 = 2;
 pub const HEADER_PARTHEADER: C2RustUnnamed_1 = 1;
 pub const HEADER_NORMAL: C2RustUnnamed_1 = 0;
 
+// curl_lock_data
+pub const CURL_LOCK_DATA_LAST: curl_lock_data = 7;
+pub const CURL_LOCK_DATA_PSL: curl_lock_data = 6;
+pub const CURL_LOCK_DATA_CONNECT: curl_lock_data = 5;
+pub const CURL_LOCK_DATA_SSL_SESSION: curl_lock_data = 4;
+pub const CURL_LOCK_DATA_DNS: curl_lock_data = 3;
+pub const CURL_LOCK_DATA_COOKIE: curl_lock_data = 2;
+pub const CURL_LOCK_DATA_SHARE: curl_lock_data = 1;
+pub const CURL_LOCK_DATA_NONE: curl_lock_data = 0;
+
+// curl_lock_access
+pub const CURL_LOCK_ACCESS_LAST: curl_lock_access = 3;
+pub const CURL_LOCK_ACCESS_SINGLE: curl_lock_access = 2;
+pub const CURL_LOCK_ACCESS_SHARED: curl_lock_access = 1;
+pub const CURL_LOCK_ACCESS_NONE: curl_lock_access = 0;
+
 // C2RUSTUnnamed_2
 pub const HCACHE_SHARED: C2RustUnnamed_2 = 2;
 pub const HCACHE_MULTI: C2RustUnnamed_2 = 1;
@@ -877,6 +1000,100 @@ pub const CONNECT_SOCKS_SEND: connect_t = 2;
 pub const CONNECT_SOCKS_INIT: connect_t = 1;
 pub const CONNECT_INIT: connect_t = 0;
 
+// curlfiletype
+pub const CURLFILETYPE_UNKNOWN: curlfiletype = 8;
+pub const CURLFILETYPE_DOOR: curlfiletype = 7;
+pub const CURLFILETYPE_SOCKET: curlfiletype = 6;
+pub const CURLFILETYPE_NAMEDPIPE: curlfiletype = 5;
+pub const CURLFILETYPE_DEVICE_CHAR: curlfiletype = 4;
+pub const CURLFILETYPE_DEVICE_BLOCK: curlfiletype = 3;
+pub const CURLFILETYPE_SYMLINK: curlfiletype = 2;
+pub const CURLFILETYPE_DIRECTORY: curlfiletype = 1;
+pub const CURLFILETYPE_FILE: curlfiletype = 0;
+
+// C2RustUnnamed7
+pub const CURL_HTTP_VERSION_LAST: C2RustUnnamed_7 = 31;
+pub const CURL_HTTP_VERSION_3: C2RustUnnamed_7 = 30;
+pub const CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE: C2RustUnnamed_7 = 5;
+pub const CURL_HTTP_VERSION_2TLS: C2RustUnnamed_7 = 4;
+pub const CURL_HTTP_VERSION_2_0: C2RustUnnamed_7 = 3;
+pub const CURL_HTTP_VERSION_1_1: C2RustUnnamed_7 = 2;
+pub const CURL_HTTP_VERSION_1_0: C2RustUnnamed_7 = 1;
+pub const CURL_HTTP_VERSION_NONE: C2RustUnnamed_7 = 0;
+
+// CURLMcode
+pub const CURLM_LAST: CURLMcode = 11;
+pub const CURLM_BAD_FUNCTION_ARGUMENT: CURLMcode = 10;
+pub const CURLM_WAKEUP_FAILURE: CURLMcode = 9;
+pub const CURLM_RECURSIVE_API_CALL: CURLMcode = 8;
+pub const CURLM_ADDED_ALREADY: CURLMcode = 7;
+pub const CURLM_UNKNOWN_OPTION: CURLMcode = 6;
+pub const CURLM_BAD_SOCKET: CURLMcode = 5;
+pub const CURLM_INTERNAL_ERROR: CURLMcode = 4;
+pub const CURLM_OUT_OF_MEMORY: CURLMcode = 3;
+pub const CURLM_BAD_EASY_HANDLE: CURLMcode = 2;
+pub const CURLM_BAD_HANDLE: CURLMcode = 1;
+pub const CURLM_OK: CURLMcode = 0;
+pub const CURLM_CALL_MULTI_PERFORM: CURLMcode = -1;
+
+// CURLSHcode
+pub const CURLSHE_LAST: CURLSHcode = 6;
+pub const CURLSHE_NOT_BUILT_IN: CURLSHcode = 5;
+pub const CURLSHE_NOMEM: CURLSHcode = 4;
+pub const CURLSHE_INVALID: CURLSHcode = 3;
+pub const CURLSHE_IN_USE: CURLSHcode = 2;
+pub const CURLSHE_BAD_OPTION: CURLSHcode = 1;
+pub const CURLSHE_OK: CURLSHcode = 0;
+
+// CURLUcode
+pub const CURLUE_NO_FRAGMENT: CURLUcode = 17;
+pub const CURLUE_NO_QUERY: CURLUcode = 16;
+pub const CURLUE_NO_PORT: CURLUcode = 15;
+pub const CURLUE_NO_HOST: CURLUcode = 14;
+pub const CURLUE_NO_OPTIONS: CURLUcode = 13;
+pub const CURLUE_NO_PASSWORD: CURLUcode = 12;
+pub const CURLUE_NO_USER: CURLUcode = 11;
+pub const CURLUE_NO_SCHEME: CURLUcode = 10;
+pub const CURLUE_UNKNOWN_PART: CURLUcode = 9;
+pub const CURLUE_USER_NOT_ALLOWED: CURLUcode = 8;
+pub const CURLUE_OUT_OF_MEMORY: CURLUcode = 7;
+pub const CURLUE_URLDECODE: CURLUcode = 6;
+pub const CURLUE_UNSUPPORTED_SCHEME: CURLUcode = 5;
+pub const CURLUE_BAD_PORT_NUMBER: CURLUcode = 4;
+pub const CURLUE_MALFORMED_INPUT: CURLUcode = 3;
+pub const CURLUE_BAD_PARTPOINTER: CURLUcode = 2;
+pub const CURLUE_BAD_HANDLE: CURLUcode = 1;
+pub const CURLUE_OK: CURLUcode = 0;
+
+// CURLUPart
+pub const CURLUPART_ZONEID: CURLUPart = 10;
+pub const CURLUPART_FRAGMENT: CURLUPart = 9;
+pub const CURLUPART_QUERY: CURLUPart = 8;
+pub const CURLUPART_PATH: CURLUPart = 7;
+pub const CURLUPART_PORT: CURLUPart = 6;
+pub const CURLUPART_HOST: CURLUPart = 5;
+pub const CURLUPART_OPTIONS: CURLUPart = 4;
+pub const CURLUPART_PASSWORD: CURLUPart = 3;
+pub const CURLUPART_USER: CURLUPart = 2;
+pub const CURLUPART_SCHEME: CURLUPart = 1;
+pub const CURLUPART_URL: CURLUPart = 0;
+
+// mimestrategy
+pub const MIMESTRATEGY_LAST: mimestrategy = 2;
+pub const MIMESTRATEGY_FORM: mimestrategy = 1;
+pub const MIMESTRATEGY_MAIL: mimestrategy = 0;
+
+// proxy_use
+pub const HEADER_CONNECT: proxy_use = 2;
+pub const HEADER_PROXY: proxy_use = 1;
+pub const HEADER_SERVER: proxy_use = 0;
+
+// alpnid
+pub const ALPN_h3: alpnid = 32;
+pub const ALPN_h2: alpnid = 16;
+pub const ALPN_h1: alpnid = 8;
+pub const ALPN_none: alpnid = 0;
+
 // CHUNKcode
 pub const CHUNKE_LAST: CHUNKcode = 7;
 pub const CHUNKE_PASSTHRU_ERROR: CHUNKcode = 6;
@@ -887,6 +1104,16 @@ pub const CHUNKE_ILLEGAL_HEX: CHUNKcode = 2;
 pub const CHUNKE_TOO_LONG_HEX: CHUNKcode = 1;
 pub const CHUNKE_OK: CHUNKcode = 0;
 pub const CHUNKE_STOP: CHUNKcode = -1;
+
+// CURLofft
+pub const CURL_OFFT_INVAL: CURLofft = 2;
+pub const CURL_OFFT_FLOW: CURLofft = 1;
+pub const CURL_OFFT_OK: CURLofft = 0;
+
+// statusline
+pub const STATUS_BAD: statusline = 2;
+pub const STATUS_DONE: statusline = 1;
+pub const STATUS_UNKNOWN: statusline = 0;
 
 // dupstring
 pub const STRING_LAST: dupstring = 80;
@@ -971,7 +1198,76 @@ pub const STRING_CERT_TYPE: dupstring = 2;
 pub const STRING_CERT_PROXY: dupstring = 1;
 pub const STRING_CERT: dupstring = 0;
 
-// CURLofft
-pub const CURL_OFFT_INVAL: CURLofft = 2;
-pub const CURL_OFFT_FLOW: CURLofft = 1;
-pub const CURL_OFFT_OK: CURLofft = 0;
+// nghttp2_settings_id
+pub const NGHTTP2_SETTINGS_NO_RFC7540_PRIORITIES: nghttp2_settings_id = 9;
+pub const NGHTTP2_SETTINGS_ENABLE_CONNECT_PROTOCOL: nghttp2_settings_id = 8;
+pub const NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE: nghttp2_settings_id = 6;
+pub const NGHTTP2_SETTINGS_MAX_FRAME_SIZE: nghttp2_settings_id = 5;
+pub const NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE: nghttp2_settings_id = 4;
+pub const NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS: nghttp2_settings_id = 3;
+pub const NGHTTP2_SETTINGS_ENABLE_PUSH: nghttp2_settings_id = 2;
+pub const NGHTTP2_SETTINGS_HEADER_TABLE_SIZE: nghttp2_settings_id = 1;
+
+// nghttp2_headers_category
+pub const NGHTTP2_HCAT_HEADERS: nghttp2_headers_category = 3;
+pub const NGHTTP2_HCAT_PUSH_RESPONSE: nghttp2_headers_category = 2;
+pub const NGHTTP2_HCAT_RESPONSE: nghttp2_headers_category = 1;
+pub const NGHTTP2_HCAT_REQUEST: nghttp2_headers_category = 0;
+
+// header_instruction
+pub const HEADERINST_TE_TRAILERS: header_instruction = 2;
+pub const HEADERINST_IGNORE: header_instruction = 1;
+pub const HEADERINST_FORWARD: header_instruction = 0;
+
+// resolve_t
+pub const CURLRESOLV_PENDING: resolve_t = 1;
+pub const CURLRESOLV_RESOLVED: resolve_t = 0;
+pub const CURLRESOLV_ERROR: resolve_t = -1;
+pub const CURLRESOLV_TIMEDOUT: resolve_t = -2;
+
+// ftpport
+pub const DONE: ftpport = 2;
+pub const PORT: ftpport = 1;
+pub const EPRT: ftpport = 0;
+
+// if2ip_result_t
+pub const IF2IP_FOUND: if2ip_result_t = 2;
+pub const IF2IP_AF_NOT_SUPPORTED: if2ip_result_t = 1;
+pub const IF2IP_NOT_FOUND: if2ip_result_t = 0;
+
+// urlreject
+pub const REJECT_ZERO: urlreject = 4;
+pub const REJECT_CTRL: urlreject = 3;
+pub const REJECT_NADA: urlreject = 2;
+
+// timerid
+pub const TIMER_LAST: timerid = 11;
+pub const TIMER_REDIRECT: timerid = 10;
+pub const TIMER_STARTACCEPT: timerid = 9;
+pub const TIMER_POSTRANSFER: timerid = 8;
+pub const TIMER_STARTTRANSFER: timerid = 7;
+pub const TIMER_PRETRANSFER: timerid = 6;
+pub const TIMER_APPCONNECT: timerid = 5;
+pub const TIMER_CONNECT: timerid = 4;
+pub const TIMER_NAMELOOKUP: timerid = 3;
+pub const TIMER_STARTSINGLE: timerid = 2;
+pub const TIMER_STARTOP: timerid = 1;
+pub const TIMER_NONE: timerid = 0;
+
+// pl_winNT_mainstate
+pub const PL_WINNT_FILENAME: pl_winNT_mainstate = 3;
+pub const PL_WINNT_DIRORSIZE: pl_winNT_mainstate = 2;
+pub const PL_WINNT_TIME: pl_winNT_mainstate = 1;
+pub const PL_WINNT_DATE: pl_winNT_mainstate = 0;
+
+// pl_unix_mainstate
+pub const PL_UNIX_SYMLINK: pl_unix_mainstate = 9;
+pub const PL_UNIX_FILENAME: pl_unix_mainstate = 8;
+pub const PL_UNIX_TIME: pl_unix_mainstate = 7;
+pub const PL_UNIX_SIZE: pl_unix_mainstate = 6;
+pub const PL_UNIX_GROUP: pl_unix_mainstate = 5;
+pub const PL_UNIX_USER: pl_unix_mainstate = 4;
+pub const PL_UNIX_HLINKS: pl_unix_mainstate = 3;
+pub const PL_UNIX_PERMISSION: pl_unix_mainstate = 2;
+pub const PL_UNIX_FILETYPE: pl_unix_mainstate = 1;
+pub const PL_UNIX_TOTALSIZE: pl_unix_mainstate = 0;

@@ -9,7 +9,7 @@ extern "C" {
     // pub type _IO_marker;
     // pub type Curl_URL;
     // pub type thread_data;
-    // pub type altsvcinfo;
+    pub type altsvcinfo;
     // pub type TELNET;
     // pub type smb_request;
     // pub type ldapreqinfo;
@@ -125,40 +125,40 @@ extern "C" {
     static mut Curl_cfree: curl_free_callback;
     static mut Curl_ccalloc: curl_calloc_callback;
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _IO_FILE {
-    pub _flags: libc::c_int,
-    pub _IO_read_ptr: *mut libc::c_char,
-    pub _IO_read_end: *mut libc::c_char,
-    pub _IO_read_base: *mut libc::c_char,
-    pub _IO_write_base: *mut libc::c_char,
-    pub _IO_write_ptr: *mut libc::c_char,
-    pub _IO_write_end: *mut libc::c_char,
-    pub _IO_buf_base: *mut libc::c_char,
-    pub _IO_buf_end: *mut libc::c_char,
-    pub _IO_save_base: *mut libc::c_char,
-    pub _IO_backup_base: *mut libc::c_char,
-    pub _IO_save_end: *mut libc::c_char,
-    pub _markers: *mut _IO_marker,
-    pub _chain: *mut _IO_FILE,
-    pub _fileno: libc::c_int,
-    pub _flags2: libc::c_int,
-    pub _old_offset: __off_t,
-    pub _cur_column: libc::c_ushort,
-    pub _vtable_offset: libc::c_schar,
-    pub _shortbuf: [libc::c_char; 1],
-    pub _lock: *mut libc::c_void,
-    pub _offset: __off64_t,
-    pub _codecvt: *mut _IO_codecvt,
-    pub _wide_data: *mut _IO_wide_data,
-    pub _freeres_list: *mut _IO_FILE,
-    pub _freeres_buf: *mut libc::c_void,
-    pub __pad5: size_t,
-    pub _mode: libc::c_int,
-    pub _unused2: [libc::c_char; 20],
-}
-pub type FILE = _IO_FILE;
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct _IO_FILE {
+//     pub _flags: libc::c_int,
+//     pub _IO_read_ptr: *mut libc::c_char,
+//     pub _IO_read_end: *mut libc::c_char,
+//     pub _IO_read_base: *mut libc::c_char,
+//     pub _IO_write_base: *mut libc::c_char,
+//     pub _IO_write_ptr: *mut libc::c_char,
+//     pub _IO_write_end: *mut libc::c_char,
+//     pub _IO_buf_base: *mut libc::c_char,
+//     pub _IO_buf_end: *mut libc::c_char,
+//     pub _IO_save_base: *mut libc::c_char,
+//     pub _IO_backup_base: *mut libc::c_char,
+//     pub _IO_save_end: *mut libc::c_char,
+//     pub _markers: *mut _IO_marker,
+//     pub _chain: *mut _IO_FILE,
+//     pub _fileno: libc::c_int,
+//     pub _flags2: libc::c_int,
+//     pub _old_offset: __off_t,
+//     pub _cur_column: libc::c_ushort,
+//     pub _vtable_offset: libc::c_schar,
+//     pub _shortbuf: [libc::c_char; 1],
+//     pub _lock: *mut libc::c_void,
+//     pub _offset: __off64_t,
+//     pub _codecvt: *mut _IO_codecvt,
+//     pub _wide_data: *mut _IO_wide_data,
+//     pub _freeres_list: *mut _IO_FILE,
+//     pub _freeres_buf: *mut libc::c_void,
+//     pub __pad5: size_t,
+//     pub _mode: libc::c_int,
+//     pub _unused2: [libc::c_char; 20],
+// }
+// pub type FILE = _IO_FILE;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_easy {
@@ -274,60 +274,60 @@ pub struct UrlState {
     #[bitfield(padding)]
     pub c2rust_padding_0: [u8; 5],
 }
-pub type CURLU = Curl_URL;
-#[derive(Copy, Clone, BitfieldStruct)]
-#[repr(C)]
-pub struct Curl_async {
-    pub hostname: *mut libc::c_char,
-    pub dns: *mut Curl_dns_entry,
-    pub tdata: *mut thread_data,
-    pub resolver: *mut libc::c_void,
-    pub port: libc::c_int,
-    pub status: libc::c_int,
-    #[bitfield(name = "done", ty = "bit", bits = "0..=0")]
-    pub done: [u8; 1],
-    #[bitfield(padding)]
-    pub c2rust_padding: [u8; 7],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Curl_ssl_session {
-    pub name: *mut libc::c_char,
-    pub conn_to_host: *mut libc::c_char,
-    pub scheme: *const libc::c_char,
-    pub sessionid: *mut libc::c_void,
-    pub idsize: size_t,
-    pub age: libc::c_long,
-    pub remote_port: libc::c_int,
-    pub conn_to_port: libc::c_int,
-    pub ssl_config: ssl_primary_config,
-}
-#[derive(Copy, Clone, BitfieldStruct)]
-#[repr(C)]
-pub struct ssl_primary_config {
-    pub version: libc::c_long,
-    pub version_max: libc::c_long,
-    pub CApath: *mut libc::c_char,
-    pub CAfile: *mut libc::c_char,
-    pub issuercert: *mut libc::c_char,
-    pub clientcert: *mut libc::c_char,
-    pub random_file: *mut libc::c_char,
-    pub egdsocket: *mut libc::c_char,
-    pub cipher_list: *mut libc::c_char,
-    pub cipher_list13: *mut libc::c_char,
-    pub pinned_key: *mut libc::c_char,
-    pub cert_blob: *mut curl_blob,
-    pub ca_info_blob: *mut curl_blob,
-    pub issuercert_blob: *mut curl_blob,
-    pub curves: *mut libc::c_char,
-    #[bitfield(name = "verifypeer", ty = "bit", bits = "0..=0")]
-    #[bitfield(name = "verifyhost", ty = "bit", bits = "1..=1")]
-    #[bitfield(name = "verifystatus", ty = "bit", bits = "2..=2")]
-    #[bitfield(name = "sessionid", ty = "bit", bits = "3..=3")]
-    pub verifypeer_verifyhost_verifystatus_sessionid: [u8; 1],
-    #[bitfield(padding)]
-    pub c2rust_padding: [u8; 7],
-}
+// pub type CURLU = Curl_URL;
+// #[derive(Copy, Clone, BitfieldStruct)]
+// #[repr(C)]
+// pub struct Curl_async {
+//     pub hostname: *mut libc::c_char,
+//     pub dns: *mut Curl_dns_entry,
+//     pub tdata: *mut thread_data,
+//     pub resolver: *mut libc::c_void,
+//     pub port: libc::c_int,
+//     pub status: libc::c_int,
+//     #[bitfield(name = "done", ty = "bit", bits = "0..=0")]
+//     pub done: [u8; 1],
+//     #[bitfield(padding)]
+//     pub c2rust_padding: [u8; 7],
+// }
+// #[derive(Copy, Clone)]
+// #[repr(C)]
+// pub struct Curl_ssl_session {
+//     pub name: *mut libc::c_char,
+//     pub conn_to_host: *mut libc::c_char,
+//     pub scheme: *const libc::c_char,
+//     pub sessionid: *mut libc::c_void,
+//     pub idsize: size_t,
+//     pub age: libc::c_long,
+//     pub remote_port: libc::c_int,
+//     pub conn_to_port: libc::c_int,
+//     pub ssl_config: ssl_primary_config,
+// }
+// #[derive(Copy, Clone, BitfieldStruct)]
+// #[repr(C)]
+// pub struct ssl_primary_config {
+//     pub version: libc::c_long,
+//     pub version_max: libc::c_long,
+//     pub CApath: *mut libc::c_char,
+//     pub CAfile: *mut libc::c_char,
+//     pub issuercert: *mut libc::c_char,
+//     pub clientcert: *mut libc::c_char,
+//     pub random_file: *mut libc::c_char,
+//     pub egdsocket: *mut libc::c_char,
+//     pub cipher_list: *mut libc::c_char,
+//     pub cipher_list13: *mut libc::c_char,
+//     pub pinned_key: *mut libc::c_char,
+//     pub cert_blob: *mut curl_blob,
+//     pub ca_info_blob: *mut curl_blob,
+//     pub issuercert_blob: *mut curl_blob,
+//     pub curves: *mut libc::c_char,
+//     #[bitfield(name = "verifypeer", ty = "bit", bits = "0..=0")]
+//     #[bitfield(name = "verifyhost", ty = "bit", bits = "1..=1")]
+//     #[bitfield(name = "verifystatus", ty = "bit", bits = "2..=2")]
+//     #[bitfield(name = "sessionid", ty = "bit", bits = "3..=3")]
+//     pub verifypeer_verifyhost_verifystatus_sessionid: [u8; 1],
+//     #[bitfield(padding)]
+//     pub c2rust_padding: [u8; 7],
+// }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct conncache {
@@ -524,8 +524,8 @@ pub struct UserDefined {
     pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_ftp_use_port_ftp_use_epsv_ftp_use_eprt_ftp_use_pret_ftp_skip_ip_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
         [u8; 8],
 }
-pub type curl_trailer_callback =
-    Option<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int>;
+// pub type curl_trailer_callback =
+//     Option<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int>;
 pub type multidone_func = Option<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int>;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -614,9 +614,9 @@ pub struct curl_mime {
     pub boundary: [libc::c_char; 41],
     pub state: mime_state,
 }
-pub type curl_opensocket_callback = Option<
-    unsafe extern "C" fn(*mut libc::c_void, curlsocktype, *mut curl_sockaddr) -> curl_socket_t,
->;
+// pub type curl_opensocket_callback = Option<
+//     unsafe extern "C" fn(*mut libc::c_void, curlsocktype, *mut curl_sockaddr) -> curl_socket_t,
+// >;
 pub type curl_ioctl_callback =
     Option<unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr>;
 pub type curl_debug_callback = Option<
