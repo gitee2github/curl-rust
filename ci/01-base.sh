@@ -1,6 +1,14 @@
 #!/bin/bash
 
 set +e
+
+cd ../
+aclocal
+automake
+
+LIBS=-ldl ./configure --without-ssl --disable-shared
+make || true
+
 cd rust/
 
 # 开始检查
@@ -29,14 +37,7 @@ cargo build --release -v
 
 # cargo doc --all --no-deps
 
-cd ../
-
-aclocal
-automake
-
-LIBS=-ldl ./configure --without-ssl --disable-shared
-make || true
-cd lib/.libs/
+cd ../lib/.libs/
 mkdir temp
 mv libcurl.a temp/
 cp ../../rust/target/release/librust_project.a temp/
