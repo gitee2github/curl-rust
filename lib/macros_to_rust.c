@@ -1,3 +1,7 @@
+// http2
+
+
+// http_proxy
 #include "curl_setup.h"
 
 #include "http_proxy.h"
@@ -33,3 +37,43 @@ int get_CURL_DISABLE_PROXY(){
     return 0;
 #endif
 }
+
+// http_ntlm
+
+// http_negotiate
+
+// http_digest
+
+// http_chunks
+
+// http_aws_sigv4
+
+// http
+
+// ftplistparser
+
+// ftp
+
+// bearssl
+
+// gskit
+
+// gtls
+
+// keylog
+
+// mbedtls
+
+// mbedtls_threadlock
+
+// nss
+
+// mesalink
+
+// openssl
+
+// rustls
+
+// vtls
+
+// wolfssl

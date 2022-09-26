@@ -3,6 +3,8 @@ sudo yum clean all
 sudo yum install -y gcc openssl-libs automake make cmake
 
 # nghttp2
+sudo yum -y groupinstall "Development Tools"
+sudo yum install -y libev-devel libevent-devel c-ares-devel jemalloc-devel jansson-devel python-devel zlib-devel
 git clone https://github.com/tatsuhiro-t/nghttp2.git
 cd nghttp2 && autoreconf -i && automake && autoconf
 ./configure && make && sudo make install
