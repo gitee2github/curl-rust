@@ -17,5 +17,6 @@ extern crate c2rust_bitfields;
 pub mod src {
     pub mod ffi_alias;
     pub mod ffi_fun;
+    pub mod ffi_macros;
     pub mod ffi_struct;
 }

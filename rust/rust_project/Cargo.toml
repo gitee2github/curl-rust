@@ -14,3 +14,6 @@ rust_ffi = {path = "../rust_ffi"}
 crate-type = ["staticlib"]
 name = "rust_project"
 path = "lib.rs"
+
+[build-dependencies]
+rust_ffi = {path = "../rust_ffi"}
