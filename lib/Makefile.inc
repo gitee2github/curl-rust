@@ -200,7 +200,8 @@ LIB_CFILES =         \
   version_win32.c    \
   warnless.c         \
   wildcard.c         \
-  x509asn1.c
+  x509asn1.c         \
+  macros_to_rust.c
 
 LIB_HFILES =         \
   altsvc.h           \
