@@ -2,7 +2,7 @@
 
 set +e
 
-cd ../
+# cd ../
 aclocal
 automake
 
