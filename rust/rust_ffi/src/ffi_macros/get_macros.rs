@@ -39,9 +39,28 @@ extern "C" {
     fn get_CURL_DISABLE_HSTS() -> i32;
     fn get_CURL_DISABLE_COOKIES() -> i32;
 
+    fn get_HAVE_NET_IF_H() -> i32;
+    fn get_HAVE_SYS_IOCTL_H() -> i32;
+    fn get_HAVE_SYS_PARAM_H() -> i32;
+
     // ftplistparser
 
     // ftp
+    fn get_CURL_DISABLE_FTP() -> i32;
+    fn get_NI_MAXHOST() -> i32;
+    fn get_INET_ADDRSTRLEN() -> i32;
+    fn get_HAVE_NETINET_IN_H() -> i32;
+    fn get_HAVE_ARPA_INET_H() -> i32;
+    fn get_HAVE_UTSNAME_H() -> i32;
+    fn get_HAVE_NETDB_H() -> i32;
+    fn get___VMS() -> i32;
+    fn get_ENABLE_IPV6() -> i32;
+    fn get_HAVE_GSSAPI() -> i32;
+    fn get_PF_INET6() -> i32;
+    fn get_CURL_FTP_HTTPSTYLE_HEAD() -> i32;
+    fn get__WIN32_WCE() -> i32;
+    fn get_NETWARE() -> i32;
+    fn get___NOVELL_LIBC__() -> i32;
 
     // bearssl
 
@@ -109,10 +128,28 @@ pub fn get_all_cfg() {
     get_CURL_DISABLE_HSTS_add_cfg();
     get_CURL_DISABLE_COOKIES_add_cfg();
 
+    get_HAVE_NET_IF_H_add_cfg();
+    get_HAVE_SYS_IOCTL_H_add_cfg();
+    get_HAVE_SYS_PARAM_H_add_cfg();
+
     // ftplistparser
 
     // ftp
-
+    get_CURL_DISABLE_FTP_add_cfg();
+    get_NI_MAXHOST_add_cfg();
+    get_INET_ADDRSTRLEN_add_cfg();
+    get_HAVE_NETINET_IN_H_add_cfg();
+    get_HAVE_ARPA_INET_H_add_cfg();
+    get_HAVE_UTSNAME_H_add_cfg();
+    get_HAVE_NETDB_H_add_cfg();
+    get___VMS_add_cfg();
+    get_ENABLE_IPV6_add_cfg();
+    get_HAVE_GSSAPI_add_cfg();
+    get_PF_INET6_add_cfg();
+    get_CURL_FTP_HTTPSTYLE_HEAD_add_cfg();
+    get__WIN32_WCE_add_cfg();
+    get_NETWARE_add_cfg();
+    get___NOVELL_LIBC___add_cfg();
     // bearssl
 
     // gskit
@@ -294,11 +331,102 @@ fn get_CURL_DISABLE_COOKIES_add_cfg() {
         println!("cargo:rustc-cfg=CURL_DISABLE_COOKIES");
     }
 }
+fn get_HAVE_NET_IF_H_add_cfg() {
+    if unsafe { get_HAVE_NET_IF_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_NET_IF_H");
+    }
+}
+fn get_HAVE_SYS_IOCTL_H_add_cfg() {
+    if unsafe { get_HAVE_SYS_IOCTL_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SYS_IOCTL_H");
+    }
+}
+fn get_HAVE_SYS_PARAM_H_add_cfg() {
+    if unsafe { get_HAVE_SYS_PARAM_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SYS_PARAM_H");
+    }
+}
 
 // ftplistparser
 
 // ftp
+fn get_CURL_DISABLE_FTP_add_cfg() {
+    if unsafe { get_CURL_DISABLE_FTP() } == 1 {
+        println!("cargo:rustc-cfg=CURL_DISABLE_FTP");
+    }
+}
 
+fn get_NI_MAXHOST_add_cfg() {
+    if unsafe { get_NI_MAXHOST() } == 1 {
+        println!("cargo:rustc-cfg=NI_MAXHOST");
+    }
+}
+
+fn get_INET_ADDRSTRLEN_add_cfg() {
+    if unsafe { get_INET_ADDRSTRLEN() } == 1 {
+        println!("cargo:rustc-cfg=INET_ADDRSTRLEN");
+    }
+}
+fn get_HAVE_NETINET_IN_H_add_cfg() {
+    if unsafe { get_HAVE_NETINET_IN_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_NETINET_IN_H");
+    }
+}
+fn get_HAVE_ARPA_INET_H_add_cfg() {
+    if unsafe { get_HAVE_ARPA_INET_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_ARPA_INET_H");
+    }
+}
+fn get_HAVE_UTSNAME_H_add_cfg() {
+    if unsafe { get_HAVE_UTSNAME_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_UTSNAME_H");
+    }
+}
+fn get_HAVE_NETDB_H_add_cfg() {
+    if unsafe { get_HAVE_NETDB_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_NETDB_H");
+    }
+}
+fn get___VMS_add_cfg() {
+    if unsafe { get___VMS() } == 1 {
+        println!("cargo:rustc-cfg=__VMS");
+    }
+}
+fn get_ENABLE_IPV6_add_cfg() {
+    if unsafe { get_ENABLE_IPV6() } == 1 {
+        println!("cargo:rustc-cfg=ENABLE_IPV6");
+    }
+}
+fn get_HAVE_GSSAPI_add_cfg() {
+    if unsafe { get_HAVE_GSSAPI() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_GSSAPI");
+    }
+}
+fn get_PF_INET6_add_cfg() {
+    if unsafe { get_PF_INET6() } == 1 {
+        println!("cargo:rustc-cfg=PF_INET6");
+    }
+}
+fn get_CURL_FTP_HTTPSTYLE_HEAD_add_cfg() {
+    if unsafe { get_CURL_FTP_HTTPSTYLE_HEAD() } == 1 {
+        println!("cargo:rustc-cfg=CURL_FTP_HTTPSTYLE_HEAD");
+    }
+}
+fn get__WIN32_WCE_add_cfg() {
+    if unsafe { get__WIN32_WCE() } == 1 {
+        println!("cargo:rustc-cfg=_WIN32_WCE");
+    }
+}
+fn get_NETWARE_add_cfg() {
+    if unsafe { get_NETWARE() } == 1 {
+        println!("cargo:rustc-cfg=NETWARE");
+    }
+}
+fn get___NOVELL_LIBC___add_cfg() {
+    if unsafe { get___NOVELL_LIBC__() } == 1 {
+        println!("cargo:rustc-cfg=__NOVELL_LIBC__");
+    }
+}
 // bearssl
 
 // gskit
