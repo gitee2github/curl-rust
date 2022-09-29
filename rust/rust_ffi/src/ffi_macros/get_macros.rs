@@ -348,6 +348,7 @@ fn get_HAVE_SYS_PARAM_H_add_cfg() {
 }
 
 // ftplistparser
+// repeated
 
 // ftp
 fn get_CURL_DISABLE_FTP_add_cfg() {
