@@ -1117,6 +1117,7 @@ pub struct FILEPROTO {
 // }
 #[derive(Copy, Clone)]
 #[repr(C)]
+#[cfg(USE_NGHTTP2)]
 pub struct nghttp2_push_promise {
     pub hd: nghttp2_frame_hd,
     pub padlen: size_t,
@@ -1445,6 +1446,7 @@ pub struct nghttp2_settings_entry {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+#[cfg(USE_NGHTTP2)]
 pub struct h2settings {
     pub max_concurrent_streams: uint32_t,
     pub enable_push: bool,

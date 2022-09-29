@@ -10,6 +10,8 @@ extern "C" {
     // pub type Curl_URL;
     // pub type thread_data;
     pub type altsvcinfo;
+    pub type psl_ctx_st;
+    pub type hsts;
     // pub type TELNET;
     // pub type smb_request;
     // pub type ldapreqinfo;
@@ -272,6 +274,14 @@ extern "C" {
 // pub type FILE = _IO_FILE;
 #[derive(Copy, Clone)]
 #[repr(C)]
+pub struct PslCache {
+    pub psl: *const psl_ctx_t,
+    pub expires: time_t,
+    pub dynamic: bool,
+}
+pub type psl_ctx_t = psl_ctx_st;
+#[derive(Copy, Clone)]
+#[repr(C)]
 pub struct Curl_easy {
     pub magic: libc::c_uint,
     pub next: *mut Curl_easy,
@@ -288,16 +298,34 @@ pub struct Curl_easy {
     pub dns: Names,
     pub multi: *mut Curl_multi,
     pub multi_easy: *mut Curl_multi,
+    #[cfg(USE_LIBPSL)]
+    pub psl: PslCache,
     pub share: *mut Curl_share,
     pub req: SingleRequest,
     pub set: UserDefined,
     pub cookies: *mut CookieInfo,
+    #[cfg(not(CURL_DISABLE_HSTS))]
+    pub hsts: *mut hsts,
+    #[cfg(not(CURL_DISABLE_ALTSVC))]
     pub asi: *mut altsvcinfo,
     pub progress: Progress,
     pub state: UrlState,
+    #[cfg(not(CURL_DISABLE_FTP))]
     pub wildcard: WildcardData,
     pub info: PureInfo,
     pub tsi: curl_tlssessioninfo,
+    #[cfg(USE_HYPER)]
+    pub hyp: hyptransfer,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+#[cfg(USE_HYPER, not(CURL_DISABLE_HTTP))]
+pub struct hyptransfer {
+    pub write_waker: *mut hyper_waker,
+    pub read_waker: *mut hyper_waker,
+    pub exec: *const hyper_executor,
+    pub endtask: *mut hyper_task,
+    pub exp100_waker: *mut hyper_waker,
 }
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
@@ -319,12 +347,16 @@ pub struct UrlState {
     pub os_errno: libc::c_int,
     pub scratch: *mut libc::c_char,
     pub followlocation: libc::c_long,
+    #[cfg(HAVE_SIGNAL)]
     pub prev_signal: Option<unsafe extern "C" fn(libc::c_int) -> ()>,
     pub digest: digestdata,
     pub proxydigest: digestdata,
     pub authhost: auth,
     pub authproxy: auth,
+    #[cfg(USE_CURL_ASYNC)]
     pub async_0: Curl_async,
+    #[cfg(USE_OPENSSL)]
+    pub engine: *mut libc::c_void,
     pub expiretime: curltime,
     pub timenode: Curl_tree,
     pub timeoutlist: Curl_llist,
@@ -332,11 +364,14 @@ pub struct UrlState {
     pub most_recent_ftp_entrypath: *mut libc::c_char,
     pub httpwant: libc::c_uchar,
     pub httpversion: libc::c_uchar,
+    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))]    
     #[bitfield(name = "prev_block_had_trailing_cr", ty = "bit", bits = "0..=0")]
     pub prev_block_had_trailing_cr: [u8; 1],
+    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))] 
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 5],
-    pub crlf_conversions: curl_off_t,
+    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))] 
+    pub crlf_conversions: curl_off_t,   
     pub range: *mut libc::c_char,
     pub resume_from: curl_off_t,
     pub rtsp_next_client_CSeq: libc::c_long,
@@ -355,10 +390,18 @@ pub struct UrlState {
     pub referer: *mut libc::c_char,
     pub cookielist: *mut curl_slist,
     pub resolve: *mut curl_slist,
+    #[cfg(not(CURL_DISABLE_HTTP))]
     pub trailers_bytes_sent: size_t,
+    #[cfg(not(CURL_DISABLE_HTTP))]
     pub trailers_buf: dynbuf,
     pub trailers_state: trailers_state,
+    #[cfg(USE_HYPER)]
+    pub hconnect: bool,
+    #[cfg(USE_HYPER)]
+    pub hresult: CURLcode,
     pub aptr: dynamically_allocated_data,
+    //#[cfg(CURLDEBUG)]
+    // conncache_lock
     #[bitfield(name = "multi_owned_by_easy", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "this_is_a_follow", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "refused_stream", ty = "bit", bits = "2..=2")]
@@ -488,6 +531,14 @@ pub struct UserDefined {
     pub convfromnetwork: curl_conv_callback,
     pub convtonetwork: curl_conv_callback,
     pub convfromutf8: curl_conv_callback,
+    #[cfg(not(CURL_DISABLE_HSTS))]
+    pub hsts_read: curl_hstsread_callback,
+    #[cfg(not(CURL_DISABLE_HSTS))]
+    pub hsts_read_userp: *mut libc::c_void,
+    #[cfg(not(CURL_DISABLE_HSTS))]
+    pub hsts_write: curl_hstswrite_callback,
+    #[cfg(not(CURL_DISABLE_HSTS))]
+    pub hsts_write_userp: *mut libc::c_void,
     pub progress_client: *mut libc::c_void,
     pub ioctl_client: *mut libc::c_void,
     pub timeout: libc::c_long,
@@ -522,6 +573,7 @@ pub struct UserDefined {
     pub method: Curl_HttpReq,
     pub httpwant: libc::c_uchar,
     pub ssl: ssl_config_data,
+    #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl: ssl_config_data,
     pub general_ssl: ssl_general_config,
     pub dns_cache_timeout: libc::c_long,
@@ -531,12 +583,16 @@ pub struct UserDefined {
     pub http200aliases: *mut curl_slist,
     pub ipver: libc::c_uchar,
     pub max_filesize: curl_off_t,
+    #[cfg(not(CURL_DISABLE_FTP))]
     pub ftp_filemethod: curl_ftpfile,
+    #[cfg(not(CURL_DISABLE_FTP))]
     pub ftpsslauth: curl_ftpauth,
+    #[cfg(not(CURL_DISABLE_FTP))]
     pub ftp_ccc: curl_ftpccc,
     pub ftp_create_missing_dirs: libc::c_int,
     pub ssh_keyfunc: curl_sshkeycallback,
     pub ssh_keyfunc_userp: *mut libc::c_void,
+    #[cfg(not(CURL_DISABLE_NETRC))]
     pub use_netrc: CURL_NETRC_OPTION,
     pub use_ssl: curl_usessl,
     pub new_file_perms: libc::c_long,
@@ -584,11 +640,13 @@ pub struct UserDefined {
     #[bitfield(name = "prefer_ascii", ty = "bit", bits = "11..=11")]
     #[bitfield(name = "remote_append", ty = "bit", bits = "12..=12")]
     #[bitfield(name = "list_only", ty = "bit", bits = "13..=13")]
+    // #[cfg(not(CURL_DISABLE_FTP))]{
     #[bitfield(name = "ftp_use_port", ty = "bit", bits = "14..=14")]
     #[bitfield(name = "ftp_use_epsv", ty = "bit", bits = "15..=15")]
     #[bitfield(name = "ftp_use_eprt", ty = "bit", bits = "16..=16")]
     #[bitfield(name = "ftp_use_pret", ty = "bit", bits = "17..=17")]
     #[bitfield(name = "ftp_skip_ip", ty = "bit", bits = "18..=18")]
+    // }
     #[bitfield(name = "hide_progress", ty = "bit", bits = "19..=19")]
     #[bitfield(name = "http_fail_on_error", ty = "bit", bits = "20..=20")]
     #[bitfield(name = "http_keep_sending_on_error", ty = "bit", bits = "21..=21")]
@@ -611,6 +669,7 @@ pub struct UserDefined {
     #[bitfield(name = "http_te_skip", ty = "bit", bits = "38..=38")]
     #[bitfield(name = "http_ce_skip", ty = "bit", bits = "39..=39")]
     #[bitfield(name = "proxy_transfer_mode", ty = "bit", bits = "40..=40")]
+    // #[cfg(HAVE_GSSAPI)]
     #[bitfield(name = "sasl_ir", ty = "bit", bits = "41..=41")]
     #[bitfield(name = "wildcard_enabled", ty = "bit", bits = "42..=42")]
     #[bitfield(name = "tcp_keepalive", ty = "bit", bits = "43..=43")]
@@ -667,6 +726,12 @@ pub struct ssl_config_data {
     pub key_blob: *mut curl_blob,
     pub key_type: *mut libc::c_char,
     pub key_passwd: *mut libc::c_char,
+    #[cfg(USE_TLS_SRP)]
+    pub username: *mut libc::c_char,
+    #[cfg(USE_TLS_SRP)]
+    pub password: *mut libc::c_char,
+    #[cfg(USE_TLS_SRP)]
+    pub authtype: CURL_TLSAUTH,
     #[bitfield(name = "certinfo", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "falsestart", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "enable_beast", ty = "bit", bits = "2..=2")]
@@ -678,13 +743,16 @@ pub struct ssl_config_data {
     pub certinfo_falsestart_enable_beast_no_revoke_no_partialchain_revoke_best_effort_native_ca_store_auto_client_cert:
         [u8; 1],
     #[bitfield(padding)]
+    #[cfg(USE_TLS_SRP)]
+    pub c2rust_padding: [u8; 3],
+    #[cfg(not(USE_TLS_SRP))]
     pub c2rust_padding: [u8; 7],
 }
 pub type curl_ssl_ctx_callback =
     Option<unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode>;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct curl_mimepart {
+pub struct curl_mimepart { // where?
     pub easy: *mut Curl_easy,
     pub parent: *mut curl_mime,
     pub nextpart: *mut curl_mimepart,
@@ -768,6 +836,7 @@ pub struct SingleRequest {
     pub upload_present: ssize_t,
     pub upload_fromhere: *mut libc::c_char,
     pub p: C2RustUnnamed,
+    #[cfg(not(CURL_DISABLE_DOH))]
     pub doh: *mut dohdata,
     #[bitfield(name = "header", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "content_range", ty = "bit", bits = "1..=1")]
@@ -835,27 +904,49 @@ pub struct HTTP {
     pub form: curl_mimepart,
     pub backup: back,
     pub sending: C2RustUnnamed_0,
+    #[cfg(not(CURL_DISABLE_HTTP))]
     pub send_buffer: dynbuf,
+    #[cfg(USE_NGHTTP2)]
     pub stream_id: int32_t,
+    #[cfg(USE_NGHTTP2)]
     pub bodystarted: bool,
+    #[cfg(USE_NGHTTP2)]
     pub header_recvbuf: dynbuf,
+    #[cfg(USE_NGHTTP2)]
     pub nread_header_recvbuf: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub trailer_recvbuf: dynbuf,
+    #[cfg(USE_NGHTTP2)]
     pub status_code: libc::c_int,
+    #[cfg(USE_NGHTTP2)]
     pub pausedata: *const uint8_t,
+    #[cfg(USE_NGHTTP2)]
     pub pauselen: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub close_handled: bool,
+    #[cfg(USE_NGHTTP2)]
     pub push_headers: *mut *mut libc::c_char,
+    #[cfg(USE_NGHTTP2)]
     pub push_headers_used: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub push_headers_alloc: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub error: uint32_t,
+
+    // #[cfg(USE_NGHTTP2 || USE_NGHTTP3)]{
     pub closed: bool,
     pub mem: *mut libc::c_char,
     pub len: size_t,
     pub memlen: size_t,
+// }
+    // #[cfg(USE_NGHTTP2 || ENABLE_QUIC)]{
     pub upload_mem: *const uint8_t,
     pub upload_len: size_t,
     pub upload_left: curl_off_t,
+//}
+    // #[cfg(ENABLE_QUIC)]{}
+    // #[cfg(USE_NGHTTP3)]{}
+    
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -872,6 +963,8 @@ pub struct Curl_multi {
     pub push_cb: curl_push_callback,
     pub push_userp: *mut libc::c_void,
     pub hostcache: Curl_hash,
+    #[cfg(USE_LIBPSL)]
+    pub psl: PslCache,
     pub timetree: *mut Curl_tree,
     pub sockhash: Curl_hash,
     pub conn_cache: conncache,
@@ -882,11 +975,14 @@ pub struct Curl_multi {
     pub timer_userp: *mut libc::c_void,
     pub timer_lastcall: curltime,
     pub max_concurrent_streams: libc::c_uint,
+    #[cfg(ENABLE_WAKEUP)]
     pub wakeup_pair: [curl_socket_t; 2],
     pub multiplexing: bool,
     pub recheckstate: bool,
     pub in_callback: bool,
     pub ipv6_works: bool,
+    #[cfg(USE_OPENSSL)]
+    pub ssl_seeded: bool,
 }
 pub type curl_multi_timer_callback =
     Option<unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int>;
@@ -948,11 +1044,15 @@ pub struct connectdata {
     pub tempaddr: [*mut Curl_addrinfo; 2],
     pub scope_id: libc::c_uint,
     pub transport: C2RustUnnamed_5,
+    // #[cfg(ENABLE_QUIC)]
+    // {}
     pub host: hostname,
     pub hostname_resolve: *mut libc::c_char,
     pub secondaryhostname: *mut libc::c_char,
     pub conn_to_host: hostname,
+    #[cfg(not(CURL_DISABLE_PROXY))]
     pub socks_proxy: proxy_info,
+    #[cfg(not(CURL_DISABLE_PROXY))]
     pub http_proxy: proxy_info,
     pub port: libc::c_int,
     pub remote_port: libc::c_int,
@@ -973,9 +1073,15 @@ pub struct connectdata {
     pub tempfamily: [libc::c_int; 2],
     pub recv: [Option<Curl_recv>; 2],
     pub send: [Option<Curl_send>; 2],
+    //#[cfg(USE_RECV_BEFORE_SEND_WORKAROUND)]
+    //
     pub ssl: [ssl_connect_data; 2],
+    #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl: [ssl_connect_data; 2],
+    //#[cfg(USE_SSL)]
+    //
     pub ssl_config: ssl_primary_config,
+    #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl_config: ssl_primary_config,
     pub bits: ConnectBits,
     pub num_addr: libc::c_int,
@@ -986,19 +1092,34 @@ pub struct connectdata {
     pub keepalive: curltime,
     pub sockfd: curl_socket_t,
     pub writesockfd: curl_socket_t,
+    // #[cfg(HAVE_GSSAPI)]
+    //
+    // #[cfg(USE_KERBEROS5)]
+    //
     pub easyq: Curl_llist,
     pub seek_func: curl_seek_callback,
     pub seek_client: *mut libc::c_void,
+    // #[cfg(USE_GSASL)]
+    //
+    // #[cfg(USE_NTLM)]
+    //
+    // #[cfg(USE_SPNEGO)]
+    //
     pub trailer: dynbuf,
     pub proto: C2RustUnnamed_4,
     pub connect_state: *mut http_connect_state,
     pub bundle: *mut connectbundle,
+    #[cfg(USE_UNIX_SOCKETS)]
     pub unix_domain_socket: *mut libc::c_char,
+    // #[cfg(USE_HYPER)]
+    //
     pub localdev: *mut libc::c_char,
     pub localportrange: libc::c_int,
     pub cselect_bits: libc::c_int,
     pub waitfor: libc::c_int,
     pub negnpn: libc::c_int,
+    // #[cfg(HAVE_GSSAPI)]
+    //
     pub localport: libc::c_ushort,
 }
 #[derive(Copy, Clone)]
@@ -1122,20 +1243,37 @@ pub struct imap_conn {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct http_conn {
+    #[cfg(USE_NGHTTP2)]
     pub binsettings: [uint8_t; 80],
+    #[cfg(USE_NGHTTP2)]
     pub binlen: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub trnsfr: *mut Curl_easy,
+    #[cfg(USE_NGHTTP2)]
     pub h2: *mut nghttp2_session,
+    #[cfg(USE_NGHTTP2)]
     pub send_underlying: Option<Curl_send>,
+    #[cfg(USE_NGHTTP2)]
     pub recv_underlying: Option<Curl_recv>,
+    #[cfg(USE_NGHTTP2)]
     pub inbuf: *mut libc::c_char,
+    #[cfg(USE_NGHTTP2)]
     pub inbuflen: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub nread_inbuf: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub pause_stream_id: int32_t,
+    #[cfg(USE_NGHTTP2)]
     pub drain_total: size_t,
+    #[cfg(USE_NGHTTP2)]
     pub settings: h2settings,
+    #[cfg(USE_NGHTTP2)]
     pub local_settings: [nghttp2_settings_entry; 3],
+    #[cfg(USE_NGHTTP2)]
     pub local_settings_num: size_t,
+    #[cfg(not(USE_NGHTTP2))]
+    pub unused: libc::c_int,
+
 }
 pub type Curl_recv = unsafe extern "C" fn(
     *mut Curl_easy,
@@ -1221,6 +1359,8 @@ pub struct Curl_handler {
 pub struct ssl_connect_data {
     pub state: ssl_connection_state,
     pub connecting_state: ssl_connect_state,
+    //#[cfg(USE_SSL)]
+    //
     #[bitfield(name = "use_0", ty = "bit", bits = "0..=0")]
     pub use_0: [u8; 1],
     #[bitfield(padding)]

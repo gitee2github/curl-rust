@@ -13,6 +13,7 @@ extern "C" {
     pub type smb_request;
     pub type ldapreqinfo;
     pub type contenc_writer;
+    pub type psl_ctx_st;
     pub type Curl_share;
     pub type curl_pushheaders;
     pub type http_connect_state;
