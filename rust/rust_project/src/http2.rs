@@ -369,13 +369,13 @@ pub struct UrlState {
     pub most_recent_ftp_entrypath: *mut libc::c_char,
     pub httpwant: libc::c_uchar,
     pub httpversion: libc::c_uchar,
-    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))]    
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]    
     #[bitfield(name = "prev_block_had_trailing_cr", ty = "bit", bits = "0..=0")]
     pub prev_block_had_trailing_cr: [u8; 1],
-    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))] 
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]     
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 5],
-    #[cfg(not(WIN32), not(MSDOS), not(__EMX__))] 
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]     
     pub crlf_conversions: curl_off_t,   
     pub range: *mut libc::c_char,
     pub resume_from: curl_off_t,
@@ -938,13 +938,13 @@ pub struct HTTP {
     #[cfg(USE_NGHTTP2)]
     pub error: uint32_t,
 
-    // #[cfg(USE_NGHTTP2 || USE_NGHTTP3)]{
+    // #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]{
     pub closed: bool,
     pub mem: *mut libc::c_char,
     pub len: size_t,
     pub memlen: size_t,
 // }
-    // #[cfg(USE_NGHTTP2 || ENABLE_QUIC)]{
+    // #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]{
     pub upload_mem: *const uint8_t,
     pub upload_len: size_t,
     pub upload_left: curl_off_t,
