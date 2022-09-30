@@ -737,3 +737,108 @@ int get_WIN32(){
 // vtls
 
 // wolfssl
+
+// struct
+int get_USE_LIBPSL(){
+#ifdef USE_LIBPSL
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_SIGNAL(){
+#ifdef HAVE_SIGNAL
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_CURL_ASYNC(){
+#ifdef USE_CURL_ASYNC
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_OPENSSL(){
+#ifdef USE_OPENSSL
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_MSDOS(){
+#ifdef MSDOS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get___EMX__(){
+#ifdef __EMX__
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_TLS_SRP(){
+#ifdef USE_TLS_SRP
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_CURL_DISABLE_DOH(){
+#ifdef CURL_DISABLE_DOH
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_NGHTTP3(){
+#ifdef USE_NGHTTP3
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_ENABLE_WAKEUP(){
+#ifdef ENABLE_WAKEUP
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_RECV_BEFORE_SEND_WORKAROUND(){
+#ifdef USE_RECV_BEFORE_SEND_WORKAROUND
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_KERBEROS5(){
+#ifdef USE_KERBEROS5
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_GSASL(){
+#ifdef USE_GSASL
+    return 1;
+#else
+    return 0;
+#endif
+}
