@@ -22,6 +22,11 @@ extern "C" {
     // pub type tftp_state_data;
     // pub type nghttp2_session;
     // pub type nghttp2_session_callbacks;
+
+    // hanxj added for struct ssl_connect_data
+    #[cfg(USE_SSL)]
+    pub type ssl_backend_data;
+
     fn strcmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
     fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
     fn strncmp(_: *const libc::c_char, _: *const libc::c_char, _: libc::c_ulong) -> libc::c_int;
@@ -1359,8 +1364,8 @@ pub struct Curl_handler {
 pub struct ssl_connect_data {
     pub state: ssl_connection_state,
     pub connecting_state: ssl_connect_state,
-    //#[cfg(USE_SSL)]
-    //
+    #[cfg(USE_SSL)]
+    pub backend: *mut ssl_backend_data,
     #[bitfield(name = "use_0", ty = "bit", bits = "0..=0")]
     pub use_0: [u8; 1],
     #[bitfield(padding)]
