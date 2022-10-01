@@ -324,7 +324,7 @@ pub struct Curl_easy {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-#[cfg(USE_HYPER, not(CURL_DISABLE_HTTP))]
+#[cfg(all(USE_HYPER, not(CURL_DISABLE_HTTP)))]
 pub struct hyptransfer {
     pub write_waker: *mut hyper_waker,
     pub read_waker: *mut hyper_waker,
@@ -369,14 +369,14 @@ pub struct UrlState {
     pub most_recent_ftp_entrypath: *mut libc::c_char,
     pub httpwant: libc::c_uchar,
     pub httpversion: libc::c_uchar,
-    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]    
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]
     #[bitfield(name = "prev_block_had_trailing_cr", ty = "bit", bits = "0..=0")]
     pub prev_block_had_trailing_cr: [u8; 1],
-    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]     
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 5],
-    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]     
-    pub crlf_conversions: curl_off_t,   
+    #[cfg(all(not(WIN32), not(MSDOS), not(__EMX__)))]
+    pub crlf_conversions: curl_off_t,
     pub range: *mut libc::c_char,
     pub resume_from: curl_off_t,
     pub rtsp_next_client_CSeq: libc::c_long,
@@ -405,8 +405,32 @@ pub struct UrlState {
     #[cfg(USE_HYPER)]
     pub hresult: CURLcode,
     pub aptr: dynamically_allocated_data,
-    //#[cfg(CURLDEBUG)]
-    // conncache_lock
+    #[cfg(CURLDEBUG)]
+    #[bitfield(name = "conncache_lock", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "multi_owned_by_easy", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "this_is_a_follow", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "refused_stream", ty = "bit", bits = "3..=3")]
+    #[bitfield(name = "errorbuf", ty = "bit", bits = "4..=4")]
+    #[bitfield(name = "allow_port", ty = "bit", bits = "5..=5")]
+    #[bitfield(name = "authproblem", ty = "bit", bits = "6..=6")]
+    #[bitfield(name = "ftp_trying_alternative", ty = "bit", bits = "7..=7")]
+    #[bitfield(name = "wildcardmatch", ty = "bit", bits = "8..=8")]
+    #[bitfield(name = "expect100header", ty = "bit", bits = "9..=9")]
+    #[bitfield(name = "disableexpect", ty = "bit", bits = "10..=10")]
+    #[bitfield(name = "use_range", ty = "bit", bits = "11..=11")]
+    #[bitfield(name = "rangestringalloc", ty = "bit", bits = "12..=12")]
+    #[bitfield(name = "done", ty = "bit", bits = "13..=13")]
+    #[bitfield(name = "stream_depends_e", ty = "bit", bits = "14..=14")]
+    #[bitfield(name = "previouslypending", ty = "bit", bits = "15..=15")]
+    #[bitfield(name = "cookie_engine", ty = "bit", bits = "16..=16")]
+    #[bitfield(name = "prefer_ascii", ty = "bit", bits = "17..=17")]
+    #[bitfield(name = "list_only", ty = "bit", bits = "18..=18")]
+    #[bitfield(name = "url_alloc", ty = "bit", bits = "19..=19")]
+    #[bitfield(name = "referer_alloc", ty = "bit", bits = "20..=20")]
+    #[bitfield(name = "wildcard_resolve", ty = "bit", bits = "21..=21")]
+    pub conncache_lock_multi_owned_by_easy_this_is_a_follow_refused_stream_errorbuf_allow_port_authproblem_ftp_trying_alternative_wildcardmatch_expect100header_disableexpect_use_range_rangestringalloc_done_stream_depends_e_previouslypending_cookie_engine_prefer_ascii_list_only_url_alloc_referer_alloc_wildcard_resolve:
+        [u8; 3],
+    #[cfg(not(CURLDEBUG))]
     #[bitfield(name = "multi_owned_by_easy", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "this_is_a_follow", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "refused_stream", ty = "bit", bits = "2..=2")]
@@ -630,7 +654,7 @@ pub struct UserDefined {
     pub dohfor: *mut Curl_easy,
     pub uh: *mut CURLU,
     pub trailer_data: *mut libc::c_void,
-    pub trailer_callback: curl_trailer_callback,
+    #[cfg(all(not(CURL_DISABLE_FTP), not(HAVE_GSSAPI)))]
     #[bitfield(name = "is_fread_set", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "is_fwrite_set", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "free_referer", ty = "bit", bits = "2..=2")]
@@ -645,13 +669,11 @@ pub struct UserDefined {
     #[bitfield(name = "prefer_ascii", ty = "bit", bits = "11..=11")]
     #[bitfield(name = "remote_append", ty = "bit", bits = "12..=12")]
     #[bitfield(name = "list_only", ty = "bit", bits = "13..=13")]
-    // #[cfg(not(CURL_DISABLE_FTP))]{
     #[bitfield(name = "ftp_use_port", ty = "bit", bits = "14..=14")]
     #[bitfield(name = "ftp_use_epsv", ty = "bit", bits = "15..=15")]
     #[bitfield(name = "ftp_use_eprt", ty = "bit", bits = "16..=16")]
     #[bitfield(name = "ftp_use_pret", ty = "bit", bits = "17..=17")]
     #[bitfield(name = "ftp_skip_ip", ty = "bit", bits = "18..=18")]
-    // }
     #[bitfield(name = "hide_progress", ty = "bit", bits = "19..=19")]
     #[bitfield(name = "http_fail_on_error", ty = "bit", bits = "20..=20")]
     #[bitfield(name = "http_keep_sending_on_error", ty = "bit", bits = "21..=21")]
@@ -674,7 +696,6 @@ pub struct UserDefined {
     #[bitfield(name = "http_te_skip", ty = "bit", bits = "38..=38")]
     #[bitfield(name = "http_ce_skip", ty = "bit", bits = "39..=39")]
     #[bitfield(name = "proxy_transfer_mode", ty = "bit", bits = "40..=40")]
-    // #[cfg(HAVE_GSSAPI)]
     #[bitfield(name = "sasl_ir", ty = "bit", bits = "41..=41")]
     #[bitfield(name = "wildcard_enabled", ty = "bit", bits = "42..=42")]
     #[bitfield(name = "tcp_keepalive", ty = "bit", bits = "43..=43")]
@@ -697,6 +718,193 @@ pub struct UserDefined {
     #[bitfield(name = "http09_allowed", ty = "bit", bits = "60..=60")]
     #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "61..=61")]
     pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_ftp_use_port_ftp_use_epsv_ftp_use_eprt_ftp_use_pret_ftp_skip_ip_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
+        [u8; 8],
+    #[cfg(all(CURL_DISABLE_FTP, not(HAVE_GSSAPI)))]
+    #[bitfield(name = "is_fread_set", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "is_fwrite_set", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "free_referer", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "tftp_no_options", ty = "bit", bits = "3..=3")]
+    #[bitfield(name = "sep_headers", ty = "bit", bits = "4..=4")]
+    #[bitfield(name = "cookiesession", ty = "bit", bits = "5..=5")]
+    #[bitfield(name = "crlf", ty = "bit", bits = "6..=6")]
+    #[bitfield(name = "strip_path_slash", ty = "bit", bits = "7..=7")]
+    #[bitfield(name = "ssh_compression", ty = "bit", bits = "8..=8")]
+    #[bitfield(name = "get_filetime", ty = "bit", bits = "9..=9")]
+    #[bitfield(name = "tunnel_thru_httpproxy", ty = "bit", bits = "10..=10")]
+    #[bitfield(name = "prefer_ascii", ty = "bit", bits = "11..=11")]
+    #[bitfield(name = "remote_append", ty = "bit", bits = "12..=12")]
+    #[bitfield(name = "list_only", ty = "bit", bits = "13..=13")]
+    #[bitfield(name = "hide_progress", ty = "bit", bits = "14..=14")]
+    #[bitfield(name = "http_fail_on_error", ty = "bit", bits = "15..=15")]
+    #[bitfield(name = "http_keep_sending_on_error", ty = "bit", bits = "16..=16")]
+    #[bitfield(name = "http_follow_location", ty = "bit", bits = "17..=17")]
+    #[bitfield(name = "http_transfer_encoding", ty = "bit", bits = "18..=18")]
+    #[bitfield(name = "allow_auth_to_other_hosts", ty = "bit", bits = "19..=19")]
+    #[bitfield(name = "include_header", ty = "bit", bits = "20..=20")]
+    #[bitfield(name = "http_set_referer", ty = "bit", bits = "21..=21")]
+    #[bitfield(name = "http_auto_referer", ty = "bit", bits = "22..=22")]
+    #[bitfield(name = "opt_no_body", ty = "bit", bits = "23..=23")]
+    #[bitfield(name = "upload", ty = "bit", bits = "24..=24")]
+    #[bitfield(name = "verbose", ty = "bit", bits = "25..=25")]
+    #[bitfield(name = "krb", ty = "bit", bits = "26..=26")]
+    #[bitfield(name = "reuse_forbid", ty = "bit", bits = "27..=27")]
+    #[bitfield(name = "reuse_fresh", ty = "bit", bits = "28..=28")]
+    #[bitfield(name = "no_signal", ty = "bit", bits = "29..=29")]
+    #[bitfield(name = "tcp_nodelay", ty = "bit", bits = "30..=30")]
+    #[bitfield(name = "ignorecl", ty = "bit", bits = "31..=31")]
+    #[bitfield(name = "connect_only", ty = "bit", bits = "32..=32")]
+    #[bitfield(name = "http_te_skip", ty = "bit", bits = "33..=33")]
+    #[bitfield(name = "http_ce_skip", ty = "bit", bits = "34..=34")]
+    #[bitfield(name = "proxy_transfer_mode", ty = "bit", bits = "35..=35")]
+    #[bitfield(name = "sasl_ir", ty = "bit", bits = "36..=36")]
+    #[bitfield(name = "wildcard_enabled", ty = "bit", bits = "37..=37")]
+    #[bitfield(name = "tcp_keepalive", ty = "bit", bits = "38..=38")]
+    #[bitfield(name = "tcp_fastopen", ty = "bit", bits = "39..=39")]
+    #[bitfield(name = "ssl_enable_npn", ty = "bit", bits = "40..=40")]
+    #[bitfield(name = "ssl_enable_alpn", ty = "bit", bits = "41..=41")]
+    #[bitfield(name = "path_as_is", ty = "bit", bits = "42..=42")]
+    #[bitfield(name = "pipewait", ty = "bit", bits = "43..=43")]
+    #[bitfield(name = "suppress_connect_headers", ty = "bit", bits = "44..=44")]
+    #[bitfield(name = "dns_shuffle_addresses", ty = "bit", bits = "45..=45")]
+    #[bitfield(name = "stream_depends_e", ty = "bit", bits = "46..=46")]
+    #[bitfield(name = "haproxyprotocol", ty = "bit", bits = "47..=47")]
+    #[bitfield(name = "abstract_unix_socket", ty = "bit", bits = "48..=48")]
+    #[bitfield(name = "disallow_username_in_url", ty = "bit", bits = "49..=49")]
+    #[bitfield(name = "doh", ty = "bit", bits = "50..=50")]
+    #[bitfield(name = "doh_get", ty = "bit", bits = "51..=51")]
+    #[bitfield(name = "doh_verifypeer", ty = "bit", bits = "52..=52")]
+    #[bitfield(name = "doh_verifyhost", ty = "bit", bits = "53..=53")]
+    #[bitfield(name = "doh_verifystatus", ty = "bit", bits = "54..=54")]
+    #[bitfield(name = "http09_allowed", ty = "bit", bits = "55..=55")]
+    #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "56..=56")]
+    pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
+        [u8; 8],
+    #[cfg(all(not(CURL_DISABLE_FTP), HAVE_GSSAPI))]
+    #[bitfield(name = "is_fread_set", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "is_fwrite_set", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "free_referer", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "tftp_no_options", ty = "bit", bits = "3..=3")]
+    #[bitfield(name = "sep_headers", ty = "bit", bits = "4..=4")]
+    #[bitfield(name = "cookiesession", ty = "bit", bits = "5..=5")]
+    #[bitfield(name = "crlf", ty = "bit", bits = "6..=6")]
+    #[bitfield(name = "strip_path_slash", ty = "bit", bits = "7..=7")]
+    #[bitfield(name = "ssh_compression", ty = "bit", bits = "8..=8")]
+    #[bitfield(name = "get_filetime", ty = "bit", bits = "9..=9")]
+    #[bitfield(name = "tunnel_thru_httpproxy", ty = "bit", bits = "10..=10")]
+    #[bitfield(name = "prefer_ascii", ty = "bit", bits = "11..=11")]
+    #[bitfield(name = "remote_append", ty = "bit", bits = "12..=12")]
+    #[bitfield(name = "list_only", ty = "bit", bits = "13..=13")]
+    #[bitfield(name = "ftp_use_port", ty = "bit", bits = "14..=14")]
+    #[bitfield(name = "ftp_use_epsv", ty = "bit", bits = "15..=15")]
+    #[bitfield(name = "ftp_use_eprt", ty = "bit", bits = "16..=16")]
+    #[bitfield(name = "ftp_use_pret", ty = "bit", bits = "17..=17")]
+    #[bitfield(name = "ftp_skip_ip", ty = "bit", bits = "18..=18")]
+    #[bitfield(name = "hide_progress", ty = "bit", bits = "19..=19")]
+    #[bitfield(name = "http_fail_on_error", ty = "bit", bits = "20..=20")]
+    #[bitfield(name = "http_keep_sending_on_error", ty = "bit", bits = "21..=21")]
+    #[bitfield(name = "http_follow_location", ty = "bit", bits = "22..=22")]
+    #[bitfield(name = "http_transfer_encoding", ty = "bit", bits = "23..=23")]
+    #[bitfield(name = "allow_auth_to_other_hosts", ty = "bit", bits = "24..=24")]
+    #[bitfield(name = "include_header", ty = "bit", bits = "25..=25")]
+    #[bitfield(name = "http_set_referer", ty = "bit", bits = "26..=26")]
+    #[bitfield(name = "http_auto_referer", ty = "bit", bits = "27..=27")]
+    #[bitfield(name = "opt_no_body", ty = "bit", bits = "28..=28")]
+    #[bitfield(name = "upload", ty = "bit", bits = "29..=29")]
+    #[bitfield(name = "verbose", ty = "bit", bits = "30..=30")]
+    #[bitfield(name = "krb", ty = "bit", bits = "31..=31")]
+    #[bitfield(name = "reuse_forbid", ty = "bit", bits = "32..=32")]
+    #[bitfield(name = "reuse_fresh", ty = "bit", bits = "33..=33")]
+    #[bitfield(name = "no_signal", ty = "bit", bits = "34..=34")]
+    #[bitfield(name = "tcp_nodelay", ty = "bit", bits = "35..=35")]
+    #[bitfield(name = "ignorecl", ty = "bit", bits = "36..=36")]
+    #[bitfield(name = "connect_only", ty = "bit", bits = "37..=37")]
+    #[bitfield(name = "http_te_skip", ty = "bit", bits = "38..=38")]
+    #[bitfield(name = "http_ce_skip", ty = "bit", bits = "39..=39")]
+    #[bitfield(name = "proxy_transfer_mode", ty = "bit", bits = "40..=40")]
+    #[bitfield(name = "socks5_gssapi_nec", ty = "bit", bits = "41..=41")]
+    #[bitfield(name = "sasl_ir", ty = "bit", bits = "42..=42")]
+    #[bitfield(name = "wildcard_enabled", ty = "bit", bits = "43..=43")]
+    #[bitfield(name = "tcp_keepalive", ty = "bit", bits = "44..=44")]
+    #[bitfield(name = "tcp_fastopen", ty = "bit", bits = "45..=45")]
+    #[bitfield(name = "ssl_enable_npn", ty = "bit", bits = "46..=46")]
+    #[bitfield(name = "ssl_enable_alpn", ty = "bit", bits = "47..=47")]
+    #[bitfield(name = "path_as_is", ty = "bit", bits = "48..=48")]
+    #[bitfield(name = "pipewait", ty = "bit", bits = "49..=49")]
+    #[bitfield(name = "suppress_connect_headers", ty = "bit", bits = "50..=50")]
+    #[bitfield(name = "dns_shuffle_addresses", ty = "bit", bits = "51..=51")]
+    #[bitfield(name = "stream_depends_e", ty = "bit", bits = "52..=52")]
+    #[bitfield(name = "haproxyprotocol", ty = "bit", bits = "53..=53")]
+    #[bitfield(name = "abstract_unix_socket", ty = "bit", bits = "54..=54")]
+    #[bitfield(name = "disallow_username_in_url", ty = "bit", bits = "55..=55")]
+    #[bitfield(name = "doh", ty = "bit", bits = "56..=56")]
+    #[bitfield(name = "doh_get", ty = "bit", bits = "57..=57")]
+    #[bitfield(name = "doh_verifypeer", ty = "bit", bits = "58..=58")]
+    #[bitfield(name = "doh_verifyhost", ty = "bit", bits = "59..=59")]
+    #[bitfield(name = "doh_verifystatus", ty = "bit", bits = "60..=60")]
+    #[bitfield(name = "http09_allowed", ty = "bit", bits = "61..=61")]
+    #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "62..=62")]
+    pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_ftp_use_port_ftp_use_epsv_ftp_use_eprt_ftp_use_pret_ftp_skip_ip_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_socks5_gssapi_nec_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
+        [u8; 8],
+    #[cfg(all(CURL_DISABLE_FTP, HAVE_GSSAPI))]
+    #[bitfield(name = "is_fread_set", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "is_fwrite_set", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "free_referer", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "tftp_no_options", ty = "bit", bits = "3..=3")]
+    #[bitfield(name = "sep_headers", ty = "bit", bits = "4..=4")]
+    #[bitfield(name = "cookiesession", ty = "bit", bits = "5..=5")]
+    #[bitfield(name = "crlf", ty = "bit", bits = "6..=6")]
+    #[bitfield(name = "strip_path_slash", ty = "bit", bits = "7..=7")]
+    #[bitfield(name = "ssh_compression", ty = "bit", bits = "8..=8")]
+    #[bitfield(name = "get_filetime", ty = "bit", bits = "9..=9")]
+    #[bitfield(name = "tunnel_thru_httpproxy", ty = "bit", bits = "10..=10")]
+    #[bitfield(name = "prefer_ascii", ty = "bit", bits = "11..=11")]
+    #[bitfield(name = "remote_append", ty = "bit", bits = "12..=12")]
+    #[bitfield(name = "list_only", ty = "bit", bits = "13..=13")]
+    #[bitfield(name = "hide_progress", ty = "bit", bits = "14..=14")]
+    #[bitfield(name = "http_fail_on_error", ty = "bit", bits = "15..=15")]
+    #[bitfield(name = "http_keep_sending_on_error", ty = "bit", bits = "16..=16")]
+    #[bitfield(name = "http_follow_location", ty = "bit", bits = "17..=17")]
+    #[bitfield(name = "http_transfer_encoding", ty = "bit", bits = "18..=18")]
+    #[bitfield(name = "allow_auth_to_other_hosts", ty = "bit", bits = "19..=19")]
+    #[bitfield(name = "include_header", ty = "bit", bits = "20..=20")]
+    #[bitfield(name = "http_set_referer", ty = "bit", bits = "21..=21")]
+    #[bitfield(name = "http_auto_referer", ty = "bit", bits = "22..=22")]
+    #[bitfield(name = "opt_no_body", ty = "bit", bits = "23..=23")]
+    #[bitfield(name = "upload", ty = "bit", bits = "24..=24")]
+    #[bitfield(name = "verbose", ty = "bit", bits = "25..=25")]
+    #[bitfield(name = "krb", ty = "bit", bits = "26..=26")]
+    #[bitfield(name = "reuse_forbid", ty = "bit", bits = "27..=27")]
+    #[bitfield(name = "reuse_fresh", ty = "bit", bits = "28..=28")]
+    #[bitfield(name = "no_signal", ty = "bit", bits = "29..=29")]
+    #[bitfield(name = "tcp_nodelay", ty = "bit", bits = "30..=30")]
+    #[bitfield(name = "ignorecl", ty = "bit", bits = "31..=31")]
+    #[bitfield(name = "connect_only", ty = "bit", bits = "32..=32")]
+    #[bitfield(name = "http_te_skip", ty = "bit", bits = "33..=33")]
+    #[bitfield(name = "http_ce_skip", ty = "bit", bits = "34..=34")]
+    #[bitfield(name = "proxy_transfer_mode", ty = "bit", bits = "35..=35")]
+    #[bitfield(name = "socks5_gssapi_nec", ty = "bit", bits = "36..=36")]
+    #[bitfield(name = "sasl_ir", ty = "bit", bits = "37..=37")]
+    #[bitfield(name = "wildcard_enabled", ty = "bit", bits = "38..=38")]
+    #[bitfield(name = "tcp_keepalive", ty = "bit", bits = "39..=39")]
+    #[bitfield(name = "tcp_fastopen", ty = "bit", bits = "40..=40")]
+    #[bitfield(name = "ssl_enable_npn", ty = "bit", bits = "41..=41")]
+    #[bitfield(name = "ssl_enable_alpn", ty = "bit", bits = "42..=42")]
+    #[bitfield(name = "path_as_is", ty = "bit", bits = "43..=43")]
+    #[bitfield(name = "pipewait", ty = "bit", bits = "44..=44")]
+    #[bitfield(name = "suppress_connect_headers", ty = "bit", bits = "45..=45")]
+    #[bitfield(name = "dns_shuffle_addresses", ty = "bit", bits = "46..=46")]
+    #[bitfield(name = "stream_depends_e", ty = "bit", bits = "47..=47")]
+    #[bitfield(name = "haproxyprotocol", ty = "bit", bits = "48..=48")]
+    #[bitfield(name = "abstract_unix_socket", ty = "bit", bits = "49..=49")]
+    #[bitfield(name = "disallow_username_in_url", ty = "bit", bits = "50..=50")]
+    #[bitfield(name = "doh", ty = "bit", bits = "51..=51")]
+    #[bitfield(name = "doh_get", ty = "bit", bits = "52..=52")]
+    #[bitfield(name = "doh_verifypeer", ty = "bit", bits = "53..=53")]
+    #[bitfield(name = "doh_verifyhost", ty = "bit", bits = "54..=54")]
+    #[bitfield(name = "doh_verifystatus", ty = "bit", bits = "55..=55")]
+    #[bitfield(name = "http09_allowed", ty = "bit", bits = "56..=56")]
+    #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "57..=57")]
+    pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_socks5_gssapi_nec_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
         [u8; 8],
 }
 // pub type curl_trailer_callback =
@@ -757,7 +965,8 @@ pub type curl_ssl_ctx_callback =
     Option<unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode>;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct curl_mimepart { // where?
+pub struct curl_mimepart {
+    // where?
     pub easy: *mut Curl_easy,
     pub parent: *mut curl_mime,
     pub nextpart: *mut curl_mimepart,
@@ -937,21 +1146,23 @@ pub struct HTTP {
     pub push_headers_alloc: size_t,
     #[cfg(USE_NGHTTP2)]
     pub error: uint32_t,
-
-    // #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]{
+    #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]
     pub closed: bool,
+    #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]
     pub mem: *mut libc::c_char,
+    #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]
     pub len: size_t,
+    #[cfg(any(USE_NGHTTP2, USE_NGHTTP3))]
     pub memlen: size_t,
-// }
-    // #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]{
+
+    #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]
     pub upload_mem: *const uint8_t,
+    #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]
     pub upload_len: size_t,
+    #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]
     pub upload_left: curl_off_t,
-//}
     // #[cfg(ENABLE_QUIC)]{}
-    // #[cfg(USE_NGHTTP3)]{}
-    
+    // #[cfg(USE_NGHTTP3)]
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1278,7 +1489,6 @@ pub struct http_conn {
     pub local_settings_num: size_t,
     #[cfg(not(USE_NGHTTP2))]
     pub unused: libc::c_int,
-
 }
 pub type Curl_recv = unsafe extern "C" fn(
     *mut Curl_easy,

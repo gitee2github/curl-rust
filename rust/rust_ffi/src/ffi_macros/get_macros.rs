@@ -86,7 +86,7 @@ extern "C" {
     // vtls
 
     // wolfssl
-    
+
     // struct
     fn get_USE_LIBPSL() -> i32;
     fn get_HAVE_SIGNAL() -> i32;
