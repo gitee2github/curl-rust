@@ -4,6 +4,10 @@ use rust_ffi::src::ffi_alias::type_alias::*;
 // use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
 extern "C" {
+    pub type gss_name_struct;
+    pub type gss_ctx_id_struct;
+    pub type Curl_sec_client_mech;
+
     // pub type _IO_wide_data;
     // pub type _IO_codecvt;
     // pub type _IO_marker;
@@ -1161,9 +1165,18 @@ pub struct HTTP {
     pub upload_len: size_t,
     #[cfg(any(USE_NGHTTP2, ENABLE_QUIC))]
     pub upload_left: curl_off_t,
-    // #[cfg(ENABLE_QUIC)]{}
-    // #[cfg(USE_NGHTTP3)]
+//}
+    // #[cfg(ENABLE_QUIC)]{
+    pub stream3_id: int64_t,
+    pub firstheader: bool,
+    pub firstbody: bool,
+    pub h3req: bool,
+    pub upload_done: bool,
+    // }
+    // #[cfg(USE_NGHTTP3)]{}
+    
 }
+pub type __int64_t = libc::c_long;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_multi {
@@ -1248,6 +1261,112 @@ pub union C2RustUnnamed_3 {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+pub struct proxy_info {
+    pub host: hostname,
+    pub port: libc::c_long,
+    pub proxytype: curl_proxytype,
+    pub user: *mut libc::c_char,
+    pub passwd: *mut libc::c_char,
+}
+pub type gss_name_t = *mut gss_name_struct;
+pub type gss_ctx_id_t = *mut gss_ctx_id_struct;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct kerberos5data {
+    pub context: gss_ctx_id_t,
+    pub spn: gss_name_t,
+}
+pub type sa_family_t = libc::c_ushort;
+pub type in_port_t = uint16_t;
+pub type uint16_t = __uint16_t;
+pub type __uint16_t = libc::c_ushort;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct sockaddr_in {
+    pub sin_family: sa_family_t,
+    pub sin_port: in_port_t,
+    pub sin_addr: in_addr,
+    pub sin_zero: [libc::c_uchar; 8],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct in_addr {
+    pub s_addr: in_addr_t,
+}
+pub type in_addr_t = uint32_t;
+pub type in_port_t = uint16_t;
+pub type uint16_t = __uint16_t;
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct krb5buffer {
+    pub data: *mut libc::c_void,
+    pub size: size_t,
+    pub index: size_t,
+    #[bitfield(name = "eof_flag", ty = "bit", bits = "0..=0")]
+    pub eof_flag: [u8; 1],
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 7],
+}
+pub type protection_level = libc::c_uint;
+pub const PROT_LAST: protection_level = 6;
+pub const PROT_CMD: protection_level = 5;
+pub const PROT_PRIVATE: protection_level = 4;
+pub const PROT_CONFIDENTIAL: protection_level = 3;
+pub const PROT_SAFE: protection_level = 2;
+pub const PROT_CLEAR: protection_level = 1;
+pub const PROT_NONE: protection_level = 0;
+pub type curlntlm = libc::c_uint;
+pub const NTLMSTATE_LAST: curlntlm = 4;
+pub const NTLMSTATE_TYPE3: curlntlm = 3;
+pub const NTLMSTATE_TYPE2: curlntlm = 2;
+pub const NTLMSTATE_TYPE1: curlntlm = 1;
+pub const NTLMSTATE_NONE: curlntlm = 0;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct ntlmdata {
+    pub flags: libc::c_uint,
+    pub nonce: [libc::c_uchar; 8],
+    pub target_info_len: libc::c_uint,
+    pub target_info: *mut libc::c_void,
+    pub ntlm_auth_hlpr_socket: curl_socket_t,
+    pub ntlm_auth_hlpr_pid: pid_t,
+    pub challenge: *mut libc::c_char,
+    pub response: *mut libc::c_char,
+}
+pub type curlnegotiate = libc::c_uint;
+pub const GSS_AUTHSUCC: curlnegotiate = 4;
+pub const GSS_AUTHDONE: curlnegotiate = 3;
+pub const GSS_AUTHSENT: curlnegotiate = 2;
+pub const GSS_AUTHRECV: curlnegotiate = 1;
+pub const GSS_AUTHNONE: curlnegotiate = 0;
+pub type OM_uint32 = gss_uint32;
+pub type gss_uint32 = uint32_t;
+pub type uint32_t = __uint32_t;
+pub type __uint32_t = libc::c_uint;
+pub type gss_buffer_desc = gss_buffer_desc_struct;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct gss_buffer_desc_struct {
+    pub length: size_t,
+    pub value: *mut libc::c_void,
+}
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct negotiatedata {
+    pub status: OM_uint32,
+    pub context: gss_ctx_id_t,
+    pub spn: gss_name_t,
+    pub output_token: gss_buffer_desc,
+    #[bitfield(name = "noauthpersist", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "havenoauthpersist", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "havenegdata", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "havemultiplerequests", ty = "bit", bits = "3..=3")]
+    pub noauthpersist_havenoauthpersist_havenegdata_havemultiplerequests: [u8; 1],
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 7],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
 pub struct connectdata {
     pub cnnct: connstate,
     pub bundle_node: Curl_llist_element,
@@ -1260,8 +1379,10 @@ pub struct connectdata {
     pub tempaddr: [*mut Curl_addrinfo; 2],
     pub scope_id: libc::c_uint,
     pub transport: C2RustUnnamed_5,
-    // #[cfg(ENABLE_QUIC)]
-    // {}
+    #[cfg(ENABLE_QUIC)]
+    pub hequic: [quicsocket; 2],
+    #[cfg(ENABLE_QUIC)]
+    pub quic: *mut quicsocket,
     pub host: hostname,
     pub hostname_resolve: *mut libc::c_char,
     pub secondaryhostname: *mut libc::c_char,
@@ -1289,13 +1410,11 @@ pub struct connectdata {
     pub tempfamily: [libc::c_int; 2],
     pub recv: [Option<Curl_recv>; 2],
     pub send: [Option<Curl_send>; 2],
-    //#[cfg(USE_RECV_BEFORE_SEND_WORKAROUND)]
-    //
     pub ssl: [ssl_connect_data; 2],
     #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl: [ssl_connect_data; 2],
-    //#[cfg(USE_SSL)]
-    //
+    #[cfg(USE_SSL)]
+    pub ssl_extra: *mut libc::c_void,
     pub ssl_config: ssl_primary_config,
     #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl_config: ssl_primary_config,
@@ -1308,36 +1427,77 @@ pub struct connectdata {
     pub keepalive: curltime,
     pub sockfd: curl_socket_t,
     pub writesockfd: curl_socket_t,
-    // #[cfg(HAVE_GSSAPI)]
-    //
-    // #[cfg(USE_KERBEROS5)]
-    //
+    #[cfg(HAVE_GSSAPI)]
+    #[bitfield(name = "sec_complete", ty = "bit", bits = "0..=0")]
+    pub sec_complete: [u8; 1],
+    #[cfg(HAVE_GSSAPI)]
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 3],
+    #[cfg(HAVE_GSSAPI)]
+    pub command_prot: protection_level,
+    #[cfg(HAVE_GSSAPI)]
+    pub data_prot: protection_level,
+    #[cfg(HAVE_GSSAPI)]
+    pub request_data_prot: protection_level,
+    #[cfg(HAVE_GSSAPI)]
+    pub buffer_size: size_t,
+    #[cfg(HAVE_GSSAPI)]
+    pub in_buffer: krb5buffer,
+    #[cfg(HAVE_GSSAPI)]
+    pub app_data: *mut libc::c_void,
+    #[cfg(HAVE_GSSAPI)]
+    pub mech: *const Curl_sec_client_mech,
+    #[cfg(HAVE_GSSAPI)]
+    pub local_addr: sockaddr_in,
+    #[cfg(USE_KERBEROS5)]
+    pub krb5: kerberos5data,
     pub easyq: Curl_llist,
     pub seek_func: curl_seek_callback,
     pub seek_client: *mut libc::c_void,
     // #[cfg(USE_GSASL)]
     //
-    // #[cfg(USE_NTLM)]
-    //
-    // #[cfg(USE_SPNEGO)]
-    //
+    #[cfg(USE_NTLM)]
+    pub http_ntlm_state: curlntlm,
+    #[cfg(USE_NTLM)]
+    pub proxy_ntlm_state: curlntlm,
+    #[cfg(USE_NTLM)]
+    pub ntlm: ntlmdata,
+    #[cfg(USE_NTLM)]
+    pub proxyntlm: ntlmdata,
+    #[cfg(USE_SPNEGO)]
+    pub http_negotiate_state: curlnegotiate,
+    #[cfg(USE_SPNEGO)]
+    pub proxy_negotiate_state: curlnegotiate,
+    #[cfg(USE_SPNEGO)]
+    pub negotiate: negotiatedata,
+    #[cfg(USE_SPNEGO)]
+    pub proxyneg: negotiatedata,
     pub trailer: dynbuf,
     pub proto: C2RustUnnamed_4,
     pub connect_state: *mut http_connect_state,
     pub bundle: *mut connectbundle,
     #[cfg(USE_UNIX_SOCKETS)]
     pub unix_domain_socket: *mut libc::c_char,
-    // #[cfg(USE_HYPER)]
-    //
+    #[cfg(USE_HYPER)]
+    pub datastream: Curl_datastream,
     pub localdev: *mut libc::c_char,
     pub localportrange: libc::c_int,
     pub cselect_bits: libc::c_int,
     pub waitfor: libc::c_int,
     pub negnpn: libc::c_int,
-    // #[cfg(HAVE_GSSAPI)]
-    //
+    #[cfg(HAVE_GSSAPI)]
+    pub socks5_gssapi_enctype: libc::c_int,
     pub localport: libc::c_ushort,
 }
+pub type Curl_datastream = Option::<
+    unsafe extern "C" fn(
+        *mut Curl_easy,
+        *mut connectdata,
+        *mut libc::c_int,
+        *mut bool,
+        libc::c_int,
+    ) -> CURLcode,
+>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_4 {

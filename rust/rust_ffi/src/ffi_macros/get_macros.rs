@@ -5,6 +5,9 @@ extern "C" {
     fn get_DEBUG_HTTP2() -> i32;
     fn get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE() -> i32;
     fn get_DEBUGBUILD() -> i32;
+    
+    fn get_USE_RECV_BEFORE_SEND_WORKAROUND() -> i32;
+    fn get_USE_KERBEROS5() -> i32;
     // http_proxy
     fn get_CURL_DISABLE_PROXY() -> i32;
     fn get_CURL_DISABLE_HTTP() -> i32;
@@ -109,6 +112,9 @@ pub fn get_all_cfg() {
     get_DEBUG_HTTP2_add_cfg();
     get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE_add_cfg();
     get_DEBUGBUILD_add_cfg();
+
+    get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg();
+    get_USE_KERBEROS5_add_cfg();
     // http_proxy
     get_CURL_DISABLE_PROXY_add_cfg();
     get_CURL_DISABLE_HTTP_add_cfg();
@@ -230,6 +236,16 @@ fn get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE_add_cfg() {
 fn get_DEBUGBUILD_add_cfg() {
     if unsafe { get_DEBUGBUILD() } == 1 {
         println!("cargo:rustc-cfg=DEBUGBUILD");
+    }
+}
+fn get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg() {
+    if unsafe { get_USE_RECV_BEFORE_SEND_WORKAROUND() } == 1 {
+        println!("cargo:rustc-cfg=USE_RECV_BEFORE_SEND_WORKAROUND");
+    }
+}
+fn get_USE_KERBEROS5_add_cfg() {
+    if unsafe { get_USE_KERBEROS5() } == 1 {
+        println!("cargo:rustc-cfg=USE_KERBEROS5");
     }
 }
 // http_proxy

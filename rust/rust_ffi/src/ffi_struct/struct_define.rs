@@ -1875,6 +1875,16 @@ pub union nghttp2_data_source {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+pub struct nghttp2_push_promise {
+    pub hd: nghttp2_frame_hd,
+    pub padlen: size_t,
+    pub nva: *mut nghttp2_nv,
+    pub nvlen: size_t,
+    pub promised_stream_id: int32_t,
+    pub reserved: uint8_t,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
 pub union nghttp2_frame {
     pub hd: nghttp2_frame_hd,
     pub data: nghttp2_data,

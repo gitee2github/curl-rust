@@ -321,6 +321,21 @@
 // end http **************************************************************
 
 
+int get_USE_RECV_BEFORE_SEND_WORKAROUND() {
+#ifdef USE_RECV_BEFORE_SEND_WORKAROUND
+    return 1;
+#else
+    return 0;
+#endif
+}
+int get_USE_KERBEROS5() {
+#ifdef USE_KERBEROS5
+    return 1;
+#else
+    return 0;
+#endif
+}
+
 int get_USE_NGHTTP2(){
 #ifdef USE_NGHTTP2
     return 1;
