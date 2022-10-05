@@ -26,7 +26,10 @@ extern "C" {
     // pub type tftp_state_data;
     // pub type nghttp2_session;
     // pub type nghttp2_session_callbacks;
-
+    #[cfg(USE_GSASL)]
+    pub type Gsasl_session;
+    #[cfg(USE_GSASL)]
+    pub type Gsasl;
     // hanxj added for struct ssl_connect_data
     #[cfg(USE_SSL)]
     pub type ssl_backend_data;
@@ -1352,6 +1355,7 @@ pub struct gss_buffer_desc_struct {
 }
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
+// #[cfg(USE_SPNEGO)] ???
 pub struct negotiatedata {
     pub status: OM_uint32,
     pub context: gss_ctx_id_t,
@@ -1364,6 +1368,13 @@ pub struct negotiatedata {
     pub noauthpersist_havenoauthpersist_havenegdata_havemultiplerequests: [u8; 1],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 7],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+#[cfg(USE_GSASL)]
+pub struct gsasldata {
+    pub ctx: *mut Gsasl,
+    pub client: *mut Gsasl_session,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1454,8 +1465,8 @@ pub struct connectdata {
     pub easyq: Curl_llist,
     pub seek_func: curl_seek_callback,
     pub seek_client: *mut libc::c_void,
-    // #[cfg(USE_GSASL)]
-    //
+    #[cfg(USE_GSASL)]
+    pub gsasl: gsasldata,
     #[cfg(USE_NTLM)]
     pub http_ntlm_state: curlntlm,
     #[cfg(USE_NTLM)]
