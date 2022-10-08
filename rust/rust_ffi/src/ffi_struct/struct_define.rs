@@ -1417,6 +1417,7 @@ pub struct Curl_multi {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+#[cfg(USE_NGHTTP2)]
 pub struct curl_pushheaders {
     pub data: *mut Curl_easy,
     pub frame: *const nghttp2_push_promise,
@@ -2318,16 +2319,6 @@ pub union http2_C2RustUnnamed_4 {
 pub union nghttp2_data_source {
     pub fd: libc::c_int,
     pub ptr: *mut libc::c_void,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct nghttp2_push_promise {
-    pub hd: nghttp2_frame_hd,
-    pub padlen: size_t,
-    pub nva: *mut nghttp2_nv,
-    pub nvlen: size_t,
-    pub promised_stream_id: int32_t,
-    pub reserved: uint8_t,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]

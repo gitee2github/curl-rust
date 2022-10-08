@@ -10,7 +10,7 @@ extern "C" {
     pub type _IO_marker;
     pub type Curl_URL;
     pub type thread_data;
-    pub type altsvcinfo;
+    // pub type altsvcinfo;
     pub type psl_ctx_st;
     pub type hsts;
     pub type TELNET;
@@ -18,7 +18,7 @@ extern "C" {
     pub type ldapreqinfo;
     pub type contenc_writer;
     pub type Curl_share;
-    pub type curl_pushheaders;
+    // pub type curl_pushheaders;
     pub type http_connect_state;
     pub type ldapconninfo;
     pub type tftp_state_data;

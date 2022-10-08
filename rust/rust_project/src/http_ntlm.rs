@@ -1085,17 +1085,17 @@ pub struct Curl_handler {
     pub family: libc::c_uint,
     pub flags: libc::c_uint,
 }
-#[derive(Copy, Clone, BitfieldStruct)]
-#[repr(C)]
-pub struct ssl_connect_data {
-    pub state: ssl_connection_state,
-    pub connecting_state: ssl_connect_state,
-    pub backend: *mut ssl_backend_data,
-    #[bitfield(name = "use_0", ty = "bit", bits = "0..=0")]
-    pub use_0: [u8; 1],
-    #[bitfield(padding)]
-    pub c2rust_padding: [u8; 7],
-}
+// #[derive(Copy, Clone, BitfieldStruct)]
+// #[repr(C)]
+// pub struct ssl_connect_data {
+//     pub state: ssl_connection_state,
+//     pub connecting_state: ssl_connect_state,
+//     pub backend: *mut ssl_backend_data,
+//     #[bitfield(name = "use_0", ty = "bit", bits = "0..=0")]
+//     pub use_0: [u8; 1],
+//     #[bitfield(padding)]
+//     pub c2rust_padding: [u8; 7],
+// }
 
 #[no_mangle]
 pub unsafe extern "C" fn Curl_input_ntlm(

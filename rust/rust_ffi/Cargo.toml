@@ -13,3 +13,6 @@ c2rust-bitfields = "0.3.0"
 crate-type = ["rlib"]
 name = "rust_ffi"
 path = "lib.rs"
+
+[build-dependencies]
+rust_macro = {path = "../rust_macro"}

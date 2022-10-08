@@ -1,0 +1,14 @@
+[package]
+name = "rust_macro"
+authors = ["CSS Group"]
+version = "0.1.0"
+edition = "2021"
+# build = "build.rs"
+
+[dependencies]
+
+
+[lib]
+crate-type = ["rlib"]
+name = "rust_macro"
+path = "lib.rs"

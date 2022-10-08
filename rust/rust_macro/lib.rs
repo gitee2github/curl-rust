@@ -10,13 +10,7 @@
 #![feature(c_variadic, extern_types, label_break_value, register_tool)]
 #![register_tool(c2rust)]
 
-#[macro_use]
-extern crate libc;
-extern crate c2rust_bitfields;
 
 pub mod src {
-    pub mod ffi_alias;
-    pub mod ffi_fun;
-    // pub mod ffi_macros;
-    pub mod ffi_struct;
+    pub mod get_macros;
 }

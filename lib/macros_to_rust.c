@@ -694,13 +694,6 @@ int get__WIN32_WCE(){
 #endif
 }
 
-int get_CURL_DO_LINEEND_CONV(){
-#ifdef CURL_DO_LINEEND_CONV
-    return 1;
-#else
-    return 0;
-#endif
-}
 
 int get_NETWARE(){
 #ifdef NETWARE
@@ -834,21 +827,6 @@ int get_ENABLE_WAKEUP(){
 #endif
 }
 
-int get_USE_RECV_BEFORE_SEND_WORKAROUND(){
-#ifdef USE_RECV_BEFORE_SEND_WORKAROUND
-    return 1;
-#else
-    return 0;
-#endif
-}
-
-int get_USE_KERBEROS5(){
-#ifdef USE_KERBEROS5
-    return 1;
-#else
-    return 0;
-#endif
-}
 
 int get_USE_GSASL(){
 #ifdef USE_GSASL
