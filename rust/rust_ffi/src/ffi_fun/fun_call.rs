@@ -7,7 +7,22 @@ extern "C" {
     // ftplistparser.rs
 
     // http_aws_sigv4.rs
-
+    pub fn time(__timer: *mut time_t) -> time_t;
+    pub fn strftime(
+        __s: *mut libc::c_char,
+        __maxsize: size_t,
+        __format: *const libc::c_char,
+        __tp: *const tm,
+    ) -> size_t;
+    pub fn Curl_http_method(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        method: *mut *const libc::c_char,
+        _: *mut Curl_HttpReq,
+    );
+    pub fn Curl_raw_toupper(in_0: libc::c_char) -> libc::c_char;
+    pub fn Curl_strntoupper(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
+    pub fn Curl_memdup(src: *const libc::c_void, buffer_length: size_t) -> *mut libc::c_void;
     // http_chunks.rs
     pub fn Curl_isxdigit(c: libc::c_int) -> libc::c_int;
     pub fn Curl_dyn_init(s: *mut dynbuf, toobig: size_t);
@@ -35,6 +50,20 @@ extern "C" {
         num: *mut curl_off_t,
     ) -> CURLofft;
     pub fn curlx_sotouz(sonum: curl_off_t) -> size_t;
+    pub fn Curl_hmacit(
+        hashparams: *const HMAC_params,
+        key: *const libc::c_uchar,
+        keylen: size_t,
+        data: *const libc::c_uchar,
+        datalen: size_t,
+        output: *mut libc::c_uchar,
+    ) -> CURLcode;
+    pub fn Curl_sha256it(outbuffer: *mut libc::c_uchar, input: *const libc::c_uchar, len: size_t);
+    pub fn Curl_checkheaders(
+        data: *const Curl_easy,
+        thisheader: *const libc::c_char,
+    ) -> *mut libc::c_char;
+    pub fn Curl_gmtime(intime: time_t, store: *mut tm) -> CURLcode;
     // http_digest.rs
     pub fn Curl_auth_decode_digest_http_message(
         chlg: *const libc::c_char,
