@@ -36,7 +36,21 @@ extern "C" {
     ) -> CURLofft;
     pub fn curlx_sotouz(sonum: curl_off_t) -> size_t;
     // http_digest.rs
-
+    pub fn Curl_auth_decode_digest_http_message(
+        chlg: *const libc::c_char,
+        digest: *mut digestdata,
+    ) -> CURLcode;
+    pub fn Curl_auth_create_digest_http_message(
+        data: *mut Curl_easy,
+        userp: *const libc::c_char,
+        passwdp: *const libc::c_char,
+        request: *const libc::c_uchar,
+        uri: *const libc::c_uchar,
+        digest: *mut digestdata,
+        outptr: *mut *mut libc::c_char,
+        outlen: *mut size_t,
+    ) -> CURLcode;
+    pub fn Curl_auth_digest_cleanup(digest: *mut digestdata);
     // http_negotiate.rs
 
     // http_ntlm.rs
