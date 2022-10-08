@@ -16,18 +16,18 @@ extern "C" {
     pub fn Curl_dyn_ptr(s: *const dynbuf) -> *mut libc::c_char;
     pub fn Curl_dyn_len(s: *const dynbuf) -> size_t;
     pub fn Curl_dyn_add(s: *mut dynbuf, str: *const libc::c_char) -> CURLcode;
-    // fn Curl_client_write(
-    //     data: *mut Curl_easy,
-    //     type_0: libc::c_int,
-    //     ptr: *mut libc::c_char,
-    //     len: size_t,
-    // ) -> CURLcode;
-    // fn Curl_unencode_write(
-    //     data: *mut Curl_easy,
-    //     writer: *mut contenc_writer,
-    //     buf: *const libc::c_char,
-    //     nbytes: size_t,
-    // ) -> CURLcode;
+    pub fn Curl_client_write(
+        data: *mut Curl_easy,
+        type_0: libc::c_int,
+        ptr: *mut libc::c_char,
+        len: size_t,
+    ) -> CURLcode;
+    pub fn Curl_unencode_write(
+        data: *mut Curl_easy,
+        writer: *mut contenc_writer,
+        buf: *const libc::c_char,
+        nbytes: size_t,
+    ) -> CURLcode;
     pub fn curlx_strtoofft(
         str: *const libc::c_char,
         endp: *mut *mut libc::c_char,
@@ -160,12 +160,6 @@ extern "C" {
         proxytunnel: bool,
     ) -> CURLcode;
     pub fn Curl_failf(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    pub fn Curl_client_write(
-        data: *mut Curl_easy,
-        type_0: libc::c_int,
-        ptr: *mut libc::c_char,
-        len: size_t,
-    ) -> CURLcode;
     pub fn Curl_read(
         data: *mut Curl_easy,
         sockfd: curl_socket_t,

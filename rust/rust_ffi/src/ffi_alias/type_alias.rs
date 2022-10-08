@@ -16,7 +16,7 @@ extern "C" {
     pub type TELNET;
     pub type smb_request;
     pub type ldapreqinfo;
-    pub type contenc_writer;
+    // pub type contenc_writer;
     pub type Curl_share;
     // pub type curl_pushheaders;
     // pub type http_connect_state;

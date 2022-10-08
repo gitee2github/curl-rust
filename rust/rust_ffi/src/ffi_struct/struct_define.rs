@@ -1335,34 +1335,34 @@ pub struct FILEPROTO {
     pub freepath: *mut libc::c_char,
     pub fd: libc::c_int,
 }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct contenc_writer {
-//     pub handler: *const content_encoding,
-//     pub downstream: *mut contenc_writer,
-//     pub params: *mut libc::c_void,
-// }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct content_encoding {
-//     pub name: *const libc::c_char,
-//     pub alias: *const libc::c_char,
-//     pub init_writer: Option::<
-//         unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> CURLcode,
-//     >,
-//     pub unencode_write: Option::<
-//         unsafe extern "C" fn(
-//             *mut Curl_easy,
-//             *mut contenc_writer,
-//             *const libc::c_char,
-//             size_t,
-//         ) -> CURLcode,
-//     >,
-//     pub close_writer: Option::<
-//         unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> (),
-//     >,
-//     pub paramsize: size_t,
-// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct contenc_writer {
+    pub handler: *const content_encoding,
+    pub downstream: *mut contenc_writer,
+    pub params: *mut libc::c_void,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct content_encoding {
+    pub name: *const libc::c_char,
+    pub alias: *const libc::c_char,
+    pub init_writer: Option::<
+        unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> CURLcode,
+    >,
+    pub unencode_write: Option::<
+        unsafe extern "C" fn(
+            *mut Curl_easy,
+            *mut contenc_writer,
+            *const libc::c_char,
+            size_t,
+        ) -> CURLcode,
+    >,
+    pub close_writer: Option::<
+        unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> (),
+    >,
+    pub paramsize: size_t,
+}
 // #[derive(Copy, Clone)]
 // #[repr(C)]
 // pub struct Curl_share {
