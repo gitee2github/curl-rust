@@ -221,7 +221,112 @@ extern "C" {
     pub fn Curl_fillreadbuffer(data: *mut Curl_easy, bytes: size_t, nreadp: *mut size_t) -> CURLcode;
     pub fn Curl_get_upload_buffer(data: *mut Curl_easy) -> CURLcode;
     // http.rs
-
+    pub fn Curl_isdigit(c: libc::c_int) -> libc::c_int;
+    pub fn curl_mime_headers(
+        part: *mut curl_mimepart,
+        headers: *mut curl_slist,
+        take_ownership: libc::c_int,
+    ) -> CURLcode;
+    pub fn curl_url_dup(in_0: *mut CURLU) -> *mut CURLU;
+    pub fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
+    pub fn strstr(_: *const libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
+    pub fn Curl_mime_initpart(part: *mut curl_mimepart, easy: *mut Curl_easy);
+    pub fn Curl_mime_cleanpart(part: *mut curl_mimepart);
+    pub fn Curl_mime_prepare_headers(
+        part: *mut curl_mimepart,
+        contenttype: *const libc::c_char,
+        disposition: *const libc::c_char,
+        strategy: mimestrategy,
+    ) -> CURLcode;
+    pub fn Curl_mime_size(part: *mut curl_mimepart) -> curl_off_t;
+    pub fn Curl_mime_read(
+        buffer: *mut libc::c_char,
+        size: size_t,
+        nitems: size_t,
+        instream: *mut libc::c_void,
+    ) -> size_t;
+    pub fn Curl_mime_rewind(part: *mut curl_mimepart) -> CURLcode;
+    pub fn Curl_getformdata(
+        data: *mut Curl_easy,
+        _: *mut curl_mimepart,
+        post: *mut curl_httppost,
+        fread_func: curl_read_callback,
+    ) -> CURLcode;
+    pub fn Curl_rtsp_parseheader(data: *mut Curl_easy, header: *mut libc::c_char) -> CURLcode;
+    pub fn Curl_cookie_freelist(cookies: *mut Cookie);
+    pub fn Curl_cookie_getlist(
+        c: *mut CookieInfo,
+        host: *const libc::c_char,
+        path: *const libc::c_char,
+        secure: bool,
+    ) -> *mut Cookie;
+    pub fn Curl_cookie_add(
+        data: *mut Curl_easy,
+        c: *mut CookieInfo,
+        header: bool,
+        noexpiry: bool,
+        lineptr: *mut libc::c_char,
+        domain: *const libc::c_char,
+        path: *const libc::c_char,
+        secure: bool,
+    ) -> *mut Cookie;
+    pub fn Curl_readrewind(data: *mut Curl_easy) -> CURLcode;
+    pub fn Curl_meets_timecondition(data: *mut Curl_easy, timeofdoc: time_t) -> bool;
+    pub fn Curl_done_sending(data: *mut Curl_easy, k: *mut SingleRequest) -> CURLcode;
+    pub fn Curl_setup_transfer(
+        data: *mut Curl_easy,
+        sockindex: libc::c_int,
+        size: curl_off_t,
+        getheader: bool,
+        writesockindex: libc::c_int,
+    );
+    pub fn Curl_pgrsSetDownloadSize(data: *mut Curl_easy, size: curl_off_t);
+    pub fn Curl_pgrsSetUploadSize(data: *mut Curl_easy, size: curl_off_t);
+    pub fn Curl_pgrsSetUploadCounter(data: *mut Curl_easy, size: curl_off_t);
+    pub fn Curl_auth_is_digest_supported() -> bool;
+    pub fn Curl_input_digest(
+        data: *mut Curl_easy,
+        proxy: bool,
+        header: *const libc::c_char,
+    ) -> CURLcode;
+    pub fn Curl_output_digest(
+        data: *mut Curl_easy,
+        proxy: bool,
+        request: *const libc::c_uchar,
+        uripath: *const libc::c_uchar,
+    ) -> CURLcode;
+    pub fn Curl_output_aws_sigv4(data: *mut Curl_easy, proxy: bool) -> CURLcode;
+    pub fn Curl_share_lock(_: *mut Curl_easy, _: curl_lock_data, _: curl_lock_access) -> CURLSHcode;
+    pub fn Curl_share_unlock(_: *mut Curl_easy, _: curl_lock_data) -> CURLSHcode;
+    pub fn Curl_getdate_capped(p: *const libc::c_char) -> time_t;
+    pub fn Curl_expire_done(data: *mut Curl_easy, id: expire_id);
+    pub fn Curl_build_unencoding_stack(
+        data: *mut Curl_easy,
+        enclist: *const libc::c_char,
+        maybechunked: libc::c_int,
+    ) -> CURLcode;
+    pub fn Curl_unencode_cleanup(data: *mut Curl_easy);
+    pub fn Curl_proxy_connect(data: *mut Curl_easy, sockindex: libc::c_int) -> CURLcode;
+    pub fn Curl_connect_ongoing(conn: *mut connectdata) -> bool;
+    pub fn curlx_uitous(uinum: libc::c_uint) -> libc::c_ushort;
+    pub fn Curl_http2_request_upgrade(req: *mut dynbuf, data: *mut Curl_easy) -> CURLcode;
+    pub fn Curl_http2_setup(data: *mut Curl_easy, conn: *mut connectdata) -> CURLcode;
+    pub fn Curl_http2_switched(
+        data: *mut Curl_easy,
+        ptr: *const libc::c_char,
+        nread: size_t,
+    ) -> CURLcode;
+    pub fn Curl_http2_setup_conn(conn: *mut connectdata);
+    pub fn Curl_http2_setup_req(data: *mut Curl_easy);
+    pub fn Curl_http2_done(data: *mut Curl_easy, premature: bool);
+    pub fn Curl_altsvc_parse(
+        data: *mut Curl_easy,
+        altsvc: *mut altsvcinfo,
+        value: *const libc::c_char,
+        srcalpn: alpnid,
+        srchost: *const libc::c_char,
+        srcport: libc::c_ushort,
+    ) -> CURLcode;
     // http2.rs
     pub fn strcmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
     pub fn strncmp(_: *const libc::c_char, _: *const libc::c_char, _: libc::c_ulong) -> libc::c_int;
@@ -426,11 +531,6 @@ extern "C" {
     //     __n: size_t,
     // ) -> libc::c_int;
     pub fn fputs(__s: *const libc::c_char, __stream: *mut FILE) -> libc::c_int;
-    pub fn memcpy(
-        _: *mut libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
     // vtls/mbedtls_threadlock.rs
 
     // vtls/mbedtls.rs

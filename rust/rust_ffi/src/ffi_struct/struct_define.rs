@@ -1363,22 +1363,25 @@ pub struct content_encoding {
     >,
     pub paramsize: size_t,
 }
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct Curl_share {
-//     pub magic: libc::c_uint,
-//     pub specifier: libc::c_uint,
-//     pub dirty: libc::c_uint,
-//     pub lockfunc: curl_lock_function,
-//     pub unlockfunc: curl_unlock_function,
-//     pub clientdata: *mut libc::c_void,
-//     pub conn_cache: conncache,
-//     pub hostcache: Curl_hash,
-//     pub cookies: *mut CookieInfo,
-//     pub sslsession: *mut Curl_ssl_session,
-//     pub max_ssl_sessions: size_t,
-//     pub sessionage: libc::c_long,
-// }
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct Curl_share {
+    pub magic: libc::c_uint,
+    pub specifier: libc::c_uint,
+    pub dirty: libc::c_uint,
+    pub lockfunc: curl_lock_function,
+    pub unlockfunc: curl_unlock_function,
+    pub clientdata: *mut libc::c_void,
+    pub conn_cache: conncache,
+    pub hostcache: Curl_hash,
+    #[cfg(all(not(CURL_DISABLE_HTTP), not(CURL_DISABLE_COOKIES)))]
+    pub cookies: *mut CookieInfo,
+    #[cfg(USE_LIBPSL)]
+    pub psl: PslCache,
+    pub sslsession: *mut Curl_ssl_session,
+    pub max_ssl_sessions: size_t,
+    pub sessionage: libc::c_long,
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Curl_multi {

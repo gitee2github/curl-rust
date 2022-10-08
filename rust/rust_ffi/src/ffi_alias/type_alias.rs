@@ -17,7 +17,7 @@ extern "C" {
     pub type smb_request;
     pub type ldapreqinfo;
     // pub type contenc_writer;
-    pub type Curl_share;
+    // pub type Curl_share;
     // pub type curl_pushheaders;
     // pub type http_connect_state;
     pub type ldapconninfo;
@@ -201,18 +201,18 @@ pub type C2RustUnnamed_0 = libc::c_uint;
 pub type upgrade101 = libc::c_uint;
 pub type expect100 = libc::c_uint;
 pub type C2RustUnnamed_1 = libc::c_uint;
-// pub type curl_unlock_function = Option::<
-//     unsafe extern "C" fn(*mut CURL, curl_lock_data, *mut libc::c_void) -> (),
-// >;
+pub type curl_unlock_function = Option::<
+    unsafe extern "C" fn(*mut CURL, curl_lock_data, *mut libc::c_void) -> (),
+>;
 pub type curl_lock_data = libc::c_uint;
-// pub type curl_lock_function = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         curl_lock_data,
-//         curl_lock_access,
-//         *mut libc::c_void,
-//     ) -> (),
-// >;
+pub type curl_lock_function = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        curl_lock_data,
+        curl_lock_access,
+        *mut libc::c_void,
+    ) -> (),
+>;
 pub type curl_lock_access = libc::c_uint;
 pub type curl_multi_timer_callback = Option::<
     unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int,
