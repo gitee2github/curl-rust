@@ -101,8 +101,6 @@ extern "C" {
     fn get_CURL_DISABLE_DOH() -> i32;
     fn get_USE_NGHTTP3() -> i32;
     fn get_ENABLE_WAKEUP() -> i32;
-    fn get_USE_RECV_BEFORE_SEND_WORKAROUND() -> i32;
-    fn get_USE_KERBEROS5() -> i32;
     fn get_USE_GSASL() -> i32;
 }
 pub fn get_all_cfg() {
@@ -207,8 +205,6 @@ pub fn get_all_cfg() {
     get_CURL_DISABLE_DOH_add_cfg();
     get_USE_NGHTTP3_add_cfg();
     get_ENABLE_WAKEUP_add_cfg();
-    get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg();
-    get_USE_KERBEROS5_add_cfg();
     get_USE_GSASL_add_cfg();
 }
 
@@ -560,18 +556,6 @@ fn get_USE_NGHTTP3_add_cfg() {
 fn get_ENABLE_WAKEUP_add_cfg() {
     if unsafe { get_ENABLE_WAKEUP() } == 1 {
         println!("cargo:rustc-cfg=ENABLE_WAKEUP");
-    }
-}
-
-fn get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg() {
-    if unsafe { get_USE_RECV_BEFORE_SEND_WORKAROUND() } == 1 {
-        println!("cargo:rustc-cfg=USE_RECV_BEFORE_SEND_WORKAROUND");
-    }
-}
-
-fn get_USE_KERBEROS5_add_cfg() {
-    if unsafe { get_USE_KERBEROS5() } == 1 {
-        println!("cargo:rustc-cfg=USE_KERBEROS5");
     }
 }
 

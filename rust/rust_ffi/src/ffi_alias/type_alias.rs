@@ -2,18 +2,21 @@ use crate::src::ffi_struct::struct_define::*;
 
 // ---------------------Extern C----------------------
 extern "C" {
+    pub type gss_name_struct;
+    pub type gss_ctx_id_struct;
+    pub type Curl_sec_client_mech;
     pub type _IO_wide_data;
     pub type _IO_codecvt;
     pub type _IO_marker;
     pub type Curl_URL;
     pub type thread_data;
-    // pub type altsvcinfo;
+    pub type altsvcinfo;
+    pub type psl_ctx_st;
     pub type hsts;
     pub type TELNET;
     pub type smb_request;
     pub type ldapreqinfo;
     pub type contenc_writer;
-    pub type psl_ctx_st;
     pub type Curl_share;
     pub type curl_pushheaders;
     pub type http_connect_state;
@@ -22,10 +25,22 @@ extern "C" {
     pub type nghttp2_session;
     pub type nghttp2_session_callbacks;
     pub type ftp_parselist_data;
-    pub type ssl_backend_data;
+    // pub type ssl_backend_data;
+    #[cfg(USE_GSASL)]
+    pub type Gsasl_session;
+    #[cfg(USE_GSASL)]
+    pub type Gsasl;
 }
 
 // ---------------------Type Alias--------------------
+pub type OM_uint32 = gss_uint32;
+pub type gss_uint32 = uint32_t;
+pub type uint32_t = __uint32_t;
+pub type gss_buffer_desc = gss_buffer_desc_struct;
+pub type gss_name_t = *mut gss_name_struct;
+pub type gss_ctx_id_t = *mut gss_ctx_id_struct;
+pub type __int64_t = libc::c_long;
+pub type int64_t = __int64_t;
 pub type __uint8_t = libc::c_uchar;
 pub type __uint16_t = libc::c_ushort;
 pub type __int32_t = libc::c_int;
@@ -66,7 +81,7 @@ pub type hash_function = Option<unsafe extern "C" fn(*mut libc::c_void, size_t, 
 pub type timediff_t = curl_off_t;
 pub type curl_trailer_callback =
     Option<unsafe extern "C" fn(*mut *mut curl_slist, *mut libc::c_void) -> libc::c_int>;
-// pub type multidone_func = Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int,>;
+pub type multidone_func = Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode) -> libc::c_int,>;
 pub type CURLcode = libc::c_uint;
 pub type curl_resolver_start_callback = Option<
     unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_void, *mut libc::c_void) -> libc::c_int,
@@ -85,25 +100,25 @@ pub type curl_chunk_bgn_callback = Option<
 pub type Curl_RtspReq = libc::c_uint;
 pub type curl_usessl = libc::c_uint;
 pub type CURL_NETRC_OPTION = libc::c_uint;
-// pub type curl_sshkeycallback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         *const curl_khkey,
-//         *const curl_khkey,
-//         curl_khmatch,
-//         *mut libc::c_void,
-//     ) -> libc::c_int,
-// >;
+pub type curl_sshkeycallback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        *const curl_khkey,
+        *const curl_khkey,
+        curl_khmatch,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
 pub type curl_khmatch = libc::c_uint;
 pub type curl_khtype = libc::c_uint;
-// pub type CURL = Curl_easy;
+pub type CURL = Curl_easy;
 pub type curl_ftpccc = libc::c_uint;
 pub type curl_ftpauth = libc::c_uint;
 pub type curl_ftpfile = libc::c_uint;
 pub type CURL_TLSAUTH = libc::c_uint;
-// pub type curl_ssl_ctx_callback = Option::<
-//     unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode,
-// >;
+pub type curl_ssl_ctx_callback = Option::<
+    unsafe extern "C" fn(*mut CURL, *mut libc::c_void, *mut libc::c_void) -> CURLcode,
+>;
 pub type curl_proxytype = libc::c_uint;
 pub type curl_TimeCond = libc::c_uint;
 pub type mimestate = libc::c_uint;
@@ -111,22 +126,22 @@ pub type curl_free_callback = Option<unsafe extern "C" fn(*mut libc::c_void) -> 
 pub type curl_seek_callback =
     Option<unsafe extern "C" fn(*mut libc::c_void, curl_off_t, libc::c_int) -> libc::c_int>;
 pub type mimekind = libc::c_uint;
-// pub type curl_hstswrite_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         *mut curl_hstsentry,
-//         *mut curl_index,
-//         *mut libc::c_void,
-//     ) -> CURLSTScode,
-// >;
+pub type curl_hstswrite_callback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        *mut curl_hstsentry,
+        *mut curl_index,
+        *mut libc::c_void,
+    ) -> CURLSTScode,
+>;
 pub type CURLSTScode = libc::c_uint;
-// pub type curl_hstsread_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         *mut curl_hstsentry,
-//         *mut libc::c_void,
-//     ) -> CURLSTScode,
-// >;
+pub type curl_hstsread_callback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        *mut curl_hstsentry,
+        *mut libc::c_void,
+    ) -> CURLSTScode,
+>;
 pub type curl_conv_callback = Option<unsafe extern "C" fn(*mut libc::c_char, size_t) -> CURLcode>;
 pub type curl_closesocket_callback =
     Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t) -> libc::c_int>;
@@ -137,19 +152,19 @@ pub type curl_opensocket_callback = Option<
 pub type curlsocktype = libc::c_uint;
 pub type curl_sockopt_callback =
     Option<unsafe extern "C" fn(*mut libc::c_void, curl_socket_t, curlsocktype) -> libc::c_int>;
-// pub type curl_ioctl_callback = Option::<
-//     unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr,
-// >;
+pub type curl_ioctl_callback = Option::<
+    unsafe extern "C" fn(*mut CURL, libc::c_int, *mut libc::c_void) -> curlioerr,
+>;
 pub type curlioerr = libc::c_uint;
-// pub type curl_debug_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         curl_infotype,
-//         *mut libc::c_char,
-//         size_t,
-//         *mut libc::c_void,
-//     ) -> libc::c_int,
-// >;
+pub type curl_debug_callback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        curl_infotype,
+        *mut libc::c_char,
+        size_t,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
 pub type curl_infotype = libc::c_uint;
 pub type curl_xferinfo_callback = Option<
     unsafe extern "C" fn(
@@ -169,11 +184,19 @@ pub type curl_progress_callback = Option<
         libc::c_double,
     ) -> libc::c_int,
 >;
+pub type Curl_datastream = Option::<
+    unsafe extern "C" fn(
+        *mut Curl_easy,
+        *mut connectdata,
+        *mut libc::c_int,
+        *mut bool,
+        libc::c_int,
+    ) -> CURLcode,
+>;
 pub type curl_write_callback =
     Option<unsafe extern "C" fn(*mut libc::c_char, size_t, size_t, *mut libc::c_void) -> size_t>;
 pub type curl_pp_transfer = libc::c_uint;
 pub type uint8_t = __uint8_t;
-pub type uint32_t = __uint32_t;
 pub type C2RustUnnamed_0 = libc::c_uint;
 pub type upgrade101 = libc::c_uint;
 pub type expect100 = libc::c_uint;
@@ -191,28 +214,28 @@ pub type curl_lock_data = libc::c_uint;
 //     ) -> (),
 // >;
 pub type curl_lock_access = libc::c_uint;
-// pub type curl_multi_timer_callback = Option::<
-//     unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int,
-// >;
-// pub type CURLM = Curl_multi;
-// pub type curl_push_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         *mut CURL,
-//         size_t,
-//         *mut curl_pushheaders,
-//         *mut libc::c_void,
-//     ) -> libc::c_int,
-// >;
-// pub type curl_socket_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut CURL,
-//         curl_socket_t,
-//         libc::c_int,
-//         *mut libc::c_void,
-//         *mut libc::c_void,
-//     ) -> libc::c_int,
-// >;
+pub type curl_multi_timer_callback = Option::<
+    unsafe extern "C" fn(*mut CURLM, libc::c_long, *mut libc::c_void) -> libc::c_int,
+>;
+pub type CURLM = Curl_multi;
+pub type curl_push_callback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        *mut CURL,
+        size_t,
+        *mut curl_pushheaders,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
+pub type curl_socket_callback = Option::<
+    unsafe extern "C" fn(
+        *mut CURL,
+        curl_socket_t,
+        libc::c_int,
+        *mut libc::c_void,
+        *mut libc::c_void,
+    ) -> libc::c_int,
+>;
 pub type C2RustUnnamed_2 = libc::c_uint;
 pub type CURLMSG = libc::c_uint;
 pub type CURLMstate = libc::c_uint;
@@ -225,20 +248,20 @@ pub type smtpstate = libc::c_uint;
 pub type pop3state = libc::c_uint;
 pub type imapstate = libc::c_uint;
 pub type sshstate = libc::c_int;
-// pub type Curl_recv = unsafe extern "C" fn(
-//     *mut Curl_easy,
-//     libc::c_int,
-//     *mut libc::c_char,
-//     size_t,
-//     *mut CURLcode,
-// ) -> ssize_t;
-// pub type Curl_send = unsafe extern "C" fn(
-//     *mut Curl_easy,
-//     libc::c_int,
-//     *const libc::c_void,
-//     size_t,
-//     *mut CURLcode,
-// ) -> ssize_t;
+pub type Curl_recv = unsafe extern "C" fn(
+    *mut Curl_easy,
+    libc::c_int,
+    *mut libc::c_char,
+    size_t,
+    *mut CURLcode,
+) -> ssize_t;
+pub type Curl_send = unsafe extern "C" fn(
+    *mut Curl_easy,
+    libc::c_int,
+    *const libc::c_void,
+    size_t,
+    *mut CURLcode,
+) -> ssize_t;
 pub type ftpstate = libc::c_uint;
 pub type curlntlm = libc::c_uint;
 pub type ssl_connect_state = libc::c_uint;
@@ -284,15 +307,15 @@ pub type nghttp2_data_source_read_callback = Option<
     ) -> ssize_t,
 >;
 pub type nghttp2_headers_category = libc::c_uint;
-// pub type nghttp2_send_callback = Option::<
-//     unsafe extern "C" fn(
-//         *mut nghttp2_session,
-//         *const uint8_t,
-//         size_t,
-//         libc::c_int,
-//         *mut libc::c_void,
-//     ) -> ssize_t,
-// >;
+pub type nghttp2_send_callback = Option::<
+    unsafe extern "C" fn(
+        *mut nghttp2_session,
+        *const uint8_t,
+        size_t,
+        libc::c_int,
+        *mut libc::c_void,
+    ) -> ssize_t,
+>;
 pub type nghttp2_on_frame_recv_callback = Option<
     unsafe extern "C" fn(
         *mut nghttp2_session,
@@ -351,6 +374,8 @@ pub type urlreject = libc::c_uint;
 pub type timerid = libc::c_uint;
 pub type pl_winNT_mainstate = libc::c_uint;
 pub type pl_unix_mainstate = libc::c_uint;
+pub type protection_level = libc::c_uint;
+pub type curlnegotiate = libc::c_uint;
 
 // ----------------------Constants----------------------
 // curl_sslbackend
@@ -1272,3 +1297,19 @@ pub const PL_UNIX_HLINKS: pl_unix_mainstate = 3;
 pub const PL_UNIX_PERMISSION: pl_unix_mainstate = 2;
 pub const PL_UNIX_FILETYPE: pl_unix_mainstate = 1;
 pub const PL_UNIX_TOTALSIZE: pl_unix_mainstate = 0;
+
+// protection_level
+pub const PROT_LAST: protection_level = 6;
+pub const PROT_CMD: protection_level = 5;
+pub const PROT_PRIVATE: protection_level = 4;
+pub const PROT_CONFIDENTIAL: protection_level = 3;
+pub const PROT_SAFE: protection_level = 2;
+pub const PROT_CLEAR: protection_level = 1;
+pub const PROT_NONE: protection_level = 0;
+
+// curlnegotiate
+pub const GSS_AUTHSUCC: curlnegotiate = 4;
+pub const GSS_AUTHDONE: curlnegotiate = 3;
+pub const GSS_AUTHSENT: curlnegotiate = 2;
+pub const GSS_AUTHRECV: curlnegotiate = 1;
+pub const GSS_AUTHNONE: curlnegotiate = 0;
