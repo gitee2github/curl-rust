@@ -48,41 +48,41 @@ extern "C" {
     pub fn Curl_isspace(c: libc::c_int) -> libc::c_int;
     pub fn curl_free(p: *mut libc::c_void);
     pub fn strlen(_: *const libc::c_char) -> libc::c_ulong;
-    // fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    // fn Curl_http_auth_cleanup_ntlm_wb(conn: *mut connectdata);
-    // fn Curl_base64_encode(
-    //     data: *mut Curl_easy,
-    //     inputbuff: *const libc::c_char,
-    //     insize: size_t,
-    //     outptr: *mut *mut libc::c_char,
-    //     outlen: *mut size_t,
-    // ) -> CURLcode;
+    pub fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
+    pub fn Curl_http_auth_cleanup_ntlm_wb(conn: *mut connectdata);
+    pub fn Curl_base64_encode(
+        data: *mut Curl_easy,
+        inputbuff: *const libc::c_char,
+        insize: size_t,
+        outptr: *mut *mut libc::c_char,
+        outlen: *mut size_t,
+    ) -> CURLcode;
     pub fn Curl_base64_decode(
         src: *const libc::c_char,
         outptr: *mut *mut libc::c_uchar,
         outlen: *mut size_t,
     ) -> CURLcode;
-    // fn Curl_auth_create_ntlm_type1_message(
-    //     data: *mut Curl_easy,
-    //     userp: *const libc::c_char,
-    //     passwdp: *const libc::c_char,
-    //     service: *const libc::c_char,
-    //     host: *const libc::c_char,
-    //     ntlm: *mut ntlmdata,
-    //     out: *mut bufref,
-    // ) -> CURLcode;
-    // fn Curl_auth_decode_ntlm_type2_message(
-    //     data: *mut Curl_easy,
-    //     type2: *const bufref,
-    //     ntlm: *mut ntlmdata,
-    // ) -> CURLcode;
-    // fn Curl_auth_create_ntlm_type3_message(
-    //     data: *mut Curl_easy,
-    //     userp: *const libc::c_char,
-    //     passwdp: *const libc::c_char,
-    //     ntlm: *mut ntlmdata,
-    //     out: *mut bufref,
-    // ) -> CURLcode;
+    pub fn Curl_auth_create_ntlm_type1_message(
+        data: *mut Curl_easy,
+        userp: *const libc::c_char,
+        passwdp: *const libc::c_char,
+        service: *const libc::c_char,
+        host: *const libc::c_char,
+        ntlm: *mut ntlmdata,
+        out: *mut bufref,
+    ) -> CURLcode;
+    pub fn Curl_auth_decode_ntlm_type2_message(
+        data: *mut Curl_easy,
+        type2: *const bufref,
+        ntlm: *mut ntlmdata,
+    ) -> CURLcode;
+    pub fn Curl_auth_create_ntlm_type3_message(
+        data: *mut Curl_easy,
+        userp: *const libc::c_char,
+        passwdp: *const libc::c_char,
+        ntlm: *mut ntlmdata,
+        out: *mut bufref,
+    ) -> CURLcode;
     pub fn Curl_bufref_init(br: *mut bufref);
     pub fn Curl_bufref_set(
         br: *mut bufref,
@@ -96,12 +96,97 @@ extern "C" {
     pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata);
     pub fn curl_maprintf(format: *const libc::c_char, _: ...) -> *mut libc::c_char;
     // http_proxy.rs
-
+    pub fn sscanf(_: *const libc::c_char, _: *const libc::c_char, _: ...) -> libc::c_int;
+    pub fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
+    pub fn Curl_httpchunk_init(data: *mut Curl_easy);
+    pub fn Curl_httpchunk_read(
+        data: *mut Curl_easy,
+        datap: *mut libc::c_char,
+        length: ssize_t,
+        wrote: *mut ssize_t,
+        passthru: *mut CURLcode,
+    ) -> CHUNKcode;
+    pub fn Curl_dyn_free(s: *mut dynbuf);
+    pub fn Curl_dyn_addf(s: *mut dynbuf, fmt: *const libc::c_char, _: ...) -> CURLcode;
+    pub fn Curl_compareheader(
+        headerline: *const libc::c_char,
+        header: *const libc::c_char,
+        content: *const libc::c_char,
+    ) -> bool;
+    pub fn Curl_copy_header_value(header: *const libc::c_char) -> *mut libc::c_char;
+    pub fn Curl_checkProxyheaders(
+        data: *mut Curl_easy,
+        conn: *const connectdata,
+        thisheader: *const libc::c_char,
+    ) -> *mut libc::c_char;
+    pub fn Curl_buffer_send(
+        in_0: *mut dynbuf,
+        data: *mut Curl_easy,
+        bytes_written: *mut curl_off_t,
+        included_body_bytes: curl_off_t,
+        socketindex: libc::c_int,
+    ) -> CURLcode;
+    pub fn Curl_add_custom_headers(
+        data: *mut Curl_easy,
+        is_connect: bool,
+        req: *mut dynbuf,
+    ) -> CURLcode;
+    pub fn Curl_http_input_auth(
+        data: *mut Curl_easy,
+        proxy: bool,
+        auth: *const libc::c_char,
+    ) -> CURLcode;
+    pub fn Curl_http_auth_act(data: *mut Curl_easy) -> CURLcode;
+    pub fn Curl_http_output_auth(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        request: *const libc::c_char,
+        httpreq: Curl_HttpReq,
+        path: *const libc::c_char,
+        proxytunnel: bool,
+    ) -> CURLcode;
+    pub fn Curl_failf(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
+    pub fn Curl_client_write(
+        data: *mut Curl_easy,
+        type_0: libc::c_int,
+        ptr: *mut libc::c_char,
+        len: size_t,
+    ) -> CURLcode;
+    pub fn Curl_read(
+        data: *mut Curl_easy,
+        sockfd: curl_socket_t,
+        buf: *mut libc::c_char,
+        buffersize: size_t,
+        n: *mut ssize_t,
+    ) -> CURLcode;
+    pub fn Curl_write(
+        data: *mut Curl_easy,
+        sockfd: curl_socket_t,
+        mem: *const libc::c_void,
+        len: size_t,
+        written: *mut ssize_t,
+    ) -> CURLcode;
+    pub fn Curl_debug(
+        data: *mut Curl_easy,
+        type_0: curl_infotype,
+        ptr: *mut libc::c_char,
+        size: size_t,
+    ) -> libc::c_int;
+    pub fn Curl_pgrsUpdate(data: *mut Curl_easy) -> libc::c_int;
+    pub fn Curl_timeleft(data: *mut Curl_easy, nowp: *mut curltime, duringconnect: bool) -> timediff_t;
+    pub fn Curl_closesocket(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        sock: curl_socket_t,
+    ) -> libc::c_int;
+    pub fn Curl_conncontrol(conn: *mut connectdata, closeit: libc::c_int);
+    pub fn Curl_conn_data_pending(conn: *mut connectdata, sockindex: libc::c_int) -> bool;
+    pub fn Curl_fillreadbuffer(data: *mut Curl_easy, bytes: size_t, nreadp: *mut size_t) -> CURLcode;
+    pub fn Curl_get_upload_buffer(data: *mut Curl_easy) -> CURLcode;
     // http.rs
 
     // http2.rs
     pub fn strcmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
-    pub fn strchr(_: *const libc::c_char, _: libc::c_int) -> *mut libc::c_char;
     pub fn strncmp(_: *const libc::c_char, _: *const libc::c_char, _: libc::c_ulong) -> libc::c_int;
     pub fn curl_easy_duphandle(curl: *mut CURL) -> *mut CURL;
     pub fn curl_url() -> *mut CURLU;
@@ -248,24 +333,8 @@ extern "C" {
     pub fn nghttp2_is_fatal(lib_error_code: libc::c_int) -> libc::c_int;
     pub fn Curl_now() -> curltime;
     pub fn Curl_timediff(t1: curltime, t2: curltime) -> timediff_t;
-    pub fn Curl_dyn_free(s: *mut dynbuf);
-    pub fn Curl_dyn_addf(s: *mut dynbuf, fmt: *const libc::c_char, _: ...) -> CURLcode;
     pub fn Curl_http(data: *mut Curl_easy, done: *mut bool) -> CURLcode;
     pub fn Curl_http_done(data: *mut Curl_easy, _: CURLcode, premature: bool) -> CURLcode;
-    pub fn Curl_infof(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    pub fn Curl_failf(_: *mut Curl_easy, fmt: *const libc::c_char, _: ...);
-    pub fn Curl_client_write(
-        data: *mut Curl_easy,
-        type_0: libc::c_int,
-        ptr: *mut libc::c_char,
-        len: size_t,
-    ) -> CURLcode;
-    pub fn Curl_debug(
-        data: *mut Curl_easy,
-        type_0: curl_infotype,
-        ptr: *mut libc::c_char,
-        size: size_t,
-    ) -> libc::c_int;
     pub fn Curl_socket_check(
         readfd: curl_socket_t,
         readfd2: curl_socket_t,
@@ -296,7 +365,6 @@ extern "C" {
     pub fn Curl_multi_max_concurrent_streams(multi: *mut Curl_multi) -> libc::c_uint;
     pub fn Curl_close(datap: *mut *mut Curl_easy) -> CURLcode;
     pub fn Curl_connalive(conn: *mut connectdata) -> bool;
-    pub fn Curl_conncontrol(conn: *mut connectdata, closeit: libc::c_int);
     pub fn Curl_saferealloc(ptr: *mut libc::c_void, size: size_t) -> *mut libc::c_void;
     pub fn curl_msnprintf(
         buffer: *mut libc::c_char,

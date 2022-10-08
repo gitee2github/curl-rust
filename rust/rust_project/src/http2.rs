@@ -1,5 +1,5 @@
 use ::libc;
-use c2rust_bitfields::BitfieldStruct;
+// use c2rust_bitfields::BitfieldStruct;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;

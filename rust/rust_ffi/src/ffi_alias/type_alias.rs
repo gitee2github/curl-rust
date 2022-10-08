@@ -19,7 +19,7 @@ extern "C" {
     pub type contenc_writer;
     pub type Curl_share;
     // pub type curl_pushheaders;
-    pub type http_connect_state;
+    // pub type http_connect_state;
     pub type ldapconninfo;
     pub type tftp_state_data;
     pub type nghttp2_session;

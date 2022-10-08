@@ -1472,6 +1472,7 @@ pub struct CURLMsg {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// http2 http_proxy
 pub union http2_C2RustUnnamed_3 {
     pub whatever: *mut libc::c_void,
     pub result: CURLcode,
@@ -1607,23 +1608,23 @@ pub struct connectbundle {
     pub num_connections: size_t,
     pub conn_list: Curl_llist,
 }
-// #[derive(Copy, Clone, BitfieldStruct)]
-// #[repr(C)]
-// pub struct http_connect_state {
-//     pub http_proxy: HTTP,
-//     pub prot_save: *mut HTTP,
-//     pub rcvbuf: dynbuf,
-//     pub req: dynbuf,
-//     pub nsend: size_t,
-//     pub keepon: keeponval,
-//     pub cl: curl_off_t,
-//     pub tunnel_state: C2RustUnnamed_4,
-//     #[bitfield(name = "chunked_encoding", ty = "bit", bits = "0..=0")]
-//     #[bitfield(name = "close_connection", ty = "bit", bits = "1..=1")]
-//     pub chunked_encoding_close_connection: [u8; 1],
-//     #[bitfield(padding)]
-//     pub c2rust_padding: [u8; 3],
-// }
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct http_connect_state {
+    pub http_proxy: HTTP,
+    pub prot_save: *mut HTTP,
+    pub rcvbuf: dynbuf,
+    pub req: dynbuf,
+    pub nsend: size_t,
+    pub keepon: keeponval,
+    pub cl: curl_off_t,
+    pub tunnel_state: C2RustUnnamed_4,
+    #[bitfield(name = "chunked_encoding", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "close_connection", ty = "bit", bits = "1..=1")]
+    pub chunked_encoding_close_connection: [u8; 1],
+    #[bitfield(padding)]
+    pub c2rust_padding: [u8; 3],
+}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct mqtt_conn {
@@ -2265,6 +2266,7 @@ pub struct sockaddr_in {
 // -----------------Union-----------------
 #[derive(Copy, Clone)]
 #[repr(C)]
+// http2 http_proxy
 pub union http2_C2RustUnnamed {
     pub file: *mut FILEPROTO,
     pub ftp: *mut FTP,
