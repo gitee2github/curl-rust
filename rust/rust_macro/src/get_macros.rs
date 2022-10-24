@@ -64,32 +64,38 @@ extern "C" {
     fn get__WIN32_WCE() -> i32;
     fn get_NETWARE() -> i32;
     fn get___NOVELL_LIBC__() -> i32;
-
+    fn get_HAVE_STRUCT_SOCKADDR_STORAGE() -> i32;
+    fn get_USE_LIBSSH2() -> i32;
     // bearssl
-
+    fn get_USE_BEARSSL() -> i32;
     // gskit
-
+    fn get_USE_GSKIT() -> i32;
     // gtls
-
+    fn get_USE_GNUTLS() -> i32;
     // keylog
     fn get_WIN32() -> i32;
 
     // mbedtls
-
+    fn get_USE_MBEDTLS() -> i32;
+    fn get_USE_THREADS_POSIX() -> i32;
+    fn get_HAVE_PTHREAD_H() -> i32;
+    fn get_USE_THREADS_WIN32() -> i32;
+    fn get_HAVE_PROCESS_H() -> i32;
     // mbedtls_threadlock
 
     // nss
-
+    fn get_USE_NSS() -> i32;
     // mesalink
-
+    fn get_USE_MESALINK() -> i32;
     // openssl
 
     // rustls
-
+    fn get_USE_RUSTLS() -> i32;
     // vtls
-
+    fn get_CURL_WITH_MULTI_SSL() -> i32;
+    fn get_CURL_DEFAULT_SSL_BACKEND() -> i32;
     // wolfssl
-
+    fn get_USE_WOLFSSL() -> i32;
     // struct
     fn get_USE_LIBPSL() -> i32;
     fn get_HAVE_SIGNAL() -> i32;
@@ -102,6 +108,53 @@ extern "C" {
     fn get_USE_NGHTTP3() -> i32;
     fn get_ENABLE_WAKEUP() -> i32;
     fn get_USE_GSASL() -> i32;
+
+    fn get_HAVE_OPAQUE_RSA_DSA_DH() -> i32;
+    fn get_HAVE_X509_GET0_EXTENSIONS() -> i32;
+    fn get_HAVE_X509_GET0_SIGNATURE() -> i32;
+    fn get_HAVE_KEYLOG_CALLBACK() -> i32;
+    fn get_X509_V_FLAG_PARTIAL_CHAIN() -> i32;
+    fn get_X509_V_FLAG_TRUSTED_FIRST() -> i32;
+    fn get_HAVE_SSL_CTX_SET_EC_CURVES() -> i32;
+    fn get_HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH() -> i32;
+    fn get_HAVE_SSL_CTX_SET_CIPHERSUITES() -> i32;
+    fn get_USE_HTTP2() -> i32;
+    fn get_HAS_NPN() -> i32;
+    fn get_SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS() -> i32;
+    fn get_SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG() -> i32;
+    fn get_SSL_OP_NO_COMPRESSION() -> i32;
+    fn get_SSL_OP_NO_TICKET() -> i32;
+    fn get_SSL_MODE_RELEASE_BUFFERS() -> i32;
+    fn get_USE_OPENSSL_SRP() -> i32;
+    fn get_SSL_CTRL_SET_TLSEXT_HOSTNAME() -> i32;
+    fn get_SSL3_RT_INNER_CONTENT_TYPE() -> i32;
+    fn get_TLS1_1_VERSION() -> i32;
+    fn get_TLS1_2_VERSION() -> i32;
+    fn get_TLS1_3_VERSION() -> i32;
+    fn get_SSL3_VERSION() -> i32;
+    fn get_SSL2_VERSION() -> i32;
+    fn get_SSL3_RT_HEADER() -> i32;
+    fn get_SSL3_MT_MESSAGE_HASH() -> i32;
+    fn get_SSL3_MT_NEXT_PROTO() -> i32;
+    fn get_SSL3_MT_KEY_UPDATE() -> i32;
+    fn get_SSL3_MT_END_OF_EARLY_DATA() -> i32;
+    fn get_SSL3_MT_SUPPLEMENTAL_DATA() -> i32;
+    fn get_SSL3_MT_ENCRYPTED_EXTENSIONS() -> i32;
+    fn get_SSL3_MT_CERTIFICATE_STATUS() -> i32;
+    fn get_SSL3_MT_NEWSESSION_TICKET() -> i32;
+    fn get_SSL2_VERSION_MAJOR() -> i32;
+    fn get_SSL_CTRL_SET_MSG_CALLBACK() -> i32;
+    fn get_OPENSSL_INIT_ENGINE_ALL_BUILTIN() -> i32;
+    fn get_HAVE_OPAQUE_EVP_PKEY() -> i32;
+    fn get_ENGINE_CTRL_GET_CMD_FROM_NAME() -> i32;
+    fn get_USE_OPENSSL_ENGINE() -> i32;
+    fn get_RANDOM_FILE() -> i32;
+    fn get_OPENSSL_IS_BORINGSSL() -> i32;
+    fn get_SSL_ERROR_WANT_EARLY() -> i32;
+    fn get_SSL_ERROR_WANT_ASYNC_JOB() -> i32;
+    fn get_SSL_ERROR_WANT_ASYNC() -> i32;
+    fn get_AVE_KEYLOG_CALLBACK() -> i32;
+
 }
 pub fn get_all_cfg() {
     // http2
@@ -169,31 +222,38 @@ pub fn get_all_cfg() {
     get__WIN32_WCE_add_cfg();
     get_NETWARE_add_cfg();
     get___NOVELL_LIBC___add_cfg();
+    get_HAVE_STRUCT_SOCKADDR_STORAGE_add_cfg();
+    get_USE_LIBSSH2_add_cfg();
     // bearssl
-
+    get_USE_BEARSSL_add_cfg();
     // gskit
-
+    get_USE_GSKIT_add_cfg();
     // gtls
-
+    get_USE_GNUTLS_add_cfg();
     // keylog
     get_WIN32_add_cfg();
 
     // mbedtls
 
     // mbedtls_threadlock
-
+    get_USE_MBEDTLS_add_cfg();
+    get_USE_THREADS_POSIX_add_cfg();
+    get_HAVE_PTHREAD_H_add_cfg();
+    get_USE_THREADS_WIN32_add_cfg();
+    get_HAVE_PROCESS_H_add_cfg();
     // nss
-
+    get_USE_NSS_add_cfg();
     // mesalink
-
+    get_USE_MESALINK_add_cfg();
     // openssl
 
     // rustls
-
+    get_USE_RUSTLS_add_cfg();
     // vtls
-
+    get_CURL_WITH_MULTI_SSL_add_cfg();
+    get_CURL_DEFAULT_SSL_BACKEND_add_cfg();
     // wolfssl
-
+    get_USE_WOLFSSL_add_cfg();
     // struct
     get_USE_LIBPSL_add_cfg();
     get_HAVE_SIGNAL_add_cfg();
@@ -206,6 +266,53 @@ pub fn get_all_cfg() {
     get_USE_NGHTTP3_add_cfg();
     get_ENABLE_WAKEUP_add_cfg();
     get_USE_GSASL_add_cfg();
+
+    get_HAVE_OPAQUE_RSA_DSA_DH_add_cfg();
+    get_HAVE_X509_GET0_EXTENSIONS_add_cfg();
+    get_HAVE_X509_GET0_SIGNATURE_add_cfg();
+    get_HAVE_KEYLOG_CALLBACK_add_cfg();
+    get_X509_V_FLAG_PARTIAL_CHAIN_add_cfg();
+    get_X509_V_FLAG_TRUSTED_FIRST_add_cfg();
+    get_HAVE_SSL_CTX_SET_EC_CURVES_add_cfg();
+    get_HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH_add_cfg();
+    get_HAVE_SSL_CTX_SET_CIPHERSUITES_add_cfg();
+    get_USE_HTTP2_add_cfg();
+    get_HAS_NPN_add_cfg();
+    get_SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS_add_cfg();
+    get_SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG_add_cfg();
+    get_SSL_OP_NO_COMPRESSION_add_cfg();
+    get_SSL_OP_NO_TICKET_add_cfg();
+    get_SSL_MODE_RELEASE_BUFFERS_add_cfg();
+    get_USE_OPENSSL_SRP_add_cfg();
+    get_SSL_CTRL_SET_TLSEXT_HOSTNAME_add_cfg();
+    get_SSL3_RT_INNER_CONTENT_TYPE_add_cfg();
+    get_TLS1_1_VERSION_add_cfg();
+    get_TLS1_2_VERSION_add_cfg();
+    get_TLS1_3_VERSION_add_cfg();
+    get_SSL3_VERSION_add_cfg();
+    get_SSL2_VERSION_add_cfg();
+    get_SSL3_RT_HEADER_add_cfg();
+    get_SSL3_MT_MESSAGE_HASH_add_cfg();
+    get_SSL3_MT_NEXT_PROTO_add_cfg();
+    get_SSL3_MT_KEY_UPDATE_add_cfg();
+    get_SSL3_MT_END_OF_EARLY_DATA_add_cfg();
+    get_SSL3_MT_SUPPLEMENTAL_DATA_add_cfg();
+    get_SSL3_MT_ENCRYPTED_EXTENSIONS_add_cfg();
+    get_SSL3_MT_CERTIFICATE_STATUS_add_cfg();
+    get_SSL3_MT_NEWSESSION_TICKET_add_cfg();
+    get_SSL2_VERSION_MAJOR_add_cfg();
+    get_SSL_CTRL_SET_MSG_CALLBACK_add_cfg();
+    get_OPENSSL_INIT_ENGINE_ALL_BUILTIN_add_cfg();
+    get_HAVE_OPAQUE_EVP_PKEY_add_cfg();
+    get_ENGINE_CTRL_GET_CMD_FROM_NAME_add_cfg();
+    get_USE_OPENSSL_ENGINE_add_cfg();
+    get_RANDOM_FILE_add_cfg();
+    get_OPENSSL_IS_BORINGSSL_add_cfg();
+    get_SSL_ERROR_WANT_EARLY_add_cfg();
+    get_SSL_ERROR_WANT_ASYNC_JOB_add_cfg();
+    get_SSL_ERROR_WANT_ASYNC_add_cfg();
+    get_AVE_KEYLOG_CALLBACK_add_cfg();
+
 }
 
 // http2
@@ -470,12 +577,34 @@ fn get___NOVELL_LIBC___add_cfg() {
         println!("cargo:rustc-cfg=__NOVELL_LIBC__");
     }
 }
+fn get_HAVE_STRUCT_SOCKADDR_STORAGE_add_cfg() {
+    if unsafe { get_HAVE_STRUCT_SOCKADDR_STORAGE() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_STRUCT_SOCKADDR_STORAGE");
+    }
+}
+fn get_USE_LIBSSH2_add_cfg() {
+    if unsafe { get_USE_LIBSSH2() } == 1 {
+        println!("cargo:rustc-cfg=USE_LIBSSH2");
+    }
+}
 // bearssl
-
+fn get_USE_BEARSSL_add_cfg() {
+    if unsafe { get_USE_BEARSSL() } == 1 {
+        println!("cargo:rustc-cfg=USE_BEARSSL");
+    }
+}
 // gskit
-
+fn get_USE_GSKIT_add_cfg() {
+    if unsafe { get_USE_GSKIT() } == 1 {
+        println!("cargo:rustc-cfg=USE_GSKIT");
+    }
+}
 // gtls
-
+fn get_USE_GNUTLS_add_cfg() {
+    if unsafe { get_USE_GNUTLS() } == 1 {
+        println!("cargo:rustc-cfg=USE_GNUTLS");
+    }
+}
 // keylog
 fn get_WIN32_add_cfg() {
     if unsafe { get_WIN32() } == 1 {
@@ -485,19 +614,68 @@ fn get_WIN32_add_cfg() {
 // mbedtls
 
 // mbedtls_threadlock
-
+fn get_USE_MBEDTLS_add_cfg() {
+    if unsafe { get_USE_MBEDTLS() } == 1 {
+        println!("cargo:rustc-cfg=USE_MBEDTLS");
+    }
+}
+fn get_USE_THREADS_POSIX_add_cfg() {
+    if unsafe { get_USE_THREADS_POSIX() } == 1 {
+        println!("cargo:rustc-cfg=USE_THREADS_POSIX");
+    }
+}
+fn get_HAVE_PTHREAD_H_add_cfg() {
+    if unsafe { get_HAVE_PTHREAD_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_PTHREAD_H");
+    }
+}
+fn get_USE_THREADS_WIN32_add_cfg() {
+    if unsafe { get_USE_THREADS_WIN32() } == 1 {
+        println!("cargo:rustc-cfg=USE_THREADS_WIN32");
+    }
+}
+fn get_HAVE_PROCESS_H_add_cfg() {
+    if unsafe { get_HAVE_PROCESS_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_PROCESS_H");
+    }
+}
 // nss
-
+fn get_USE_NSS_add_cfg() {
+    if unsafe { get_USE_NSS() } == 1 {
+        println!("cargo:rustc-cfg=USE_NSS");
+    }
+}
 // mesalink
-
+fn get_USE_MESALINK_add_cfg() {
+    if unsafe { get_USE_MESALINK() } == 1 {
+        println!("cargo:rustc-cfg=USE_MESALINK");
+    }
+}
 // openssl
 
 // rustls
-
+fn get_USE_RUSTLS_add_cfg() {
+    if unsafe { get_USE_RUSTLS() } == 1 {
+        println!("cargo:rustc-cfg=USE_RUSTLS");
+    }
+}
 // vtls
-
+fn get_CURL_WITH_MULTI_SSL_add_cfg() {
+    if unsafe { get_CURL_WITH_MULTI_SSL() } == 1 {
+        println!("cargo:rustc-cfg=CURL_WITH_MULTI_SSL");
+    }
+}
+fn get_CURL_DEFAULT_SSL_BACKEND_add_cfg() {
+    if unsafe { get_CURL_DEFAULT_SSL_BACKEND() } == 1 {
+        println!("cargo:rustc-cfg=CURL_DEFAULT_SSL_BACKEND");
+    }
+}
 // wolfssl
-
+fn get_USE_WOLFSSL_add_cfg() {
+    if unsafe { get_USE_WOLFSSL() } == 1 {
+        println!("cargo:rustc-cfg=USE_WOLFSSL");
+    }
+}
 //struct
 fn get_USE_LIBPSL_add_cfg() {
     if unsafe { get_USE_LIBPSL() } == 1 {
@@ -562,5 +740,241 @@ fn get_ENABLE_WAKEUP_add_cfg() {
 fn get_USE_GSASL_add_cfg() {
     if unsafe { get_USE_GSASL() } == 1 {
         println!("cargo:rustc-cfg=USE_GSASL");
+    }
+}
+
+fn get_HAVE_OPAQUE_RSA_DSA_DH_add_cfg() {
+    if unsafe { get_HAVE_OPAQUE_RSA_DSA_DH() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_OPAQUE_RSA_DSA_DH");
+    }
+}
+fn get_HAVE_X509_GET0_EXTENSIONS_add_cfg() {
+    if unsafe { get_HAVE_X509_GET0_EXTENSIONS() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_X509_GET0_EXTENSIONS");
+    }
+}
+fn get_HAVE_X509_GET0_SIGNATURE_add_cfg() {
+    if unsafe { get_HAVE_X509_GET0_SIGNATURE() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_X509_GET0_SIGNATURE");
+    }
+}
+fn get_HAVE_KEYLOG_CALLBACK_add_cfg() {
+    if unsafe { get_HAVE_KEYLOG_CALLBACK() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_KEYLOG_CALLBACK");
+    }
+}
+fn get_X509_V_FLAG_PARTIAL_CHAIN_add_cfg() {
+    if unsafe { get_X509_V_FLAG_PARTIAL_CHAIN() } == 1 {
+        println!("cargo:rustc-cfg=X509_V_FLAG_PARTIAL_CHAIN");
+    }
+}
+fn get_X509_V_FLAG_TRUSTED_FIRST_add_cfg() {
+    if unsafe { get_X509_V_FLAG_TRUSTED_FIRST() } == 1 {
+        println!("cargo:rustc-cfg=X509_V_FLAG_TRUSTED_FIRST");
+    }
+}
+fn get_HAVE_SSL_CTX_SET_EC_CURVES_add_cfg() {
+    if unsafe { get_HAVE_SSL_CTX_SET_EC_CURVES() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SSL_CTX_SET_EC_CURVES");
+    }
+}
+fn get_HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH_add_cfg() {
+    if unsafe { get_HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH");
+    }
+}
+fn get_HAVE_SSL_CTX_SET_CIPHERSUITES_add_cfg() {
+    if unsafe { get_HAVE_SSL_CTX_SET_CIPHERSUITES() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SSL_CTX_SET_CIPHERSUITES");
+    }
+}
+fn get_USE_HTTP2_add_cfg() {
+    if unsafe { get_USE_HTTP2() } == 1 {
+        println!("cargo:rustc-cfg=USE_HTTP2");
+    }
+}
+fn get_HAS_NPN_add_cfg() {
+    if unsafe { get_HAS_NPN() } == 1 {
+        println!("cargo:rustc-cfg=HAS_NPN");
+    }
+}
+fn get_SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS_add_cfg() {
+    if unsafe { get_SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS() } == 1 {
+        println!("cargo:rustc-cfg=SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS");
+    }
+}
+fn get_SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG_add_cfg() {
+    if unsafe { get_SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG() } == 1 {
+        println!("cargo:rustc-cfg=SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG");
+    }
+}
+fn get_SSL_OP_NO_COMPRESSION_add_cfg() {
+    if unsafe { get_SSL_OP_NO_COMPRESSION() } == 1 {
+        println!("cargo:rustc-cfg=SSL_OP_NO_COMPRESSION");
+    }
+}
+fn get_SSL_OP_NO_TICKET_add_cfg() {
+    if unsafe { get_SSL_OP_NO_TICKET() } == 1 {
+        println!("cargo:rustc-cfg=SSL_OP_NO_TICKET");
+    }
+}
+fn get_SSL_MODE_RELEASE_BUFFERS_add_cfg() {
+    if unsafe { get_SSL_MODE_RELEASE_BUFFERS() } == 1 {
+        println!("cargo:rustc-cfg=SSL_MODE_RELEASE_BUFFERS");
+    }
+}
+fn get_USE_OPENSSL_SRP_add_cfg() {
+    if unsafe { get_USE_OPENSSL_SRP() } == 1 {
+        println!("cargo:rustc-cfg=USE_OPENSSL_SRP");
+    }
+}
+fn get_SSL_CTRL_SET_TLSEXT_HOSTNAME_add_cfg() {
+    if unsafe { get_SSL_CTRL_SET_TLSEXT_HOSTNAME() } == 1 {
+        println!("cargo:rustc-cfg=SSL_CTRL_SET_TLSEXT_HOSTNAME");
+    }
+}
+fn get_SSL3_RT_INNER_CONTENT_TYPE_add_cfg() {
+    if unsafe { get_SSL3_RT_INNER_CONTENT_TYPE() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_RT_INNER_CONTENT_TYPE");
+    }
+}
+fn get_TLS1_1_VERSION_add_cfg() {
+    if unsafe { get_TLS1_1_VERSION() } == 1 {
+        println!("cargo:rustc-cfg=TLS1_1_VERSION");
+    }
+}
+fn get_TLS1_2_VERSION_add_cfg() {
+    if unsafe { get_TLS1_2_VERSION() } == 1 {
+        println!("cargo:rustc-cfg=TLS1_2_VERSION");
+    }
+}
+
+fn get_TLS1_3_VERSION_add_cfg() {
+    if unsafe { get_TLS1_3_VERSION() } == 1 {
+        println!("cargo:rustc-cfg=TLS1_3_VERSION");
+    }
+}
+fn get_SSL3_VERSION_add_cfg() {
+    if unsafe { get_SSL3_VERSION() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_VERSION");
+    }
+}
+fn get_SSL2_VERSION_add_cfg() {
+    if unsafe { get_SSL2_VERSION() } == 1 {
+        println!("cargo:rustc-cfg=SSL2_VERSION");
+    }
+}
+fn get_SSL3_RT_HEADER_add_cfg() {
+    if unsafe { get_SSL3_RT_HEADER() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_RT_HEADER");
+    }
+}
+fn get_SSL3_MT_MESSAGE_HASH_add_cfg() {
+    if unsafe { get_SSL3_MT_MESSAGE_HASH() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_MESSAGE_HASH");
+    }
+}
+
+fn get_SSL3_MT_NEXT_PROTO_add_cfg() {
+    if unsafe { get_SSL3_MT_NEXT_PROTO() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_NEXT_PROTO");
+    }
+}
+fn get_SSL3_MT_KEY_UPDATE_add_cfg() {
+    if unsafe { get_SSL3_MT_KEY_UPDATE() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_KEY_UPDATE");
+    }
+}
+fn get_SSL3_MT_END_OF_EARLY_DATA_add_cfg() {
+    if unsafe { get_SSL3_MT_END_OF_EARLY_DATA() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_END_OF_EARLY_DATA");
+    }
+}
+
+fn get_SSL3_MT_SUPPLEMENTAL_DATA_add_cfg() {
+    if unsafe { get_SSL3_MT_SUPPLEMENTAL_DATA() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_SUPPLEMENTAL_DATA");
+    }
+}
+
+fn get_SSL3_MT_ENCRYPTED_EXTENSIONS_add_cfg() {
+    if unsafe { get_SSL3_MT_ENCRYPTED_EXTENSIONS() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_ENCRYPTED_EXTENSIONS");
+    }
+}
+
+fn get_SSL3_MT_CERTIFICATE_STATUS_add_cfg() {
+    if unsafe { get_SSL3_MT_CERTIFICATE_STATUS() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_CERTIFICATE_STATUS");
+    }
+}
+
+fn get_SSL3_MT_NEWSESSION_TICKET_add_cfg() {
+    if unsafe { get_SSL3_MT_NEWSESSION_TICKET() } == 1 {
+        println!("cargo:rustc-cfg=SSL3_MT_NEWSESSION_TICKET");
+    }
+}
+
+fn get_SSL2_VERSION_MAJOR_add_cfg() {
+    if unsafe { get_SSL2_VERSION_MAJOR() } == 1 {
+        println!("cargo:rustc-cfg=SSL2_VERSION_MAJOR");
+    }
+}
+
+fn get_SSL_CTRL_SET_MSG_CALLBACK_add_cfg() {
+    if unsafe { get_SSL_CTRL_SET_MSG_CALLBACK() } == 1 {
+        println!("cargo:rustc-cfg=SSL_CTRL_SET_MSG_CALLBACK");
+    }
+}
+
+fn get_OPENSSL_INIT_ENGINE_ALL_BUILTIN_add_cfg() {
+    if unsafe { get_OPENSSL_INIT_ENGINE_ALL_BUILTIN() } == 1 {
+        println!("cargo:rustc-cfg=OPENSSL_INIT_ENGINE_ALL_BUILTIN");
+    }
+}
+
+fn get_HAVE_OPAQUE_EVP_PKEY_add_cfg() {
+    if unsafe { get_HAVE_OPAQUE_EVP_PKEY() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_OPAQUE_EVP_PKEY");
+    }
+}
+fn get_ENGINE_CTRL_GET_CMD_FROM_NAME_add_cfg() {
+    if unsafe { get_ENGINE_CTRL_GET_CMD_FROM_NAME() } == 1 {
+        println!("cargo:rustc-cfg=ENGINE_CTRL_GET_CMD_FROM_NAME");
+    }
+}
+fn get_USE_OPENSSL_ENGINE_add_cfg() {
+    if unsafe { get_USE_OPENSSL_ENGINE() } == 1 {
+        println!("cargo:rustc-cfg=USE_OPENSSL_ENGINE");
+    }
+}
+fn get_RANDOM_FILE_add_cfg() {
+    if unsafe { get_RANDOM_FILE() } == 1 {
+        println!("cargo:rustc-cfg=RANDOM_FILE");
+    }
+}
+fn get_OPENSSL_IS_BORINGSSL_add_cfg() {
+    if unsafe { get_OPENSSL_IS_BORINGSSL() } == 1 {
+        println!("cargo:rustc-cfg=OPENSSL_IS_BORINGSSL");
+    }
+}
+fn get_SSL_ERROR_WANT_EARLY_add_cfg() {
+    if unsafe { get_SSL_ERROR_WANT_EARLY() } == 1 {
+        println!("cargo:rustc-cfg=SSL_ERROR_WANT_EARLY");
+    }
+}
+fn get_SSL_ERROR_WANT_ASYNC_JOB_add_cfg() {
+    if unsafe { get_SSL_ERROR_WANT_ASYNC_JOB() } == 1 {
+        println!("cargo:rustc-cfg=SSL_ERROR_WANT_ASYNC_JOB");
+    }
+}
+fn get_SSL_ERROR_WANT_ASYNC_add_cfg() {
+    if unsafe { get_SSL_ERROR_WANT_ASYNC() } == 1 {
+        println!("cargo:rustc-cfg=SSL_ERROR_WANT_ASYNC");
+    }
+}
+fn get_AVE_KEYLOG_CALLBACK_add_cfg() {
+    if unsafe { get_AVE_KEYLOG_CALLBACK() } == 1 {
+        println!("cargo:rustc-cfg=AVE_KEYLOG_CALLBACK");
     }
 }

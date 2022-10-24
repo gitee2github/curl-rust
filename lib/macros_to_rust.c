@@ -321,6 +321,41 @@
 // end http **************************************************************
 
 
+// start vtls **************************************************************
+#include "curl_setup.h"
+
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
+#include "urldata.h"
+
+#include "vtls/vtls.h" /* generic SSL protos etc */
+#include "slist.h"
+#include "sendf.h"
+#include "strcase.h"
+#include "url.h"
+#include "progress.h"
+#include "share.h"
+#include "multiif.h"
+#include "timeval.h"
+#include "curl_md5.h"
+#include "warnless.h"
+#include "curl_base64.h"
+#include "curl_printf.h"
+#include "strdup.h"
+
+/* The last #include files should be: */
+#include "curl_memory.h"
+#include "memdebug.h"
+// end vtls **************************************************************
+
 int get_USE_RECV_BEFORE_SEND_WORKAROUND() {
 #ifdef USE_RECV_BEFORE_SEND_WORKAROUND
     return 1;
@@ -725,27 +760,120 @@ int get_WIN32(){
 // http_negotiate
 
 // bearssl
-
+int get_USE_BEARSSL(){
+#ifdef USE_BEARSSL
+    return 1;
+#else
+    return 0;
+#endif
+}
 // gskit
-
+int get_USE_GSKIT(){
+#ifdef USE_GSKIT
+    return 1;
+#else
+    return 0;
+#endif
+}
 // gtls
-
+int get_USE_GNUTLS(){
+#ifdef USE_GNUTLS
+    return 1;
+#else
+    return 0;
+#endif
+}
 // mbedtls
 
 // mbedtls_threadlock
+int get_USE_MBEDTLS(){
+#ifdef USE_MBEDTLS
+    return 1;
+#else
+    return 0;
+#endif
+}
 
+int get_USE_THREADS_POSIX(){
+#ifdef USE_THREADS_POSIX
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_PTHREAD_H(){
+#ifdef HAVE_PTHREAD_H
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_THREADS_WIN32(){
+#ifdef USE_THREADS_WIN32
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_PROCESS_H(){
+#ifdef HAVE_PROCESS_H
+    return 1;
+#else
+    return 0;
+#endif
+}
 // nss
-
+int get_USE_NSS(){
+#ifdef USE_NSS
+    return 1;
+#else
+    return 0;
+#endif
+}
 // mesalink
-
+int get_USE_MESALINK(){
+#ifdef USE_MESALINK
+    return 1;
+#else
+    return 0;
+#endif
+}
 // openssl
 
 // rustls
-
+int get_USE_RUSTLS(){
+#ifdef USE_RUSTLS
+    return 1;
+#else
+    return 0;
+#endif
+}
 // vtls
-
+int get_CURL_WITH_MULTI_SSL(){
+#ifdef CURL_WITH_MULTI_SSL
+    return 1;
+#else
+    return 0;
+#endif
+}
+int get_CURL_DEFAULT_SSL_BACKEND(){
+#ifdef CURL_DEFAULT_SSL_BACKEND
+    return 1;
+#else
+    return 0;
+#endif
+}
 // wolfssl
-
+int get_USE_WOLFSSL(){
+#ifdef USE_WOLFSSL
+    return 1;
+#else
+    return 0;
+#endif
+}
 // struct
 int get_USE_LIBPSL(){
 #ifdef USE_LIBPSL
@@ -830,6 +958,382 @@ int get_ENABLE_WAKEUP(){
 
 int get_USE_GSASL(){
 #ifdef USE_GSASL
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_STRUCT_SOCKADDR_STORAGE(){
+#ifdef HAVE_STRUCT_SOCKADDR_STORAGE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_LIBSSH2(){
+#ifdef USE_LIBSSH2
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_OPAQUE_RSA_DSA_DH(){
+#ifdef HAVE_OPAQUE_RSA_DSA_DH
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_X509_GET0_EXTENSIONS(){
+#ifdef HAVE_X509_GET0_EXTENSIONS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_X509_GET0_SIGNATURE(){
+#ifdef HAVE_X509_GET0_SIGNATURE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_KEYLOG_CALLBACK(){
+#ifdef HAVE_KEYLOG_CALLBACK
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_X509_V_FLAG_PARTIAL_CHAIN(){
+#ifdef X509_V_FLAG_PARTIAL_CHAIN
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_X509_V_FLAG_TRUSTED_FIRST(){
+#ifdef X509_V_FLAG_TRUSTED_FIRST
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_SSL_CTX_SET_EC_CURVES(){
+#ifdef HAVE_SSL_CTX_SET_EC_CURVES
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH(){
+#ifdef HAVE_SSL_CTX_SET_POST_HANDSHAKE_AUTH
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_SSL_CTX_SET_CIPHERSUITES(){
+#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_HTTP2(){
+#ifdef USE_HTTP2
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAS_NPN(){
+#ifdef HAS_NPN
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS(){
+#ifdef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG(){
+#ifdef SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_OP_NO_COMPRESSION(){
+#ifdef SSL_OP_NO_COMPRESSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_OP_NO_TICKET(){
+#ifdef SSL_OP_NO_TICKET
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_MODE_RELEASE_BUFFERS(){
+#ifdef SSL_MODE_RELEASE_BUFFERS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_OPENSSL_SRP(){
+#ifdef USE_OPENSSL_SRP
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_CTRL_SET_TLSEXT_HOSTNAME(){
+#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_RT_INNER_CONTENT_TYPE(){
+#ifdef SSL3_RT_INNER_CONTENT_TYPE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_TLS1_1_VERSION(){
+#ifdef TLS1_1_VERSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_TLS1_2_VERSION(){
+#ifdef TLS1_2_VERSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_TLS1_3_VERSION(){
+#ifdef TLS1_3_VERSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_VERSION(){
+#ifdef SSL3_VERSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL2_VERSION(){
+#ifdef SSL2_VERSION
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_RT_HEADER(){
+#ifdef SSL3_RT_HEADER
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_MESSAGE_HASH(){
+#ifdef SSL3_MT_MESSAGE_HASH
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_NEXT_PROTO(){
+#ifdef SSL3_MT_NEXT_PROTO
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_KEY_UPDATE(){
+#ifdef SSL3_MT_KEY_UPDATE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_END_OF_EARLY_DATA(){
+#ifdef SSL3_MT_END_OF_EARLY_DATA
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_SUPPLEMENTAL_DATA(){
+#ifdef SSL3_MT_SUPPLEMENTAL_DATA
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_ENCRYPTED_EXTENSIONS(){
+#ifdef SSL3_MT_ENCRYPTED_EXTENSIONS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_CERTIFICATE_STATUS(){
+#ifdef SSL3_MT_CERTIFICATE_STATUS
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL3_MT_NEWSESSION_TICKET(){
+#ifdef SSL3_MT_NEWSESSION_TICKET
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL2_VERSION_MAJOR(){
+#ifdef SSL2_VERSION_MAJOR
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_CTRL_SET_MSG_CALLBACK(){
+#ifdef SSL_CTRL_SET_MSG_CALLBACK
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_OPENSSL_INIT_ENGINE_ALL_BUILTIN(){
+#ifdef OPENSSL_INIT_ENGINE_ALL_BUILTIN
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_HAVE_OPAQUE_EVP_PKEY(){
+#ifdef HAVE_OPAQUE_EVP_PKEY
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_ENGINE_CTRL_GET_CMD_FROM_NAME(){
+#ifdef ENGINE_CTRL_GET_CMD_FROM_NAME
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_USE_OPENSSL_ENGINE(){
+#ifdef USE_OPENSSL_ENGINE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_RANDOM_FILE(){
+#ifdef RANDOM_FILE
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_OPENSSL_IS_BORINGSSL(){
+#ifdef OPENSSL_IS_BORINGSSL
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_ERROR_WANT_EARLY(){
+#ifdef SSL_ERROR_WANT_EARLY
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_ERROR_WANT_ASYNC_JOB(){
+#ifdef SSL_ERROR_WANT_ASYNC_JOB
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_SSL_ERROR_WANT_ASYNC(){
+#ifdef SSL_ERROR_WANT_ASYNC
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_AVE_KEYLOG_CALLBACK(){
+#ifdef AVE_KEYLOG_CALLBACK
     return 1;
 #else
     return 0;

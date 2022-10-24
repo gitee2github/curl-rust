@@ -41,19 +41,14 @@ LIB_VAUTH_HFILES =      \
   vauth/vauth.h
 
 LIB_VTLS_CFILES =           \
-  vtls/bearssl.c            \
   vtls/gskit.c              \
-  vtls/gtls.c               \
-  vtls/mbedtls.c            \
-  vtls/mbedtls_threadlock.c \
-  vtls/mesalink.c           \
-  vtls/nss.c                \
-  vtls/openssl.c            \
-  vtls/rustls.c             \
   vtls/schannel.c           \
   vtls/schannel_verify.c    \
   vtls/sectransp.c          \
-  vtls/wolfssl.c
+  vtls/openssl.c            
+         
+         
+  
 
 LIB_VTLS_HFILES =           \
   vtls/bearssl.h            \
@@ -142,7 +137,6 @@ LIB_CFILES =         \
   hostip6.c          \
   hostsyn.c          \
   hsts.c             \
-  http_negotiate.c   \
   idn_win32.c        \
   if2ip.c            \
   imap.c             \
@@ -201,7 +195,10 @@ LIB_CFILES =         \
   warnless.c         \
   wildcard.c         \
   x509asn1.c         \
-  macros_to_rust.c
+  macros_to_rust.c   \
+  ftp.c              \
+  http.c             \
+  http_negotiate.c
 
 LIB_HFILES =         \
   altsvc.h           \

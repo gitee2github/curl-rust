@@ -6,10 +6,11 @@ set +e
 aclocal
 automake
 
-LIBS=-ldl ./configure --without-ssl --disable-shared
-make || true
+LIBS=-ldl ./configure --without-ssl --disable-shared --without-nghttp2 --without-ngtcp2
+cd lib
+make
 
-cd rust/
+cd ../rust/
 
 # 开始检查
 cargo fmt --all -- --check -v
