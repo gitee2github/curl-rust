@@ -5,6 +5,9 @@ extern "C" {
     fn get_DEBUG_HTTP2() -> i32;
     fn get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE() -> i32;
     fn get_DEBUGBUILD() -> i32;
+    
+    fn get_USE_RECV_BEFORE_SEND_WORKAROUND() -> i32;
+    fn get_USE_KERBEROS5() -> i32;
     // http_proxy
     fn get_CURL_DISABLE_PROXY() -> i32;
     fn get_CURL_DISABLE_HTTP() -> i32;
@@ -86,6 +89,19 @@ extern "C" {
     // vtls
 
     // wolfssl
+
+    // struct
+    fn get_USE_LIBPSL() -> i32;
+    fn get_HAVE_SIGNAL() -> i32;
+    fn get_USE_CURL_ASYNC() -> i32;
+    fn get_USE_OPENSSL() -> i32;
+    fn get_MSDOS() -> i32;
+    fn get___EMX__() -> i32;
+    fn get_USE_TLS_SRP() -> i32;
+    fn get_CURL_DISABLE_DOH() -> i32;
+    fn get_USE_NGHTTP3() -> i32;
+    fn get_ENABLE_WAKEUP() -> i32;
+    fn get_USE_GSASL() -> i32;
 }
 pub fn get_all_cfg() {
     // http2
@@ -94,6 +110,9 @@ pub fn get_all_cfg() {
     get_DEBUG_HTTP2_add_cfg();
     get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE_add_cfg();
     get_DEBUGBUILD_add_cfg();
+
+    get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg();
+    get_USE_KERBEROS5_add_cfg();
     // http_proxy
     get_CURL_DISABLE_PROXY_add_cfg();
     get_CURL_DISABLE_HTTP_add_cfg();
@@ -174,6 +193,19 @@ pub fn get_all_cfg() {
     // vtls
 
     // wolfssl
+
+    // struct
+    get_USE_LIBPSL_add_cfg();
+    get_HAVE_SIGNAL_add_cfg();
+    get_USE_CURL_ASYNC_add_cfg();
+    get_USE_OPENSSL_add_cfg();
+    get_MSDOS_add_cfg();
+    get___EMX___add_cfg();
+    get_USE_TLS_SRP_add_cfg();
+    get_CURL_DISABLE_DOH_add_cfg();
+    get_USE_NGHTTP3_add_cfg();
+    get_ENABLE_WAKEUP_add_cfg();
+    get_USE_GSASL_add_cfg();
 }
 
 // http2
@@ -200,6 +232,16 @@ fn get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE_add_cfg() {
 fn get_DEBUGBUILD_add_cfg() {
     if unsafe { get_DEBUGBUILD() } == 1 {
         println!("cargo:rustc-cfg=DEBUGBUILD");
+    }
+}
+fn get_USE_RECV_BEFORE_SEND_WORKAROUND_add_cfg() {
+    if unsafe { get_USE_RECV_BEFORE_SEND_WORKAROUND() } == 1 {
+        println!("cargo:rustc-cfg=USE_RECV_BEFORE_SEND_WORKAROUND");
+    }
+}
+fn get_USE_KERBEROS5_add_cfg() {
+    if unsafe { get_USE_KERBEROS5() } == 1 {
+        println!("cargo:rustc-cfg=USE_KERBEROS5");
     }
 }
 // http_proxy
@@ -348,6 +390,7 @@ fn get_HAVE_SYS_PARAM_H_add_cfg() {
 }
 
 // ftplistparser
+// repeated
 
 // ftp
 fn get_CURL_DISABLE_FTP_add_cfg() {
@@ -454,3 +497,70 @@ fn get_WIN32_add_cfg() {
 // vtls
 
 // wolfssl
+
+//struct
+fn get_USE_LIBPSL_add_cfg() {
+    if unsafe { get_USE_LIBPSL() } == 1 {
+        println!("cargo:rustc-cfg=USE_LIBPSL");
+    }
+}
+
+fn get_HAVE_SIGNAL_add_cfg() {
+    if unsafe { get_HAVE_SIGNAL() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_SIGNAL");
+    }
+}
+
+fn get_USE_CURL_ASYNC_add_cfg() {
+    if unsafe { get_USE_CURL_ASYNC() } == 1 {
+        println!("cargo:rustc-cfg=USE_CURL_ASYNC");
+    }
+}
+
+fn get_USE_OPENSSL_add_cfg() {
+    if unsafe { get_USE_OPENSSL() } == 1 {
+        println!("cargo:rustc-cfg=USE_OPENSSL");
+    }
+}
+
+fn get_MSDOS_add_cfg() {
+    if unsafe { get_MSDOS() } == 1 {
+        println!("cargo:rustc-cfg=MSDOS");
+    }
+}
+
+fn get___EMX___add_cfg() {
+    if unsafe { get___EMX__() } == 1 {
+        println!("cargo:rustc-cfg=__EMX__");
+    }
+}
+
+fn get_USE_TLS_SRP_add_cfg() {
+    if unsafe { get_USE_TLS_SRP() } == 1 {
+        println!("cargo:rustc-cfg=USE_TLS_SRP");
+    }
+}
+
+fn get_CURL_DISABLE_DOH_add_cfg() {
+    if unsafe { get_CURL_DISABLE_DOH() } == 1 {
+        println!("cargo:rustc-cfg=CURL_DISABLE_DOH");
+    }
+}
+
+fn get_USE_NGHTTP3_add_cfg() {
+    if unsafe { get_USE_NGHTTP3() } == 1 {
+        println!("cargo:rustc-cfg=USE_NGHTTP3");
+    }
+}
+
+fn get_ENABLE_WAKEUP_add_cfg() {
+    if unsafe { get_ENABLE_WAKEUP() } == 1 {
+        println!("cargo:rustc-cfg=ENABLE_WAKEUP");
+    }
+}
+
+fn get_USE_GSASL_add_cfg() {
+    if unsafe { get_USE_GSASL() } == 1 {
+        println!("cargo:rustc-cfg=USE_GSASL");
+    }
+}

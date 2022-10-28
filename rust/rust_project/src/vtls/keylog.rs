@@ -2,57 +2,6 @@ use ::libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
-extern "C" {
-    // pub type _IO_wide_data;
-    // pub type _IO_codecvt;
-    // pub type _IO_marker;
-    // fn curl_getenv(variable: *const libc::c_char) -> *mut libc::c_char;
-    fn fclose(__stream: *mut FILE) -> libc::c_int;
-    fn fopen(_: *const libc::c_char, _: *const libc::c_char) -> *mut FILE;
-    fn setvbuf(
-        __stream: *mut FILE,
-        __buf: *mut libc::c_char,
-        __modes: libc::c_int,
-        __n: size_t,
-    ) -> libc::c_int;
-    // fn fputs(__s: *const libc::c_char, __stream: *mut FILE) -> libc::c_int;
-    // pub fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    static mut Curl_cfree: curl_free_callback;
-}
-// #[derive(Copy, Clone)]
-// #[repr(C)]
-// pub struct _IO_FILE {
-//     pub _flags: libc::c_int,
-//     pub _IO_read_ptr: *mut libc::c_char,
-//     pub _IO_read_end: *mut libc::c_char,
-//     pub _IO_read_base: *mut libc::c_char,
-//     pub _IO_write_base: *mut libc::c_char,
-//     pub _IO_write_ptr: *mut libc::c_char,
-//     pub _IO_write_end: *mut libc::c_char,
-//     pub _IO_buf_base: *mut libc::c_char,
-//     pub _IO_buf_end: *mut libc::c_char,
-//     pub _IO_save_base: *mut libc::c_char,
-//     pub _IO_backup_base: *mut libc::c_char,
-//     pub _IO_save_end: *mut libc::c_char,
-//     pub _markers: *mut _IO_marker,
-//     pub _chain: *mut _IO_FILE,
-//     pub _fileno: libc::c_int,
-//     pub _flags2: libc::c_int,
-//     pub _old_offset: __off_t,
-//     pub _cur_column: libc::c_ushort,
-//     pub _vtable_offset: libc::c_schar,
-//     pub _shortbuf: [libc::c_char; 1],
-//     pub _lock: *mut libc::c_void,
-//     pub _offset: __off64_t,
-//     pub _codecvt: *mut _IO_codecvt,
-//     pub _wide_data: *mut _IO_wide_data,
-//     pub _freeres_list: *mut _IO_FILE,
-//     pub _freeres_buf: *mut libc::c_void,
-//     pub __pad5: size_t,
-//     pub _mode: libc::c_int,
-//     pub _unused2: [libc::c_char; 20],
-// }
-// pub type FILE = _IO_FILE;
 
 static mut keylog_file_fp: *mut FILE = 0 as *const FILE as *mut FILE;
 #[no_mangle]
@@ -63,13 +12,21 @@ pub unsafe extern "C" fn Curl_tls_keylog_open() {
         if !keylog_file_name.is_null() {
             keylog_file_fp = fopen(keylog_file_name, b"a\0" as *const u8 as *const libc::c_char);
             if !keylog_file_fp.is_null() {
-                if setvbuf(
+                #[cfg(WIN32)]
+                let flag: bool = setvbuf(
+                    keylog_file_fp,
+                    0 as *mut libc::c_char,
+                    1 as libc::c_int,
+                    0 as libc::c_int as size_t,
+                ) != 0;
+                #[cfg(not(WIN32))]
+                let flag: bool = setvbuf(
                     keylog_file_fp,
                     0 as *mut libc::c_char,
                     1 as libc::c_int,
                     4096 as libc::c_int as size_t,
-                ) != 0
-                {
+                ) != 0;
+                if flag {
                     fclose(keylog_file_fp);
                     keylog_file_fp = 0 as *mut FILE;
                 }
@@ -187,4 +144,20 @@ pub unsafe extern "C" fn Curl_tls_keylog_write(
     line[pos as usize] = '\0' as i32 as libc::c_char;
     fputs(line.as_mut_ptr(), keylog_file_fp);
     return 1 as libc::c_int != 0;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_keylog() {
+        unsafe{
+            Curl_tls_keylog_open();
+            Curl_tls_keylog_write_line(b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char);
+            assert_eq!(Curl_tls_keylog_enabled(), true);
+            Curl_tls_keylog_close();
+        }       
+    }
+
 }
