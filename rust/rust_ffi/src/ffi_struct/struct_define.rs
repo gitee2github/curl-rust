@@ -1970,12 +1970,14 @@ pub struct http_conn {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_settings_entry {
     pub settings_id: int32_t,
     pub value: uint32_t,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct h2settings {
     pub max_concurrent_streams: uint32_t,
     pub enable_push: bool,
@@ -2649,6 +2651,7 @@ pub struct Curl_share {
 // http2.rs
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct curl_pushheaders {
     pub data: *mut Curl_easy,
     pub frame: *const nghttp2_push_promise,
@@ -2656,6 +2659,7 @@ pub struct curl_pushheaders {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_push_promise {
     pub hd: nghttp2_frame_hd,
     pub padlen: size_t,
@@ -2667,6 +2671,7 @@ pub struct nghttp2_push_promise {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_nv {
     pub name: *mut uint8_t,
     pub value: *mut uint8_t,
@@ -2676,6 +2681,7 @@ pub struct nghttp2_nv {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_frame_hd {
     pub length: size_t,
     pub stream_id: int32_t,
@@ -2686,6 +2692,7 @@ pub struct nghttp2_frame_hd {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_info {
     pub age: libc::c_int,
     pub version_num: libc::c_int,
@@ -2695,18 +2702,21 @@ pub struct nghttp2_info {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub union nghttp2_data_source {
     pub fd: libc::c_int,
     pub ptr: *mut libc::c_void,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_data_provider {
     pub source: nghttp2_data_source,
     pub read_callback: nghttp2_data_source_read_callback,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_data {
     pub hd: nghttp2_frame_hd,
     pub padlen: size_t,
@@ -2714,6 +2724,7 @@ pub struct nghttp2_data {
 
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_priority_spec {
     pub stream_id: int32_t,
     pub weight: int32_t,
@@ -2721,6 +2732,7 @@ pub struct nghttp2_priority_spec {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_headers {
     pub hd: nghttp2_frame_hd,
     pub padlen: size_t,
@@ -2731,18 +2743,21 @@ pub struct nghttp2_headers {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_priority {
     pub hd: nghttp2_frame_hd,
     pub pri_spec: nghttp2_priority_spec,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_rst_stream {
     pub hd: nghttp2_frame_hd,
     pub error_code: uint32_t,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_settings {
     pub hd: nghttp2_frame_hd,
     pub niv: size_t,
@@ -2750,12 +2765,14 @@ pub struct nghttp2_settings {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_ping {
     pub hd: nghttp2_frame_hd,
     pub opaque_data: [uint8_t; 8],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_goaway {
     pub hd: nghttp2_frame_hd,
     pub last_stream_id: int32_t,
@@ -2766,6 +2783,7 @@ pub struct nghttp2_goaway {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_window_update {
     pub hd: nghttp2_frame_hd,
     pub window_size_increment: int32_t,
@@ -2773,12 +2791,14 @@ pub struct nghttp2_window_update {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub struct nghttp2_extension {
     pub hd: nghttp2_frame_hd,
     pub payload: *mut libc::c_void,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
+// #[cfg(USE_NGHTTP2)]
 pub union nghttp2_frame {
     pub hd: nghttp2_frame_hd,
     pub data: nghttp2_data,

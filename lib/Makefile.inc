@@ -42,13 +42,10 @@ LIB_VAUTH_HFILES =      \
 
 LIB_VTLS_CFILES =           \
   vtls/gskit.c              \
+  vtls/rustls.c             \
   vtls/schannel.c           \
   vtls/schannel_verify.c    \
-  vtls/sectransp.c          \
-  vtls/openssl.c            
-         
-         
-  
+  vtls/sectransp.c          
 
 LIB_VTLS_HFILES =           \
   vtls/bearssl.h            \
@@ -195,10 +192,7 @@ LIB_CFILES =         \
   warnless.c         \
   wildcard.c         \
   x509asn1.c         \
-  macros_to_rust.c   \
-  ftp.c              \
-  http.c             \
-  http_negotiate.c
+  macros_to_rust.c
 
 LIB_HFILES =         \
   altsvc.h           \

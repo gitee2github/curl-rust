@@ -2730,6 +2730,40 @@ pub unsafe extern "C" fn Curl_h2_http_1_1_error(mut data: *mut Curl_easy) -> boo
 
 #[cfg(not(USE_NGHTTP2))]
 #[no_mangle]
+pub unsafe extern "C" fn Curl_http2_request_upgrade(
+    mut req: *mut dynbuf,
+    mut data: *mut Curl_easy,
+) -> CURLcode {
+    return CURLE_UNSUPPORTED_PROTOCOL;
+}
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_http2_setup(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+) -> CURLcode {
+    return CURLE_UNSUPPORTED_PROTOCOL;
+}
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_http2_switched(
+    mut data: *mut Curl_easy,
+    mut mem: *const libc::c_char,
+    mut nread: size_t,
+) -> CURLcode {
+    return CURLE_UNSUPPORTED_PROTOCOL;
+}
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_http2_setup_conn(mut conn: *mut connectdata) { }
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_http2_setup_req(mut data: *mut Curl_easy) { }
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_http2_done(mut data: *mut Curl_easy, mut premature: bool) { }
+#[cfg(not(USE_NGHTTP2))]
+#[no_mangle]
 pub unsafe extern "C" fn curl_pushheader_bynum(
     mut h: *mut curl_pushheaders,
     mut num: size_t,

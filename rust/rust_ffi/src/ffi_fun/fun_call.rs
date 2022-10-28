@@ -33,6 +33,15 @@ extern "C" {
     ) -> libc::c_int;
 
     // ftp.rs
+    pub fn Curl_sec_read_msg(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        _: *mut libc::c_char,
+        _: protection_level,
+    ) -> libc::c_int;
+    pub fn Curl_sec_end(_: *mut connectdata);
+    pub fn Curl_sec_login(_: *mut Curl_easy, _: *mut connectdata) -> CURLcode;
+    pub fn Curl_sec_request_prot(conn: *mut connectdata, level: *const libc::c_char) -> libc::c_int;
     pub fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     pub fn strncpy(
         _: *mut libc::c_char,
@@ -180,15 +189,15 @@ extern "C" {
         ctrl: urlreject,
     ) -> CURLcode;
     // definitions in ftplistparser.rs
-    // pub fn Curl_ftp_parselist(
-    //     buffer: *mut libc::c_char,
-    //     size: size_t,
-    //     nmemb: size_t,
-    //     connptr: *mut libc::c_void,
-    // ) -> size_t;
-    // pub fn Curl_ftp_parselist_geterror(pl_data: *mut ftp_parselist_data) -> CURLcode;
-    // pub fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data;
-    // pub fn Curl_ftp_parselist_data_free(pl_data: *mut *mut ftp_parselist_data);
+    pub fn Curl_ftp_parselist(
+        buffer: *mut libc::c_char,
+        size: size_t,
+        nmemb: size_t,
+        connptr: *mut libc::c_void,
+    ) -> size_t;
+    pub fn Curl_ftp_parselist_geterror(pl_data: *mut ftp_parselist_data) -> CURLcode;
+    pub fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data;
+    pub fn Curl_ftp_parselist_data_free(pl_data: *mut *mut ftp_parselist_data);
     pub fn Curl_range(data: *mut Curl_easy) -> CURLcode;
     pub fn curlx_strtoofft(
         str: *const libc::c_char,
@@ -745,28 +754,32 @@ extern "C" {
     pub fn Curl_bufref_ptr(br: *const bufref) -> *const libc::c_uchar;
     pub fn Curl_bufref_len(br: *const bufref) -> size_t;
     pub fn Curl_bufref_free(br: *mut bufref);
-    // pub fn Curl_auth_create_ntlm_type1_message(
-    //     data: *mut Curl_easy,
-    //     userp: *const libc::c_char,
-    //     passwdp: *const libc::c_char,
-    //     service: *const libc::c_char,
-    //     host: *const libc::c_char,
-    //     ntlm: *mut ntlmdata,
-    //     out: *mut bufref,
-    // ) -> CURLcode;
-    // pub fn Curl_auth_decode_ntlm_type2_message(
-    //     data: *mut Curl_easy,
-    //     type2: *const bufref,
-    //     ntlm: *mut ntlmdata,
-    // ) -> CURLcode;
-    // pub fn Curl_auth_create_ntlm_type3_message(
-    //     data: *mut Curl_easy,
-    //     userp: *const libc::c_char,
-    //     passwdp: *const libc::c_char,
-    //     ntlm: *mut ntlmdata,
-    //     out: *mut bufref,
-    // ) -> CURLcode;
-    // pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata); 
+    #[cfg(USE_NTLM)]
+    pub fn Curl_auth_create_ntlm_type1_message(
+        data: *mut Curl_easy,
+        userp: *const libc::c_char,
+        passwdp: *const libc::c_char,
+        service: *const libc::c_char,
+        host: *const libc::c_char,
+        ntlm: *mut ntlmdata,
+        out: *mut bufref,
+    ) -> CURLcode;
+    #[cfg(USE_NTLM)]
+    pub fn Curl_auth_decode_ntlm_type2_message(
+        data: *mut Curl_easy,
+        type2: *const bufref,
+        ntlm: *mut ntlmdata,
+    ) -> CURLcode;
+    #[cfg(USE_NTLM)]
+    pub fn Curl_auth_create_ntlm_type3_message(
+        data: *mut Curl_easy,
+        userp: *const libc::c_char,
+        passwdp: *const libc::c_char,
+        ntlm: *mut ntlmdata,
+        out: *mut bufref,
+    ) -> CURLcode;
+    #[cfg(USE_NTLM)]
+    pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata); 
 
     // new http_proxy.rs
     pub fn Curl_ssl_connect_nonblocking(
@@ -779,12 +792,12 @@ extern "C" {
 
     // http.rs
     pub fn Curl_auth_is_ntlm_supported() -> bool;
-    // pub fn Curl_input_ntlm(
-    //     data: *mut Curl_easy,
-    //     proxy: bool,
-    //     header: *const libc::c_char,
-    // ) -> CURLcode;
-    // pub fn Curl_output_ntlm(data: *mut Curl_easy, proxy: bool) -> CURLcode;
+    pub fn Curl_input_ntlm(
+        data: *mut Curl_easy,
+        proxy: bool,
+        header: *const libc::c_char,
+    ) -> CURLcode;
+    pub fn Curl_output_ntlm(data: *mut Curl_easy, proxy: bool) -> CURLcode;
     pub fn Curl_input_ntlm_wb(
         data: *mut Curl_easy,
         conn: *mut connectdata,
@@ -801,6 +814,15 @@ extern "C" {
         hostname: *const libc::c_char,
         sts: *const libc::c_char,
     ) -> CURLcode;
+    pub fn Curl_auth_is_spnego_supported() -> bool;
+    pub fn Curl_input_negotiate(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        proxy: bool,
+        header: *const libc::c_char,
+    ) -> CURLcode;
+    pub fn Curl_output_negotiate(data: *mut Curl_easy, conn: *mut connectdata, proxy: bool)
+        -> CURLcode;
 
     // mbedtls vtls.rs
     pub fn fread(

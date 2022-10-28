@@ -1,62 +1,37 @@
-// 还差CONNECT函数的hyper版本
 use ::libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
+// use crate::src::vtls::vtls::*;
 // use crate::src::http::*;
+
+// TODO 调用的几个http.c里的函数有hyper版本，有可能需要用条件编译再加几行
 
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 unsafe extern "C" fn https_proxy_connect(
     mut data: *mut Curl_easy,
     mut sockindex: libc::c_int,
 ) -> CURLcode {
-    // todo
-    // if cfg!(USE_SSL) {
-    //     let mut conn: *mut connectdata = (*data).conn;
-    //     let mut result: CURLcode = CURLE_OK;
-    //     if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
-    //         result = Curl_ssl_connect_nonblocking(
-    //             data,
-    //             conn,
-    //             1 as libc::c_int != 0,
-    //             sockindex,
-    //             &mut *((*conn).bits.proxy_ssl_connected)
-    //                 .as_mut_ptr()
-    //                 .offset(sockindex as isize),
-    //         );
-    //         if result as u64 != 0 {
-    //             Curl_conncontrol(conn, 1 as libc::c_int);
-    //         }
-    //     }
-    //     return result;
-    // } else {
-    //     return CURLE_NOT_BUILT_IN;
-    // }
-    match () {
-        #[cfg(USE_SSL)]
-        _ => {
-            let mut conn: *mut connectdata = (*data).conn;
-            let mut result: CURLcode = CURLE_OK;
-            if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
-                result = Curl_ssl_connect_nonblocking(
-                    data,
-                    conn,
-                    1 as libc::c_int != 0,
-                    sockindex,
-                    &mut *((*conn).bits.proxy_ssl_connected)
-                        .as_mut_ptr()
-                        .offset(sockindex as isize),
-                );
-                if result as u64 != 0 {
-                    Curl_conncontrol(conn, 1 as libc::c_int);
-                }
+    if cfg!(USE_SSL) {
+        let mut conn: *mut connectdata = (*data).conn;
+        let mut result: CURLcode = CURLE_OK;
+        if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
+            result = Curl_ssl_connect_nonblocking(
+                data,
+                conn,
+                1 as libc::c_int != 0,
+                sockindex,
+                &mut *((*conn).bits.proxy_ssl_connected)
+                    .as_mut_ptr()
+                    .offset(sockindex as isize),
+            );
+            if result as u64 != 0 {
+                Curl_conncontrol(conn, 1 as libc::c_int);
             }
-            return result;
         }
-        #[cfg(not(USE_SSL))]
-        _ => {
-            return CURLE_NOT_BUILT_IN;
-        }
+        return result;
+    } else {
+        return CURLE_NOT_BUILT_IN;
     }
 }
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
@@ -80,71 +55,35 @@ pub unsafe extern "C" fn Curl_proxy_connect(
     if ((*conn).bits).tunnel_proxy() as libc::c_int != 0
         && ((*conn).bits).httpproxy() as libc::c_int != 0
     {
-        // todo
-        // if cfg!(not(CURL_DISABLE_PROXY)) {
-        //     let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
-        //     let mut remote_port: libc::c_int = 0;
-        //     let mut result_0: CURLcode = CURLE_OK;
-        //     if ((*conn).bits).conn_to_host() != 0 {
-        //         hostname = (*conn).conn_to_host.name;
-        //     } else if sockindex == 1 as libc::c_int {
-        //         hostname = (*conn).secondaryhostname;
-        //     } else {
-        //         hostname = (*conn).host.name;
-        //     }
-        //     if sockindex == 1 as libc::c_int {
-        //         remote_port = (*conn).secondary_port as libc::c_int;
-        //     } else if ((*conn).bits).conn_to_port() != 0 {
-        //         remote_port = (*conn).conn_to_port;
-        //     } else {
-        //         remote_port = (*conn).remote_port;
-        //     }
-        //     result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
-        //     if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
-        //         return result_0;
-        //     }
-        //     Curl_cfree.expect("non-null function pointer")(
-        //         (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-        //     );
-        //     let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
-        //     *fresh0 = 0 as *mut libc::c_char;
-        // } else {
-        //     return CURLE_NOT_BUILT_IN;
-        // }
-        match () {
-            #[cfg(not(CURL_DISABLE_PROXY))]
-            _ => {
-                let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
-                let mut remote_port: libc::c_int = 0;
-                let mut result_0: CURLcode = CURLE_OK;
-                if ((*conn).bits).conn_to_host() != 0 {
-                    hostname = (*conn).conn_to_host.name;
-                } else if sockindex == 1 as libc::c_int {
-                    hostname = (*conn).secondaryhostname;
-                } else {
-                    hostname = (*conn).host.name;
-                }
-                if sockindex == 1 as libc::c_int {
-                    remote_port = (*conn).secondary_port as libc::c_int;
-                } else if ((*conn).bits).conn_to_port() != 0 {
-                    remote_port = (*conn).conn_to_port;
-                } else {
-                    remote_port = (*conn).remote_port;
-                }
-                result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
-                if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
-                    return result_0;
-                }
-                Curl_cfree.expect("non-null function pointer")(
-                    (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-                );
-                let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
-                *fresh0 = 0 as *mut libc::c_char;
+        if cfg!(not(CURL_DISABLE_PROXY)) {
+            let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
+            let mut remote_port: libc::c_int = 0;
+            let mut result_0: CURLcode = CURLE_OK;
+            if ((*conn).bits).conn_to_host() != 0 {
+                hostname = (*conn).conn_to_host.name;
+            } else if sockindex == 1 as libc::c_int {
+                hostname = (*conn).secondaryhostname;
+            } else {
+                hostname = (*conn).host.name;
             }
-            #[cfg(CURL_DISABLE_PROXY)]
-            _ => {
-                return CURLE_NOT_BUILT_IN;
+            if sockindex == 1 as libc::c_int {
+                remote_port = (*conn).secondary_port as libc::c_int;
+            } else if ((*conn).bits).conn_to_port() != 0 {
+                remote_port = (*conn).conn_to_port;
+            } else {
+                remote_port = (*conn).remote_port;
             }
+            result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
+            if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
+                return result_0;
+            }
+            Curl_cfree.expect("non-null function pointer")(
+                (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+            );
+            let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
+            *fresh0 = 0 as *mut libc::c_char;
+        } else {
+            return CURLE_NOT_BUILT_IN;
         }
     }
     return CURLE_OK;
@@ -812,7 +751,6 @@ unsafe extern "C" fn CONNECT(
     Curl_dyn_free(&mut (*s).rcvbuf);
     return CURLE_OK;
 }
-// TODO hyper版本的CONNECT
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP), USE_HYPER))]
 unsafe extern "C" fn CONNECT(
     mut data: *mut Curl_easy,
@@ -1319,6 +1257,30 @@ pub unsafe extern "C" fn Curl_proxyCONNECT(
         connect_done(data);
     }
     return result;
+}
+
+#[cfg(any(CURL_DISABLE_PROXY, CURL_DISABLE_HTTP))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_proxyCONNECT(
+    mut data: *mut Curl_easy,
+    mut sockindex: libc::c_int,
+    mut hostname: *const libc::c_char,
+    mut remote_port: libc::c_int,
+) -> CURLcode {
+    return CURLE_NOT_BUILT_IN;
+}
+#[cfg(any(CURL_DISABLE_PROXY, CURL_DISABLE_HTTP))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_proxy_connect(
+    mut data: *mut Curl_easy,
+    mut sockindex: libc::c_int,
+) -> CURLcode {
+    return CURLE_OK;
+}
+#[cfg(any(CURL_DISABLE_PROXY, CURL_DISABLE_HTTP))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_connect_ongoing(mut conn: *mut connectdata) -> bool {
+    return false;
 }
 #[cfg(any(CURL_DISABLE_PROXY, CURL_DISABLE_HTTP))]
 #[no_mangle]

@@ -1527,36 +1527,42 @@ static mut Curl_ssl_multi: Curl_ssl = unsafe {
         init
     }
 };
-// TODO 待测试，这里只能先把别的注释掉然后测试
-#[cfg(USE_SSL)]
+#[cfg(all(USE_SSL, CURL_WITH_MULTI_SSL))]
 #[no_mangle]
-pub static mut Curl_ssl: *const Curl_ssl = unsafe {
-    // if cfg!(CURL_WITH_MULTI_SSL) {
-        // &Curl_ssl_multi as *const Curl_ssl
-    // } else if cfg!(USE_WOLFSSL) {
-    //     &Curl_ssl_wolfssl as *const Curl_ssl
-    // } else if cfg!(USE_SECTRANSP) {
-    //     &Curl_ssl_sectransp as *const Curl_ssl
-    // } else if cfg!(USE_GNUTLS) {
-    //     &Curl_ssl_gnutls as *const Curl_ssl
-    // } else if cfg!(USE_GSKIT) {
-    //     &Curl_ssl_gskit as *const Curl_ssl
-    // } else if cfg!(USE_MBEDTLS) {
-    //     &Curl_ssl_mbedtls as *const Curl_ssl
-    // } else if cfg!(USE_NSS) {
-    //     &Curl_ssl_nss as *const Curl_ssl
-    // } else if cfg!(USE_RUSTLS) {
-    //     &Curl_ssl_rustls as *const Curl_ssl
-    // } else if cfg!(USE_OPENSSL) {
-        &Curl_ssl_openssl as *const Curl_ssl
-    // } else if cfg!(USE_SCHANNEL) {
-    //     &Curl_ssl_schannel as *const Curl_ssl
-    // } else if cfg!(USE_MESALINK) {
-    //     &Curl_ssl_mesalink as *const Curl_ssl
-    // } else if cfg!(USE_BEARSSL) {
-    //     &Curl_ssl_bearssl as *const Curl_ssl
-    // }
-};
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_multi as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), USE_WOLFSSL))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_wolfssl as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), USE_SECTRANSP))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_sectransp as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), USE_GNUTLS))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_gnutls as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), USE_GSKIT))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_gskit as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), USE_MBEDTLS))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_mbedtls as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), USE_NSS))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_nss as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), not(USE_NSS), USE_RUSTLS))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_rustls as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), not(USE_NSS), not(USE_RUSTLS), USE_OPENSSL))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_openssl as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), not(USE_NSS), not(USE_RUSTLS), not(USE_OPENSSL), USE_SCHANNEL))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_schannel as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), not(USE_NSS), not(USE_RUSTLS), not(USE_OPENSSL), not(USE_SCHANNEL), USE_MESALINK))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_mesalink as *const Curl_ssl };
+#[cfg(all(USE_SSL, not(CURL_WITH_MULTI_SSL), not(USE_WOLFSSL), not(USE_SECTRANSP), not(USE_GNUTLS), not(USE_GSKIT), not(USE_MBEDTLS), not(USE_NSS), not(USE_RUSTLS), not(USE_OPENSSL), not(USE_SCHANNEL), not(USE_MESALINK), USE_BEARSSL))]
+#[no_mangle]
+pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_bearssl as *const Curl_ssl };
 // TODO 这里的2得改掉，最好是省略数组长度，这里也得先注释了再测试
 #[cfg(USE_SSL)]
 static mut available_backends: [*const Curl_ssl; 2] = unsafe {
@@ -1747,6 +1753,48 @@ pub unsafe extern "C" fn curl_global_sslset(
         i += 1;
     }
     return CURLSSLSET_UNKNOWN_BACKEND;
+}
+
+#[cfg(not(USE_SSL))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_ssl_init() -> libc::c_int {
+    return 1 as libc::c_int;
+}
+#[cfg(not(USE_SSL))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_ssl_connect(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+    mut sockindex: libc::c_int,
+) -> CURLcode {
+    return CURLE_NOT_BUILT_IN;
+}
+#[cfg(not(USE_SSL))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_ssl_close(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+    mut sockindex: libc::c_int,
+) { }
+#[cfg(not(USE_SSL))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_ssl_shutdown(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+    mut sockindex: libc::c_int,
+) -> CURLcode {
+    return CURLE_NOT_BUILT_IN;
+}
+#[cfg(not(USE_SSL))]
+#[no_mangle]
+pub unsafe extern "C" fn Curl_ssl_connect_nonblocking(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+    mut isproxy: bool,
+    mut sockindex: libc::c_int,
+    mut done: *mut bool,
+) -> CURLcode {
+    return CURLE_NOT_BUILT_IN;
 }
 #[cfg(not(USE_SSL))]
 #[no_mangle]

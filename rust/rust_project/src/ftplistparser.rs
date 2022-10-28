@@ -2,6 +2,7 @@ use ::libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
+// use crate::src::ftp::*;
 
 // TODO
 // 有2个enum，2个union，1个struct在ftplistparser.c中定义的，要保留在这个文件中
