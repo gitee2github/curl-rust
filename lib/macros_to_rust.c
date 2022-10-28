@@ -783,6 +783,30 @@ int get_USE_GNUTLS(){
     return 0;
 #endif
 }
+
+int get_HAVE_GNUTLS_SRP(){
+#ifdef HAVE_GNUTLS_SRP
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_GNUTLS_FORCE_CLIENT_CERT(){
+#ifdef GNUTLS_FORCE_CLIENT_CERT
+    return 1;
+#else
+    return 0;
+#endif
+}
+
+int get_GNUTLS_NO_TICKETS(){
+#ifdef GNUTLS_NO_TICKETS
+    return 1;
+#else
+    return 0;
+#endif
+}
 // mbedtls
 
 // mbedtls_threadlock
@@ -1109,6 +1133,13 @@ int get_SSL_MODE_RELEASE_BUFFERS(){
 }
 
 int get_USE_OPENSSL_SRP(){
+#ifdef HAVE_OPENSSL_SRP
+/* the function exists */
+#ifdef USE_TLS_SRP
+/* the functionality is not disabled */
+#define USE_OPENSSL_SRP
+#endif
+#endif
 #ifdef USE_OPENSSL_SRP
     return 1;
 #else

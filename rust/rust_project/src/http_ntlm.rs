@@ -109,26 +109,6 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
     let mut authp: *mut auth = 0 as *mut auth;
     let mut conn: *mut connectdata = (*data).conn;
     if proxy {
-        // todo
-        // if cfg!(not(CURL_DISABLE_PROXY)) {
-        //     allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
-        //     userp = (*data).state.aptr.proxyuser;
-        //     passwdp = (*data).state.aptr.proxypasswd;
-        //     service = if !((*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize])
-        //         .is_null()
-        //     {
-        //         (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
-        //             as *const libc::c_char
-        //     } else {
-        //         b"HTTP\0" as *const u8 as *const libc::c_char
-        //     };
-        //     hostname = (*conn).http_proxy.host.name;
-        //     ntlm = &mut (*conn).proxyntlm;
-        //     state = &mut (*conn).proxy_ntlm_state;
-        //     authp = &mut (*data).state.authproxy;
-        // } else {
-        //     return CURLE_NOT_BUILT_IN;
-        // }
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {

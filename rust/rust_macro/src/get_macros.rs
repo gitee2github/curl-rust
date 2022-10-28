@@ -72,6 +72,9 @@ extern "C" {
     fn get_USE_GSKIT() -> i32;
     // gtls
     fn get_USE_GNUTLS() -> i32;
+    fn get_HAVE_GNUTLS_SRP() -> i32;
+    fn get_GNUTLS_FORCE_CLIENT_CERT() -> i32;
+    fn get_GNUTLS_NO_TICKETS() -> i32;
     // keylog
     fn get_WIN32() -> i32;
 
@@ -230,6 +233,9 @@ pub fn get_all_cfg() {
     get_USE_GSKIT_add_cfg();
     // gtls
     get_USE_GNUTLS_add_cfg();
+    get_HAVE_GNUTLS_SRP_add_cfg();
+    get_GNUTLS_FORCE_CLIENT_CERT_add_cfg();
+    get_GNUTLS_NO_TICKETS_add_cfg();
     // keylog
     get_WIN32_add_cfg();
 
@@ -312,6 +318,8 @@ pub fn get_all_cfg() {
     get_SSL_ERROR_WANT_ASYNC_JOB_add_cfg();
     get_SSL_ERROR_WANT_ASYNC_add_cfg();
     get_AVE_KEYLOG_CALLBACK_add_cfg();
+
+
 
 }
 
@@ -603,6 +611,21 @@ fn get_USE_GSKIT_add_cfg() {
 fn get_USE_GNUTLS_add_cfg() {
     if unsafe { get_USE_GNUTLS() } == 1 {
         println!("cargo:rustc-cfg=USE_GNUTLS");
+    }
+}
+fn get_HAVE_GNUTLS_SRP_add_cfg() {
+    if unsafe { get_HAVE_GNUTLS_SRP() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_GNUTLS_SRP");
+    }
+}
+fn get_GNUTLS_FORCE_CLIENT_CERT_add_cfg() {
+    if unsafe { get_GNUTLS_FORCE_CLIENT_CERT() } == 1 {
+        println!("cargo:rustc-cfg=GNUTLS_FORCE_CLIENT_CERT");
+    }
+}
+fn get_GNUTLS_NO_TICKETS_add_cfg() {
+    if unsafe { get_GNUTLS_NO_TICKETS() } == 1 {
+        println!("cargo:rustc-cfg=GNUTLS_NO_TICKETS");
     }
 }
 // keylog
