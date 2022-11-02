@@ -1705,7 +1705,7 @@ unsafe extern "C" fn verifyhost(
     let mut altnames: *mut stack_st_GENERAL_NAME = 0 as *mut stack_st_GENERAL_NAME;
     #[cfg(ENABLE_IPV6)]
     let mut addr: in6_addr = in6_addr {
-        __in6_u: C2RustUnnamed_10 {
+        __in6_u: C2RustUnnamed_8 {
             __u6_addr8: [0; 16],
         },
     };
