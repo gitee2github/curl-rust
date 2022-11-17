@@ -56,7 +56,7 @@ extern "C" fn http2_getsock(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn http2_stream_free(mut http: *mut HTTP) {
+extern "C" fn http2_stream_free(http: *mut HTTP) {
     unsafe {
         if !http.is_null() {
             Curl_dyn_free(&mut (*http).header_recvbuf);
@@ -79,12 +79,12 @@ extern "C" fn http2_stream_free(mut http: *mut HTTP) {
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_disconnect(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-    mut dead_connection: bool,
+    data: *mut Curl_easy,
+    conn: *mut connectdata,
+    dead_connection: bool,
 ) -> CURLcode {
     unsafe {
-        let mut c: *mut http_conn = &mut (*conn).proto.httpc;
+        let c: *mut http_conn = &mut (*conn).proto.httpc;
         nghttp2_session_del((*c).h2);
         Curl_cfree.expect("non-null function pointer")((*c).inbuf as *mut libc::c_void);
         let ref mut fresh2 = (*c).inbuf;
@@ -93,7 +93,7 @@ extern "C" fn http2_disconnect(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn http2_connisdead(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> bool {
+extern "C" fn http2_connisdead(data: *mut Curl_easy, conn: *mut connectdata) -> bool {
     unsafe {
         let mut sval: libc::c_int = 0;
         let mut dead: bool = 1 != 0;
@@ -141,27 +141,27 @@ extern "C" fn http2_connisdead(mut data: *mut Curl_easy, mut conn: *mut connectd
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn set_transfer(mut c: *mut http_conn, mut data: *mut Curl_easy) {
+extern "C" fn set_transfer(c: *mut http_conn, data: *mut Curl_easy) {
     unsafe {
         let ref mut fresh3 = (*c).trnsfr;
         *fresh3 = data;
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn get_transfer(mut c: *mut http_conn) -> *mut Curl_easy {
+extern "C" fn get_transfer(c: *mut http_conn) -> *mut Curl_easy {
     unsafe {
         return (*c).trnsfr;
     }
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_conncheck(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-    mut checks_to_perform: libc::c_uint,
+    data: *mut Curl_easy,
+    conn: *mut connectdata,
+    checks_to_perform: libc::c_uint,
 ) -> libc::c_uint {
     unsafe {
         let mut ret_val: libc::c_uint = 0 as libc::c_uint;
-        let mut c: *mut http_conn = &mut (*conn).proto.httpc;
+        let c: *mut http_conn = &mut (*conn).proto.httpc;
         let mut rc: libc::c_int = 0;
         let mut send_frames: bool = 0 != 0;
         if checks_to_perform & ((1) << 0) as libc::c_uint != 0 {
@@ -170,8 +170,8 @@ extern "C" fn http2_conncheck(
             }
         }
         if checks_to_perform & ((1) << 1) as libc::c_uint != 0 {
-            let mut now: curltime = Curl_now();
-            let mut elapsed: timediff_t = Curl_timediff(now, (*conn).keepalive);
+            let now: curltime = Curl_now();
+            let elapsed: timediff_t = Curl_timediff(now, (*conn).keepalive);
             if elapsed > (*data).set.upkeep_interval_ms {
                 rc = nghttp2_submit_ping((*c).h2, 0 as uint8_t, 0 as *const uint8_t);
                 if rc == 0 {
@@ -205,7 +205,7 @@ extern "C" fn http2_conncheck(
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_setup_req(mut data: *mut Curl_easy) {
+pub extern "C" fn Curl_http2_setup_req(data: *mut Curl_easy) {
     unsafe {
         let mut http: *mut HTTP = (*data).req.p.http;
         (*http).bodystarted = 0 != 0;
@@ -232,7 +232,7 @@ pub extern "C" fn Curl_http2_setup_conn(mut conn: *mut connectdata) {
 #[cfg(USE_NGHTTP2)]
 static mut Curl_handler_http2: Curl_handler = {
     {
-        let mut init = Curl_handler {
+        let init = Curl_handler {
             scheme: b"HTTP\0" as *const u8 as *const libc::c_char,
             setup_connection: None,
             do_it: Some(Curl_http as unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode),
@@ -293,7 +293,7 @@ static mut Curl_handler_http2: Curl_handler = {
 #[cfg(USE_NGHTTP2)]
 static mut Curl_handler_http2_ssl: Curl_handler = {
     {
-        let mut init = Curl_handler {
+        let init = Curl_handler {
             scheme: b"HTTPS\0" as *const u8 as *const libc::c_char,
             setup_connection: None,
             do_it: Some(Curl_http as unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode),
@@ -353,9 +353,9 @@ static mut Curl_handler_http2_ssl: Curl_handler = {
 };
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_ver(mut p: *mut libc::c_char, mut len: size_t) {
+pub extern "C" fn Curl_http2_ver(p: *mut libc::c_char, len: size_t) {
     unsafe {
-        let mut h2: *mut nghttp2_info = nghttp2_version(0);
+        let h2: *mut nghttp2_info = nghttp2_version(0);
         curl_msnprintf(
             p,
             len,
@@ -366,16 +366,16 @@ pub extern "C" fn Curl_http2_ver(mut p: *mut libc::c_char, mut len: size_t) {
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn send_callback(
-    mut h2: *mut nghttp2_session,
-    mut mem: *const uint8_t,
-    mut length: size_t,
-    mut flags: libc::c_int,
-    mut userp: *mut libc::c_void,
+    h2: *mut nghttp2_session,
+    mem: *const uint8_t,
+    length: size_t,
+    flags: libc::c_int,
+    userp: *mut libc::c_void,
 ) -> ssize_t {
     unsafe {
-        let mut conn: *mut connectdata = userp as *mut connectdata;
-        let mut c: *mut http_conn = &mut (*conn).proto.httpc;
-        let mut data: *mut Curl_easy = get_transfer(c);
+        let conn: *mut connectdata = userp as *mut connectdata;
+        let c: *mut http_conn = &mut (*conn).proto.httpc;
+        let data: *mut Curl_easy = get_transfer(c);
         let mut written: ssize_t = 0;
         let mut result: CURLcode = CURLE_OK;
         if ((*c).send_underlying).is_none() {
@@ -407,8 +407,8 @@ extern "C" fn send_callback(
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
 pub extern "C" fn curl_pushheader_bynum(
-    mut h: *mut curl_pushheaders,
-    mut num: size_t,
+    h: *mut curl_pushheaders,
+    num: size_t,
 ) -> *mut libc::c_char {
     unsafe {
         if h.is_null()
@@ -416,7 +416,7 @@ pub extern "C" fn curl_pushheader_bynum(
         {
             return 0 as *mut libc::c_char;
         } else {
-            let mut stream: *mut HTTP = (*(*h).data).req.p.http;
+            let stream: *mut HTTP = (*(*h).data).req.p.http;
             if num < (*stream).push_headers_used {
                 return *((*stream).push_headers).offset(num as isize);
             }
@@ -427,8 +427,8 @@ pub extern "C" fn curl_pushheader_bynum(
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
 pub extern "C" fn curl_pushheader_byname(
-    mut h: *mut curl_pushheaders,
-    mut header: *const libc::c_char,
+    h: *mut curl_pushheaders,
+    header: *const libc::c_char,
 ) -> *mut libc::c_char {
     unsafe {
         if h.is_null()
@@ -440,8 +440,8 @@ pub extern "C" fn curl_pushheader_byname(
         {
             return 0 as *mut libc::c_char;
         } else {
-            let mut stream: *mut HTTP = (*(*h).data).req.p.http;
-            let mut len: size_t = strlen(header);
+            let stream: *mut HTTP = (*(*h).data).req.p.http;
+            let len: size_t = strlen(header);
             let mut i: size_t = 0;
             i = 0 as size_t;
             while i < (*stream).push_headers_used {
@@ -462,7 +462,7 @@ pub extern "C" fn curl_pushheader_byname(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn drained_transfer(mut data: *mut Curl_easy, mut httpc: *mut http_conn) {
+extern "C" fn drained_transfer(mut data: *mut Curl_easy, httpc: *mut http_conn) {
     unsafe {
         let ref mut fresh6 = (*httpc).drain_total;
         *fresh6 = (*fresh6 as libc::c_ulong).wrapping_sub((*data).state.drain) as size_t as size_t;
@@ -470,7 +470,7 @@ extern "C" fn drained_transfer(mut data: *mut Curl_easy, mut httpc: *mut http_co
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn drain_this(mut data: *mut Curl_easy, mut httpc: *mut http_conn) {
+extern "C" fn drain_this(data: *mut Curl_easy, httpc: *mut http_conn) {
     unsafe {
         let ref mut fresh7 = (*data).state.drain;
         *fresh7 = (*fresh7).wrapping_add(1);
@@ -479,11 +479,11 @@ extern "C" fn drain_this(mut data: *mut Curl_easy, mut httpc: *mut http_conn) {
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn duphandle(mut data: *mut Curl_easy) -> *mut Curl_easy {
+extern "C" fn duphandle(data: *mut Curl_easy) -> *mut Curl_easy {
     unsafe {
         let mut second: *mut Curl_easy = curl_easy_duphandle(data);
         if !second.is_null() {
-            let mut http: *mut HTTP = Curl_ccalloc.expect("non-null function pointer")(
+            let http: *mut HTTP = Curl_ccalloc.expect("non-null function pointer")(
                 1 as size_t,
                 ::std::mem::size_of::<HTTP>() as libc::c_ulong,
             ) as *mut HTTP;
@@ -501,14 +501,11 @@ extern "C" fn duphandle(mut data: *mut Curl_easy) -> *mut Curl_easy {
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn set_transfer_url(
-    mut data: *mut Curl_easy,
-    mut hp: *mut curl_pushheaders,
-) -> libc::c_int {
+extern "C" fn set_transfer_url(data: *mut Curl_easy, hp: *mut curl_pushheaders) -> libc::c_int {
     unsafe {
         let mut current_block: u64;
         let mut v: *const libc::c_char = 0 as *const libc::c_char;
-        let mut u: *mut CURLU = curl_url();
+        let u: *mut CURLU = curl_url();
         let mut uc: CURLUcode = CURLUE_OK;
         let mut url: *mut libc::c_char = 0 as *mut libc::c_char;
         let mut rc: libc::c_int = 0;
@@ -586,9 +583,9 @@ extern "C" fn set_transfer_url(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn push_promise(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-    mut frame: *const nghttp2_push_promise,
+    data: *mut Curl_easy,
+    conn: *mut connectdata,
+    frame: *const nghttp2_push_promise,
 ) -> libc::c_int {
     unsafe {
         let mut rv: libc::c_int = 0;
@@ -714,24 +711,24 @@ extern "C" fn multi_connchanged(mut multi: *mut Curl_multi) {
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn on_frame_recv(
-    mut session: *mut nghttp2_session,
-    mut frame: *const nghttp2_frame,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    frame: *const nghttp2_frame,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     unsafe {
-        let mut conn: *mut connectdata = userp as *mut connectdata;
+        let conn: *mut connectdata = userp as *mut connectdata;
         let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
         let mut data_s: *mut Curl_easy = 0 as *mut Curl_easy;
         let mut stream: *mut HTTP = 0 as *mut HTTP;
-        let mut data: *mut Curl_easy = get_transfer(httpc);
+        let data: *mut Curl_easy = get_transfer(httpc);
         let mut rv: libc::c_int = 0;
         let mut left: size_t = 0;
         let mut ncopy: size_t = 0;
-        let mut stream_id: int32_t = (*frame).hd.stream_id;
+        let stream_id: int32_t = (*frame).hd.stream_id;
         let mut result: CURLcode = CURLE_OK;
         if stream_id == 0 {
             if (*frame).hd.type_0 as libc::c_int == NGHTTP2_SETTINGS as libc::c_int {
-                let mut max_conn: uint32_t = (*httpc).settings.max_concurrent_streams;
+                let max_conn: uint32_t = (*httpc).settings.max_concurrent_streams;
                 (*httpc).settings.max_concurrent_streams = nghttp2_session_get_remote_settings(
                     session,
                     NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,
@@ -841,19 +838,19 @@ extern "C" fn on_frame_recv(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn on_data_chunk_recv(
-    mut session: *mut nghttp2_session,
-    mut flags: uint8_t,
-    mut stream_id: int32_t,
-    mut mem: *const uint8_t,
-    mut len: size_t,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    flags: uint8_t,
+    stream_id: int32_t,
+    mem: *const uint8_t,
+    len: size_t,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     unsafe {
         let mut stream: *mut HTTP = 0 as *mut HTTP;
         let mut data_s: *mut Curl_easy = 0 as *mut Curl_easy;
         let mut nread: size_t = 0;
-        let mut conn: *mut connectdata = userp as *mut connectdata;
-        let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
+        let conn: *mut connectdata = userp as *mut connectdata;
+        let httpc: *mut http_conn = &mut (*conn).proto.httpc;
         data_s = nghttp2_session_get_stream_user_data(session, stream_id) as *mut Curl_easy;
         if data_s.is_null() {
             return NGHTTP2_ERR_CALLBACK_FAILURE;
@@ -897,15 +894,15 @@ extern "C" fn on_data_chunk_recv(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn on_stream_close(
-    mut session: *mut nghttp2_session,
-    mut stream_id: int32_t,
-    mut error_code: uint32_t,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    stream_id: int32_t,
+    error_code: uint32_t,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     unsafe {
         let mut data_s: *mut Curl_easy = 0 as *mut Curl_easy;
         let mut stream: *mut HTTP = 0 as *mut HTTP;
-        let mut conn: *mut connectdata = userp as *mut connectdata;
+        let conn: *mut connectdata = userp as *mut connectdata;
         let mut rv: libc::c_int = 0;
         if stream_id != 0 {
             let mut httpc: *mut http_conn = 0 as *mut http_conn;
@@ -941,9 +938,9 @@ extern "C" fn on_stream_close(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn on_begin_headers(
-    mut session: *mut nghttp2_session,
-    mut frame: *const nghttp2_frame,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    frame: *const nghttp2_frame,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     unsafe {
         let mut stream: *mut HTTP = 0 as *mut HTTP;
@@ -964,7 +961,7 @@ extern "C" fn on_begin_headers(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn decode_status_code(mut value: *const uint8_t, mut len: size_t) -> libc::c_int {
+extern "C" fn decode_status_code(value: *const uint8_t, len: size_t) -> libc::c_int {
     unsafe {
         let mut i: libc::c_int = 0;
         let mut res: libc::c_int = 0;
@@ -974,7 +971,7 @@ extern "C" fn decode_status_code(mut value: *const uint8_t, mut len: size_t) -> 
         res = 0;
         i = 0;
         while i < 3 {
-            let mut c: libc::c_char = *value.offset(i as isize) as libc::c_char;
+            let c: libc::c_char = *value.offset(i as isize) as libc::c_char;
             if (c as libc::c_int) < '0' as i32 || c as libc::c_int > '9' as i32 {
                 return -(1 as libc::c_int);
             }
@@ -987,21 +984,21 @@ extern "C" fn decode_status_code(mut value: *const uint8_t, mut len: size_t) -> 
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn on_header(
-    mut session: *mut nghttp2_session,
-    mut frame: *const nghttp2_frame,
-    mut name: *const uint8_t,
-    mut namelen: size_t,
-    mut value: *const uint8_t,
-    mut valuelen: size_t,
-    mut flags: uint8_t,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    frame: *const nghttp2_frame,
+    name: *const uint8_t,
+    namelen: size_t,
+    value: *const uint8_t,
+    valuelen: size_t,
+    flags: uint8_t,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     unsafe {
         let mut stream: *mut HTTP = 0 as *mut HTTP;
         let mut data_s: *mut Curl_easy = 0 as *mut Curl_easy;
-        let mut stream_id: int32_t = (*frame).hd.stream_id;
-        let mut conn: *mut connectdata = userp as *mut connectdata;
-        let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
+        let stream_id: int32_t = (*frame).hd.stream_id;
+        let conn: *mut connectdata = userp as *mut connectdata;
+        let httpc: *mut http_conn = &mut (*conn).proto.httpc;
         let mut result: CURLcode = CURLE_OK;
         data_s = nghttp2_session_get_stream_user_data(session, stream_id) as *mut Curl_easy;
         if data_s.is_null() {
@@ -1023,7 +1020,7 @@ extern "C" fn on_header(
             ) == 0
             {
                 let mut rc: libc::c_int = 0;
-                let mut check: *mut libc::c_char = curl_maprintf(
+                let check: *mut libc::c_char = curl_maprintf(
                     b"%s:%d\0" as *const u8 as *const libc::c_char,
                     (*conn).host.name,
                     (*conn).remote_port,
@@ -1177,13 +1174,13 @@ extern "C" fn on_header(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn data_source_read_callback(
-    mut session: *mut nghttp2_session,
-    mut stream_id: int32_t,
-    mut buf: *mut uint8_t,
-    mut length: size_t,
-    mut data_flags: *mut uint32_t,
-    mut source: *mut nghttp2_data_source,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    stream_id: int32_t,
+    buf: *mut uint8_t,
+    length: size_t,
+    data_flags: *mut uint32_t,
+    source: *mut nghttp2_data_source,
+    userp: *mut libc::c_void,
 ) -> ssize_t {
     unsafe {
         let mut data_s: *mut Curl_easy = 0 as *mut Curl_easy;
@@ -1232,17 +1229,17 @@ extern "C" fn data_source_read_callback(
 }
 #[cfg(all(USE_NGHTTP2, not(CURL_DISABLE_VERBOSE_STRINGS)))]
 extern "C" fn error_callback(
-    mut session: *mut nghttp2_session,
-    mut msg: *const libc::c_char,
-    mut len: size_t,
-    mut userp: *mut libc::c_void,
+    session: *mut nghttp2_session,
+    msg: *const libc::c_char,
+    len: size_t,
+    userp: *mut libc::c_void,
 ) -> libc::c_int {
     return 0;
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn populate_settings(mut data: *mut Curl_easy, mut httpc: *mut http_conn) {
+extern "C" fn populate_settings(data: *mut Curl_easy, mut httpc: *mut http_conn) {
     unsafe {
-        let mut iv: *mut nghttp2_settings_entry = ((*httpc).local_settings).as_mut_ptr();
+        let iv: *mut nghttp2_settings_entry = ((*httpc).local_settings).as_mut_ptr();
         (*iv.offset(0 as libc::c_int as isize)).settings_id =
             NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS as libc::c_int;
         (*iv.offset(0 as libc::c_int as isize)).value =
@@ -1260,7 +1257,7 @@ extern "C" fn populate_settings(mut data: *mut Curl_easy, mut httpc: *mut http_c
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_done(mut data: *mut Curl_easy, mut premature: bool) {
+pub extern "C" fn Curl_http2_done(data: *mut Curl_easy, premature: bool) {
     unsafe {
         let mut http: *mut HTTP = (*data).req.p.http;
         let mut httpc: *mut http_conn = &mut (*(*data).conn).proto.httpc;
@@ -1310,7 +1307,7 @@ pub extern "C" fn Curl_http2_done(mut data: *mut Curl_easy, mut premature: bool)
             drained_transfer(data, httpc);
         }
         if (*http).stream_id > 0 {
-            let mut rv: libc::c_int = nghttp2_session_set_stream_user_data(
+            let rv: libc::c_int = nghttp2_session_set_stream_user_data(
                 (*httpc).h2,
                 (*http).stream_id,
                 0 as *mut libc::c_void,
@@ -1329,7 +1326,7 @@ pub extern "C" fn Curl_http2_done(mut data: *mut Curl_easy, mut premature: bool)
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn http2_init(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
+extern "C" fn http2_init(data: *mut Curl_easy, conn: *mut connectdata) -> CURLcode {
     unsafe {
         if ((*conn).proto.httpc.h2).is_null() {
             let mut rc: libc::c_int = 0;
@@ -1457,10 +1454,7 @@ extern "C" fn http2_init(mut data: *mut Curl_easy, mut conn: *mut connectdata) -
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_request_upgrade(
-    mut req: *mut dynbuf,
-    mut data: *mut Curl_easy,
-) -> CURLcode {
+pub extern "C" fn Curl_http2_request_upgrade(req: *mut dynbuf, data: *mut Curl_easy) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
         let mut binlen: ssize_t = 0;
@@ -1468,8 +1462,8 @@ pub extern "C" fn Curl_http2_request_upgrade(
         let mut blen: size_t = 0;
         let mut conn: *mut connectdata = (*data).conn;
         let mut k: *mut SingleRequest = &mut (*data).req;
-        let mut binsettings: *mut uint8_t = ((*conn).proto.httpc.binsettings).as_mut_ptr();
-        let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
+        let binsettings: *mut uint8_t = ((*conn).proto.httpc.binsettings).as_mut_ptr();
+        let httpc: *mut http_conn = &mut (*conn).proto.httpc;
         populate_settings(data, httpc);
         binlen = nghttp2_pack_settings_payload(
             binsettings,
@@ -1511,7 +1505,7 @@ pub extern "C" fn Curl_http2_request_upgrade(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn should_close_session(mut httpc: *mut http_conn) -> libc::c_int {
+extern "C" fn should_close_session(httpc: *mut http_conn) -> libc::c_int {
     unsafe {
         return ((*httpc).drain_total == 0 as libc::c_int as libc::c_ulong
             && nghttp2_session_want_read((*httpc).h2) == 0
@@ -1520,9 +1514,9 @@ extern "C" fn should_close_session(mut httpc: *mut http_conn) -> libc::c_int {
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn h2_process_pending_input(
-    mut data: *mut Curl_easy,
-    mut httpc: *mut http_conn,
-    mut err: *mut CURLcode,
+    data: *mut Curl_easy,
+    httpc: *mut http_conn,
+    err: *mut CURLcode,
 ) -> libc::c_int {
     unsafe {
         let mut nread: ssize_t = 0;
@@ -1560,7 +1554,7 @@ extern "C" fn h2_process_pending_input(
             Curl_conncontrol((*data).conn, 1);
         }
         if should_close_session(httpc) != 0 {
-            let mut stream: *mut HTTP = (*data).req.p.http;
+            let stream: *mut HTTP = (*data).req.p.http;
             if (*stream).error != 0 {
                 *err = CURLE_HTTP2;
             } else {
@@ -1575,8 +1569,8 @@ extern "C" fn h2_process_pending_input(
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
 pub extern "C" fn Curl_http2_done_sending(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
+    data: *mut Curl_easy,
+    conn: *mut connectdata,
 ) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
@@ -1584,8 +1578,8 @@ pub extern "C" fn Curl_http2_done_sending(
             || (*conn).handler == &Curl_handler_http2 as *const Curl_handler
         {
             let mut stream: *mut HTTP = (*data).req.p.http;
-            let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
-            let mut h2: *mut nghttp2_session = (*httpc).h2;
+            let httpc: *mut http_conn = &mut (*conn).proto.httpc;
+            let h2: *mut nghttp2_session = (*httpc).h2;
             if (*stream).upload_left != 0 {
                 (*stream).upload_left = 0 as curl_off_t;
                 nghttp2_session_resume_data(h2, (*stream).stream_id);
@@ -1608,10 +1602,10 @@ pub extern "C" fn Curl_http2_done_sending(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_handle_stream_close(
-    mut conn: *mut connectdata,
-    mut data: *mut Curl_easy,
-    mut stream: *mut HTTP,
-    mut err: *mut CURLcode,
+    conn: *mut connectdata,
+    data: *mut Curl_easy,
+    stream: *mut HTTP,
+    err: *mut CURLcode,
 ) -> ssize_t {
     unsafe {
         let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
@@ -1684,14 +1678,14 @@ extern "C" fn http2_handle_stream_close(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn h2_pri_spec(mut data: *mut Curl_easy, mut pri_spec: *mut nghttp2_priority_spec) {
+extern "C" fn h2_pri_spec(mut data: *mut Curl_easy, pri_spec: *mut nghttp2_priority_spec) {
     unsafe {
-        let mut depstream: *mut HTTP = if !((*data).set.stream_depends_on).is_null() {
+        let depstream: *mut HTTP = if !((*data).set.stream_depends_on).is_null() {
             (*(*data).set.stream_depends_on).req.p.http
         } else {
             0 as *mut HTTP
         };
-        let mut depstream_id: int32_t = if !depstream.is_null() {
+        let depstream_id: int32_t = if !depstream.is_null() {
             (*depstream).stream_id
         } else {
             0
@@ -1710,13 +1704,10 @@ extern "C" fn h2_pri_spec(mut data: *mut Curl_easy, mut pri_spec: *mut nghttp2_p
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn h2_session_send(
-    mut data: *mut Curl_easy,
-    mut h2: *mut nghttp2_session,
-) -> libc::c_int {
+extern "C" fn h2_session_send(data: *mut Curl_easy, h2: *mut nghttp2_session) -> libc::c_int {
     unsafe {
-        let mut stream: *mut HTTP = (*data).req.p.http;
-        let mut httpc: *mut http_conn = &mut (*(*data).conn).proto.httpc;
+        let stream: *mut HTTP = (*data).req.p.http;
+        let httpc: *mut http_conn = &mut (*(*data).conn).proto.httpc;
         set_transfer(httpc, data);
         if (*data).set.stream_weight != (*data).state.stream_weight
             || ((*data).set).stream_depends_e() != ((*data).state).stream_depends_e()
@@ -1744,15 +1735,15 @@ extern "C" fn h2_session_send(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_recv(
-    mut data: *mut Curl_easy,
-    mut sockindex: libc::c_int,
-    mut mem: *mut libc::c_char,
-    mut len: size_t,
-    mut err: *mut CURLcode,
+    data: *mut Curl_easy,
+    sockindex: libc::c_int,
+    mem: *mut libc::c_char,
+    len: size_t,
+    err: *mut CURLcode,
 ) -> ssize_t {
     unsafe {
         let mut nread: ssize_t = 0;
-        let mut conn: *mut connectdata = (*data).conn;
+        let conn: *mut connectdata = (*data).conn;
         let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
         let mut stream: *mut HTTP = (*data).req.p.http;
         if should_close_session(httpc) != 0 {
@@ -1769,9 +1760,9 @@ extern "C" fn http2_recv(
         if (*stream).bodystarted as libc::c_int != 0
             && (*stream).nread_header_recvbuf < Curl_dyn_len(&mut (*stream).header_recvbuf)
         {
-            let mut left: size_t = (Curl_dyn_len(&mut (*stream).header_recvbuf))
+            let left: size_t = (Curl_dyn_len(&mut (*stream).header_recvbuf))
                 .wrapping_sub((*stream).nread_header_recvbuf);
-            let mut ncopy: size_t = if len < left { len } else { left };
+            let ncopy: size_t = if len < left { len } else { left };
             memcpy(
                 mem as *mut libc::c_void,
                 (Curl_dyn_ptr(&mut (*stream).header_recvbuf))
@@ -1882,7 +1873,7 @@ extern "C" fn http2_recv(
             }
         }
         if (*stream).memlen != 0 {
-            let mut retlen: ssize_t = (*stream).memlen as ssize_t;
+            let retlen: ssize_t = (*stream).memlen as ssize_t;
             (*stream).memlen = 0 as size_t;
             if !((*httpc).pause_stream_id == (*stream).stream_id) {
                 if !(*stream).closed {
@@ -1901,7 +1892,7 @@ extern "C" fn http2_recv(
     }
 }
 #[cfg(USE_NGHTTP2)]
-extern "C" fn contains_trailers(mut p: *const libc::c_char, mut len: size_t) -> bool {
+extern "C" fn contains_trailers(mut p: *const libc::c_char, len: size_t) -> bool {
     unsafe {
         let mut end: *const libc::c_char = p.offset(len as isize);
         loop {
@@ -1948,10 +1939,10 @@ extern "C" fn contains_trailers(mut p: *const libc::c_char, mut len: size_t) -> 
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn inspect_header(
-    mut name: *const libc::c_char,
-    mut namelen: size_t,
-    mut value: *const libc::c_char,
-    mut valuelen: size_t,
+    name: *const libc::c_char,
+    namelen: size_t,
+    value: *const libc::c_char,
+    valuelen: size_t,
 ) -> header_instruction {
     unsafe {
         match namelen {
@@ -2026,17 +2017,17 @@ extern "C" fn inspect_header(
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_send(
-    mut data: *mut Curl_easy,
-    mut sockindex: libc::c_int,
-    mut mem: *const libc::c_void,
+    data: *mut Curl_easy,
+    sockindex: libc::c_int,
+    mem: *const libc::c_void,
     mut len: size_t,
-    mut err: *mut CURLcode,
+    err: *mut CURLcode,
 ) -> ssize_t {
     unsafe {
-        let mut current_block: u64;
+        let current_block: u64;
         let mut rv: libc::c_int = 0;
-        let mut conn: *mut connectdata = (*data).conn;
-        let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
+        let conn: *mut connectdata = (*data).conn;
+        let httpc: *mut http_conn = &mut (*conn).proto.httpc;
         let mut stream: *mut HTTP = (*data).req.p.http;
         let mut nva: *mut nghttp2_nv = 0 as *mut nghttp2_nv;
         let mut nheader: size_t = 0;
@@ -2050,7 +2041,7 @@ extern "C" fn http2_send(
             read_callback: None,
         };
         let mut stream_id: int32_t = 0;
-        let mut h2: *mut nghttp2_session = (*httpc).h2;
+        let h2: *mut nghttp2_session = (*httpc).h2;
         let mut pri_spec: nghttp2_priority_spec = nghttp2_priority_spec {
             stream_id: 0,
             weight: 0,
@@ -2466,10 +2457,7 @@ extern "C" fn http2_send(
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_setup(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-) -> CURLcode {
+pub extern "C" fn Curl_http2_setup(data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
         let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
@@ -2524,13 +2512,13 @@ pub extern "C" fn Curl_http2_setup(
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
 pub extern "C" fn Curl_http2_switched(
-    mut data: *mut Curl_easy,
-    mut mem: *const libc::c_char,
-    mut nread: size_t,
+    data: *mut Curl_easy,
+    mem: *const libc::c_char,
+    nread: size_t,
 ) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata = (*data).conn;
+        let conn: *mut connectdata = (*data).conn;
         let mut httpc: *mut http_conn = &mut (*conn).proto.httpc;
         let mut rv: libc::c_int = 0;
         let mut stream: *mut HTTP = (*data).req.p.http;
@@ -2665,7 +2653,7 @@ pub extern "C" fn Curl_http2_switched(
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_stream_pause(mut data: *mut Curl_easy, mut pause: bool) -> CURLcode {
+pub extern "C" fn Curl_http2_stream_pause(data: *mut Curl_easy, pause: bool) -> CURLcode {
     unsafe {
         if (*(*(*data).conn).handler).protocol & ((1) << 0 | (1) << 1) as libc::c_uint == 0
             || ((*(*data).conn).proto.httpc.h2).is_null()
@@ -2675,9 +2663,9 @@ pub extern "C" fn Curl_http2_stream_pause(mut data: *mut Curl_easy, mut pause: b
             match () {
                 #[cfg(NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE)]
                 _ => {
-                    let mut stream: *mut HTTP = (*data).req.p.http;
-                    let mut httpc: *mut http_conn = &mut (*(*data).conn).proto.httpc;
-                    let mut window: uint32_t = (!pause as libc::c_int
+                    let stream: *mut HTTP = (*data).req.p.http;
+                    let httpc: *mut http_conn = &mut (*(*data).conn).proto.httpc;
+                    let window: uint32_t = (!pause as libc::c_int
                         * (32 as libc::c_int * 1024 as libc::c_int * 1024 as libc::c_int))
                         as uint32_t;
                     let mut rv: libc::c_int = nghttp2_session_set_local_window_size(
@@ -2711,9 +2699,9 @@ pub extern "C" fn Curl_http2_stream_pause(mut data: *mut Curl_easy, mut pause: b
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
 pub extern "C" fn Curl_http2_add_child(
-    mut parent: *mut Curl_easy,
-    mut child: *mut Curl_easy,
-    mut exclusive: bool,
+    parent: *mut Curl_easy,
+    child: *mut Curl_easy,
+    exclusive: bool,
 ) -> CURLcode {
     unsafe {
         if !parent.is_null() {
@@ -2759,7 +2747,7 @@ pub extern "C" fn Curl_http2_add_child(
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_remove_child(mut parent: *mut Curl_easy, mut child: *mut Curl_easy) {
+pub extern "C" fn Curl_http2_remove_child(parent: *mut Curl_easy, child: *mut Curl_easy) {
     unsafe {
         let mut last: *mut Curl_http2_dep = 0 as *mut Curl_http2_dep;
         let mut data: *mut Curl_http2_dep = (*parent).set.stream_dependents;
@@ -2785,7 +2773,7 @@ pub extern "C" fn Curl_http2_remove_child(mut parent: *mut Curl_easy, mut child:
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_http2_cleanup_dependencies(mut data: *mut Curl_easy) {
+pub extern "C" fn Curl_http2_cleanup_dependencies(data: *mut Curl_easy) {
     unsafe {
         while !((*data).set.stream_dependents).is_null() {
             let mut tmp: *mut Curl_easy = (*(*data).set.stream_dependents).data;
@@ -2801,9 +2789,9 @@ pub extern "C" fn Curl_http2_cleanup_dependencies(mut data: *mut Curl_easy) {
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
-pub extern "C" fn Curl_h2_http_1_1_error(mut data: *mut Curl_easy) -> bool {
+pub extern "C" fn Curl_h2_http_1_1_error(data: *mut Curl_easy) -> bool {
     unsafe {
-        let mut stream: *mut HTTP = (*data).req.p.http;
+        let stream: *mut HTTP = (*data).req.p.http;
         return (*stream).error == NGHTTP2_HTTP_1_1_REQUIRED as libc::c_uint;
     }
 }
