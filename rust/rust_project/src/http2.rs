@@ -20,22 +20,22 @@ use rust_ffi::src::ffi_struct::struct_define::*;
 const NGHTTP2_DEFAULT_WEIGHT: i32 = 16;
 const GETSOCK_BLANK: i32 = 0;
 const H2_BUFSIZE: size_t = 32768;
-const CONNCHECK_ISDEAD: u32 = ((1) << 0) as u32;
-const CONNRESULT_DEAD: u32 = ((1) << 0) as u32;
-const CONNCHECK_KEEPALIVE: u32 = ((1) << 1) as u32;
+const CONNCHECK_ISDEAD: u32 = 1 << 0;
+const CONNRESULT_DEAD: u32 = 1 << 0;
+const CONNCHECK_KEEPALIVE: u32 = 1 << 1;
 const ZERO_NULL: *const uint8_t = 0 as *const uint8_t;
-const DEFAULT_MAX_CONCURRENT_STREAMS: uint32_t = 100 as uint32_t;
-const KEEP_SEND: i32 = (1) << 1;
-const KEEP_SEND_PAUSE: i32 = (1) << 5;
-const KEEP_RECV_PAUSE: i32 = (1) << 4;
+const DEFAULT_MAX_CONCURRENT_STREAMS: uint32_t = 100;
+const KEEP_SEND: i32 = 1 << 1;
+const KEEP_SEND_PAUSE: i32 = 1 << 5;
+const KEEP_RECV_PAUSE: i32 = 1 << 4;
 const FIRSTSOCKET: usize = 0;
 const CURL_CSELECT_ERR: i32 = 0x4;
 const CURL_CSELECT_IN: i32 = 0x1;
 const PORT_HTTP: i32 = 80;
-const CURLPROTO_HTTPS: u32 = (1) << 1;
-const CURLPROTO_HTTP: u32 = (1) << 0;
-const PROTOPT_SSL: u32 = (1) << 0;
-const PROTOPT_STREAM: u32 = (1) << 9;
+const CURLPROTO_HTTPS: u32 = 1 << 1;
+const CURLPROTO_HTTP: u32 = 1 << 0;
+const PROTOPT_SSL: u32 = 1 << 0;
+const PROTOPT_STREAM: u32 = 1 << 9;
 const CONNRESULT_NONE: u32 = 0;
 const DYN_H2_HEADERS: size_t = 128 * 1024;
 const CURL_PUSH_DENY: i32 = 1;
@@ -43,26 +43,40 @@ const DYN_H2_TRAILERS: i32 = 128 * 1024;
 const NGHTTP2_DATA: u8 = 0;
 const NGHTTP2_HEADERS: u8 = 1;
 const NGHTTP2_PUSH_PROMISE: u8 = 5;
-const AUTHORITY_DST_IDX: libc::c_ulong = 3;
+const AUTHORITY_DST_IDX: u64 = 3;
 const HTTPREQ_POST: u32 = 1;
 const HTTPREQ_POST_FORM: u32 = 2;
 const HTTPREQ_POST_MIME: u32 = 3;
 const HTTPREQ_PUT: u32 = 4;
-const PROTO_FAMILY_HTTP: u32 = (1) << 0 | (1) << 1;
-
-// TODO http2.c中有一个结构体定义curl_pushheaders和一个enum定义，可能需要放到这里来
+const PROTO_FAMILY_HTTP: u32 = 1 << 0 | 1 << 1;
 
 const CURLEASY_MAGIC_NUMBER: u32 = 0xc0dedbad;
-// fn GOOD_EASY_HANDLE(h: *mut curl_pushheaders) -> bool {
-//     unsafe {
-//         !((*h).data).is_null() && (*(*h).data).magic == 0xc0dedbad as u32
-//     }
-// }
 fn GOOD_EASY_HANDLE(data: *mut Curl_easy) -> bool {
-    unsafe {
-        !data.is_null() && (*data).magic == 0xc0dedbad as u32
+    unsafe { !data.is_null() && (*data).magic == 0xc0dedbad as u32 }
+}
+
+fn GETSOCK_READSOCK(x: i32) -> i32 {
+    1 << x
+}
+
+const GETSOCK_WRITEBITSTART: i32 = 16;
+fn GETSOCK_WRITESOCK(x: i32) -> i32 {
+    1 << (GETSOCK_WRITEBITSTART + (x))
+}
+
+fn CURLMIN(x: u64, y: u64) -> u64 {
+    if x < y {
+        x
+    } else {
+        y
     }
 }
+
+fn HEADER_OVERFLOW(nva: nghttp2_nv) -> bool {
+    nva.namelen > 0xffff as u64 || nva.valuelen > (0xffff as u64).wrapping_sub(nva.namelen)
+}
+
+// TODO http2.c中有一个结构体定义curl_pushheaders和一个enum定义，可能需要放到这里来
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
@@ -81,22 +95,22 @@ pub extern "C" fn Curl_http2_init_userset(mut set: *mut UserDefined) {
 
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_getsock(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-    mut sock: *mut curl_socket_t,
+    data: *mut Curl_easy,
+    conn: *mut connectdata,
+    sock: *mut curl_socket_t,
 ) -> i32 {
     unsafe {
-        let mut c: *const http_conn = &mut (*conn).proto.httpc;
+        let c: *const http_conn = &mut (*conn).proto.httpc;
         let mut k: *mut SingleRequest = &mut (*data).req;
         let mut bitmap: i32 = GETSOCK_BLANK;
-        *sock.offset(0) = (*conn).sock[0];
+        *sock.offset(0) = (*conn).sock[FIRSTSOCKET];
         if (*k).keepon & KEEP_RECV_PAUSE == 0 {
-            bitmap |= (1) << 0;
+            bitmap |= GETSOCK_READSOCK(FIRSTSOCKET as i32);
         }
         if (*k).keepon & (KEEP_SEND | KEEP_SEND_PAUSE) == KEEP_SEND
             || nghttp2_session_want_write((*c).h2) != 0
         {
-            bitmap |= (1) << 16 + 0;
+            bitmap |= GETSOCK_WRITESOCK(FIRSTSOCKET as i32);
         }
         return bitmap;
     }
@@ -144,7 +158,7 @@ extern "C" fn http2_connisdead(data: *mut Curl_easy, conn: *mut connectdata) -> 
         if ((*conn).bits).close() != 0 {
             return true;
         }
-        sval = Curl_socket_check((*conn).sock[FIRSTSOCKET], -(1), -(1), 0 as timediff_t);
+        sval = Curl_socket_check((*conn).sock[FIRSTSOCKET], -1, -1, 0 as timediff_t);
         if sval == 0 {
             /* timeout */
             dead = false;
@@ -600,34 +614,34 @@ extern "C" fn set_transfer_url(data: *mut Curl_easy, hp: *mut curl_pushheaders) 
         let mut url: *mut i8 = 0 as *mut i8;
         let mut rc: i32 = 0;
         v = curl_pushheader_byname(hp, b":scheme\0" as *const u8 as *const i8);
-        
+
         'fail: loop {
             if !v.is_null() {
-                uc = curl_url_set(u, CURLUPART_SCHEME, v, 0 as libc::c_int as libc::c_uint);
-                if uc as u64 != 0 {
-                    rc = 1 as libc::c_int;
+                uc = curl_url_set(u, CURLUPART_SCHEME, v, 0);
+                if uc != 0 {
+                    rc = 1;
                     break 'fail;
                 }
             }
-            v = curl_pushheader_byname(hp, b":authority\0" as *const u8 as *const libc::c_char);
+            v = curl_pushheader_byname(hp, b":authority\0" as *const u8 as *const i8);
             if !v.is_null() {
-                uc = curl_url_set(u, CURLUPART_HOST, v, 0 as libc::c_int as libc::c_uint);
-                if uc as u64 != 0 {
-                    rc = 2 as libc::c_int;
+                uc = curl_url_set(u, CURLUPART_HOST, v, 0);
+                if uc != 0 {
+                    rc = 2;
                     break 'fail;
                 }
             }
-            v = curl_pushheader_byname(hp, b":path\0" as *const u8 as *const libc::c_char);
+            v = curl_pushheader_byname(hp, b":path\0" as *const u8 as *const i8);
             if !v.is_null() {
-                uc = curl_url_set(u, CURLUPART_PATH, v, 0 as libc::c_int as libc::c_uint);
-                if uc as u64 != 0 {
-                    rc = 3 as libc::c_int;
+                uc = curl_url_set(u, CURLUPART_PATH, v, 0);
+                if uc != 0 {
+                    rc = 3;
                     break 'fail;
                 }
             }
-            uc = curl_url_get(u, CURLUPART_URL, &mut url, 0 as libc::c_int as libc::c_uint);
-            if uc as u64 != 0 {
-                rc = 4 as libc::c_int;
+            uc = curl_url_get(u, CURLUPART_URL, &mut url, 0);
+            if uc != 0 {
+                rc = 4;
             }
             break 'fail;
         }
@@ -639,11 +653,9 @@ extern "C" fn set_transfer_url(data: *mut Curl_easy, hp: *mut curl_pushheaders) 
         if ((*data).state).url_alloc() != 0 {
             Curl_cfree.expect("non-null function pointer")((*data).state.url as *mut libc::c_void);
         }
-        let ref mut fresh10 = (*data).state;
-        (*fresh10).set_url_alloc(1 as libc::c_int as bit);
-        let ref mut fresh11 = (*data).state.url;
-        *fresh11 = url;
-        return 0 as libc::c_int;
+        ((*data).state).set_url_alloc(1 as bit);
+        (*data).state.url = url;
+        return 0;
     }
 }
 
@@ -691,7 +703,7 @@ extern "C" fn push_promise(
                     rv = CURL_PUSH_DENY;
                     break 'fail;
                 }
-                Curl_set_in_callback(data, 1 as i32 != 0);
+                Curl_set_in_callback(data, 1 != 0);
                 rv = ((*(*data).multi).push_cb).expect("non-null function pointer")(
                     data,
                     newhandle,
@@ -699,7 +711,7 @@ extern "C" fn push_promise(
                     &mut heads,
                     (*(*data).multi).push_userp,
                 );
-                Curl_set_in_callback(data, 0 as i32 != 0);
+                Curl_set_in_callback(data, 0 != 0);
                 /* free the headers again */
                 i = 0;
                 while i < (*stream).push_headers_used {
@@ -723,8 +735,8 @@ extern "C" fn push_promise(
 
                 newstream = (*newhandle).req.p.http;
                 (*newstream).stream_id = (*frame).promised_stream_id;
-                (*newhandle).req.maxdownload = -(1 as i32) as curl_off_t;
-                (*newhandle).req.size = -(1 as i32) as curl_off_t;
+                (*newhandle).req.maxdownload = -1 as curl_off_t;
+                (*newhandle).req.size = -1 as curl_off_t;
 
                 /* approved, add to the multi handle and immediately switch to PERFORM
                 state with the given connection !*/
@@ -849,27 +861,31 @@ extern "C" fn on_frame_recv(
                 if !(*stream).bodystarted {
                     /* Only valid HEADERS after body started is trailer HEADERS.  We
                     buffer them in on_header callback. */
+
+                    /* nghttp2 guarantees that :status is received, and we store it to
+                    stream->status_code. Fuzzing has proven this can still be reached
+                    without status code having been set. */
                     if (*stream).status_code == -1 {
                         return NGHTTP2_ERR_CALLBACK_FAILURE;
                     }
+
+                    /* Only final status code signals the end of header */
                     if (*stream).status_code / 100 != 1 {
                         (*stream).bodystarted = true;
                         (*stream).status_code = -1;
                     }
+
                     result = Curl_dyn_add(
                         &mut (*stream).header_recvbuf,
                         b"\r\n\0" as *const u8 as *const i8,
                     );
+
                     if result as u64 != 0 {
                         return NGHTTP2_ERR_CALLBACK_FAILURE;
                     }
                     left = (Curl_dyn_len(&mut (*stream).header_recvbuf))
                         .wrapping_sub((*stream).nread_header_recvbuf);
-                    ncopy = if (*stream).len < left {
-                        (*stream).len
-                    } else {
-                        left
-                    };
+                    ncopy = CURLMIN((*stream).len, left);
                     memcpy(
                         &mut *((*stream).mem).offset((*stream).memlen as isize) as *mut i8
                             as *mut libc::c_void,
@@ -879,9 +895,9 @@ extern "C" fn on_frame_recv(
                         ncopy,
                     );
                     (*stream).nread_header_recvbuf =
-                        ((*stream).nread_header_recvbuf as u64).wrapping_add(ncopy) as size_t;
-                    (*stream).len = ((*stream).len as u64).wrapping_sub(ncopy) as size_t;
-                    (*stream).memlen = ((*stream).memlen as u64).wrapping_add(ncopy) as size_t;
+                        ((*stream).nread_header_recvbuf).wrapping_add(ncopy) as size_t;
+                    (*stream).len = ((*stream).len).wrapping_sub(ncopy) as size_t;
+                    (*stream).memlen = ((*stream).memlen).wrapping_add(ncopy) as size_t;
                     drain_this(data_s, httpc);
                     if get_transfer(httpc) != data_s {
                         Curl_expire(data_s, 0 as timediff_t, EXPIRE_RUN_NOW);
@@ -941,19 +957,16 @@ extern "C" fn on_data_chunk_recv(
         if stream.is_null() {
             return NGHTTP2_ERR_CALLBACK_FAILURE;
         }
-        nread = if (*stream).len < len {
-            (*stream).len
-        } else {
-            len
-        };
+
+        nread = CURLMIN((*stream).len, len);
         memcpy(
             &mut *((*stream).mem).offset((*stream).memlen as isize) as *mut i8 as *mut libc::c_void,
             mem as *const libc::c_void,
             nread,
         );
 
-        (*stream).len = ((*stream).len as u64).wrapping_sub(nread) as size_t as size_t;
-        (*stream).memlen = ((*stream).memlen as u64).wrapping_add(nread) as size_t as size_t;
+        (*stream).len = ((*stream).len as u64).wrapping_sub(nread) as size_t;
+        (*stream).memlen = ((*stream).memlen as u64).wrapping_add(nread) as size_t;
 
         drain_this(data_s, &mut (*conn).proto.httpc);
 
@@ -1332,11 +1345,7 @@ extern "C" fn data_source_read_callback(
             return NGHTTP2_ERR_INVALID_ARGUMENT as ssize_t;
         }
 
-        nread = if (*stream).upload_len < length {
-            (*stream).upload_len
-        } else {
-            length
-        };
+        nread = CURLMIN((*stream).upload_len, length);
         if nread > 0 {
             memcpy(
                 buf as *mut libc::c_void,
@@ -1403,10 +1412,10 @@ pub extern "C" fn Curl_http2_done(data: *mut Curl_easy, premature: bool) {
         Curl_dyn_free(&mut (*http).trailer_recvbuf);
         if !((*http).push_headers).is_null() {
             /* if they weren't used and then freed before */
-            while (*http).push_headers_used > 0 as u64 {
+            while (*http).push_headers_used > 0 {
                 Curl_cfree.expect("non-null function pointer")(
                     *((*http).push_headers)
-                        .offset(((*http).push_headers_used).wrapping_sub(1 as u64) as isize)
+                        .offset(((*http).push_headers_used).wrapping_sub(1) as isize)
                         as *mut libc::c_void,
                 );
                 (*http).push_headers_used = (*http).push_headers_used.wrapping_sub(1);
@@ -1729,8 +1738,7 @@ extern "C" fn h2_process_pending_input(
             (*httpc).inbuflen = 0;
             (*httpc).nread_inbuf = 0;
         } else {
-            (*httpc).nread_inbuf =
-                ((*httpc).nread_inbuf as u64).wrapping_add(rv as u64) as size_t as size_t;
+            (*httpc).nread_inbuf = ((*httpc).nread_inbuf as u64).wrapping_add(rv as u64) as size_t;
         }
 
         rv = h2_session_send(data, (*httpc).h2) as ssize_t;
@@ -1832,7 +1840,7 @@ extern "C" fn http2_handle_stream_close(
 
         if (*httpc).pause_stream_id == 0 {
             if h2_process_pending_input(data, httpc, err) != 0 {
-                return -(1) as ssize_t;
+                return -1;
             }
         }
 
@@ -1885,7 +1893,7 @@ extern "C" fn http2_handle_stream_close(
 
                 Curl_debug(data, CURLINFO_HEADER_IN, trailp, len);
                 /* pass the trailers one by one to the callback */
-                result = Curl_client_write(data, (1) << 1, trailp, len);
+                result = Curl_client_write(data, 1 << 1, trailp, len);
                 if result != 0 {
                     *err = result;
                     return -1;
@@ -2016,7 +2024,7 @@ extern "C" fn http2_recv(
             /* If there is header data pending for this stream to return, do that */
             let left: size_t = (Curl_dyn_len(&mut (*stream).header_recvbuf))
                 .wrapping_sub((*stream).nread_header_recvbuf);
-            let ncopy: size_t = if len < left { len } else { left };
+            let ncopy: size_t = CURLMIN(len, left);
             memcpy(
                 mem as *mut libc::c_void,
                 (Curl_dyn_ptr(&mut (*stream).header_recvbuf))
@@ -2040,23 +2048,18 @@ extern "C" fn http2_recv(
                     (*stream).memlen,
                 );
                 (*stream).len = len.wrapping_sub((*stream).memlen);
-                let ref mut fresh40 = (*stream).mem;
-                *fresh40 = mem;
+                (*stream).mem = mem;
             }
             if (*httpc).pause_stream_id == (*stream).stream_id && ((*stream).pausedata).is_null() {
                 /* We have paused nghttp2, but we have no pause data (see
                 on_data_chunk_recv). */
                 (*httpc).pause_stream_id = 0;
                 if h2_process_pending_input(data, httpc, err) != 0 {
-                    return -(1) as ssize_t;
+                    return -1 as ssize_t;
                 }
             }
         } else if !((*stream).pausedata).is_null() {
-            nread = (if len < (*stream).pauselen {
-                len
-            } else {
-                (*stream).pauselen
-            }) as ssize_t;
+            nread = (CURLMIN(len, (*stream).pauselen)) as ssize_t;
             memcpy(
                 mem as *mut libc::c_void,
                 (*stream).pausedata as *const libc::c_void,
@@ -2066,7 +2069,7 @@ extern "C" fn http2_recv(
             (*stream).pausedata = ((*stream).pausedata).offset(nread as isize);
             (*stream).pauselen = ((*stream).pauselen as u64).wrapping_sub(nread as u64) as size_t;
 
-            if (*stream).pauselen == 0 as u64 {
+            if (*stream).pauselen == 0 {
                 (*httpc).pause_stream_id = 0;
 
                 (*stream).pausedata = 0 as *const uint8_t;
@@ -2080,7 +2083,7 @@ extern "C" fn http2_recv(
                 Without this, on_stream_close callback will not be called,
                 and stream could be hanged. */
                 if h2_process_pending_input(data, httpc, err) != 0 {
-                    return -(1) as ssize_t;
+                    return -1 as ssize_t;
                 }
             }
             return nread;
@@ -2355,7 +2358,6 @@ unsafe extern "C" fn http2_send(
         }
         /* If stream_id != -1, we have dispatched request HEADERS, and now
         are going to send or sending request body in DATA frame */
-        // let ref mut fresh45 = (*stream).upload_mem;
         (*stream).upload_mem = mem as *const uint8_t;
         (*stream).upload_len = len;
         rv = nghttp2_session_resume_data(h2, (*stream).stream_id);
@@ -2368,12 +2370,12 @@ unsafe extern "C" fn http2_send(
             *err = CURLE_SEND_ERROR;
             return -1;
         }
-        len = (len as libc::c_ulong).wrapping_sub((*stream).upload_len) as size_t as size_t;
+        len = (len).wrapping_sub((*stream).upload_len) as size_t;
 
         /* Nullify here because we call nghttp2_session_send() and they
         might refer to the old buffer. */
         (*stream).upload_mem = 0 as *const uint8_t;
-        (*stream).upload_len = 0 as i32 as size_t;
+        (*stream).upload_len = 0 as size_t;
 
         if should_close_session(httpc) != 0 {
             *err = CURLE_HTTP2;
@@ -2406,7 +2408,7 @@ unsafe extern "C" fn http2_send(
         i = i.wrapping_add(1);
     }
     'fail: loop {
-        if nheader < 2 as i32 as libc::c_ulong {
+        if nheader < 2 as u64 {
             break 'fail;
         }
 
@@ -2415,7 +2417,7 @@ unsafe extern "C" fn http2_send(
         more space. */
         nheader = nheader.wrapping_add(1);
         nva = Curl_cmalloc.expect("non-null function pointer")(
-            (::std::mem::size_of::<nghttp2_nv>() as libc::c_ulong).wrapping_mul(nheader),
+            (::std::mem::size_of::<nghttp2_nv>() as u64).wrapping_mul(nheader),
         ) as *mut nghttp2_nv;
         if nva.is_null() {
             *err = CURLE_OUT_OF_MEMORY;
@@ -2433,7 +2435,7 @@ unsafe extern "C" fn http2_send(
         end = memchr(
             hdbuf as *const libc::c_void,
             ' ' as i32,
-            line_end.offset_from(hdbuf) as i64 as libc::c_ulong,
+            line_end.offset_from(hdbuf) as i64 as u64,
         ) as *mut i8;
         if end.is_null() || end == hdbuf {
             break 'fail;
@@ -2441,13 +2443,9 @@ unsafe extern "C" fn http2_send(
         (*nva.offset(0)).name = b":method\0" as *const u8 as *const i8 as *mut u8;
         (*nva.offset(0)).namelen = strlen((*nva.offset(0)).name as *mut i8);
         (*nva.offset(0)).value = hdbuf as *mut u8;
-        (*nva.offset(0)).valuelen = end.offset_from(hdbuf) as i64 as size_t;
+        (*nva.offset(0)).valuelen = end.offset_from(hdbuf) as size_t;
         (*nva.offset(0)).flags = NGHTTP2_NV_FLAG_NONE as uint8_t;
-        if (*nva.offset(0 as i32 as isize)).namelen > 0xffff as i32 as libc::c_ulong
-            || (*nva.offset(0 as i32 as isize)).valuelen
-                > (0xffff as i32 as libc::c_ulong)
-                    .wrapping_sub((*nva.offset(0 as i32 as isize)).namelen)
-        {
+        if HEADER_OVERFLOW(*nva.offset(0 as isize)) {
             Curl_failf(
                 data,
                 b"Failed sending HTTP request: Header overflow\0" as *const u8 as *const i8,
@@ -2461,11 +2459,8 @@ unsafe extern "C" fn http2_send(
         end = 0 as *mut i8;
         i = line_end.offset_from(hdbuf) as size_t;
         while i != 0 {
-            if *hdbuf.offset(i.wrapping_sub(1 as i32 as libc::c_ulong) as isize) as i32
-                == ' ' as i32
-            {
-                end = &mut *hdbuf.offset(i.wrapping_sub(1 as i32 as libc::c_ulong) as isize)
-                    as *mut i8;
+            if *hdbuf.offset(i.wrapping_sub(1) as isize) as i32 == ' ' as i32 {
+                end = &mut *hdbuf.offset(i.wrapping_sub(1) as isize) as *mut i8;
                 break;
             } else {
                 i = i.wrapping_sub(1);
@@ -2477,13 +2472,9 @@ unsafe extern "C" fn http2_send(
         (*nva.offset(1)).name = b":path\0" as *const u8 as *const i8 as *mut u8;
         (*nva.offset(1)).namelen = strlen((*nva.offset(1)).name as *mut i8);
         (*nva.offset(1)).value = hdbuf as *mut u8;
-        (*nva.offset(1)).valuelen = end.offset_from(hdbuf) as i64 as size_t;
-        (*nva.offset(1)).flags = NGHTTP2_NV_FLAG_NONE as i32 as uint8_t;
-        if (*nva.offset(1)).namelen > 0xffff as i32 as libc::c_ulong
-            || (*nva.offset(1)).valuelen
-                > (0xffff as i32 as libc::c_ulong)
-                    .wrapping_sub((*nva.offset(1 as i32 as isize)).namelen)
-        {
+        (*nva.offset(1)).valuelen = end.offset_from(hdbuf) as size_t;
+        (*nva.offset(1)).flags = NGHTTP2_NV_FLAG_NONE as uint8_t;
+        if HEADER_OVERFLOW(*nva.offset(1 as isize)) {
             Curl_failf(
                 data,
                 b"Failed sending HTTP request: Header overflow\0" as *const u8 as *const i8,
@@ -2499,10 +2490,9 @@ unsafe extern "C" fn http2_send(
             (*nva.offset(2)).value = b"http\0" as *const u8 as *const i8 as *mut u8;
         }
         (*nva.offset(2)).valuelen = strlen((*nva.offset(2)).value as *mut i8);
-        (*nva.offset(2)).flags = NGHTTP2_NV_FLAG_NONE as i32 as uint8_t;
-        if (*nva.offset(2)).namelen > 0xffff as i32 as libc::c_ulong
-            || (*nva.offset(2)).valuelen
-                > (0xffff as i32 as libc::c_ulong).wrapping_sub((*nva.offset(2)).namelen)
+        (*nva.offset(2)).flags = NGHTTP2_NV_FLAG_NONE as uint8_t;
+        if (*nva.offset(2)).namelen > 0xffff as u64
+            || (*nva.offset(2)).valuelen > (0xffff as u64).wrapping_sub((*nva.offset(2)).namelen)
         {
             Curl_failf(
                 data,
@@ -2523,7 +2513,7 @@ unsafe extern "C" fn http2_send(
             line_end = memchr(
                 hdbuf as *const libc::c_void,
                 '\r' as i32,
-                len.wrapping_sub(hdbuf.offset_from(mem as *mut i8) as i64 as libc::c_ulong),
+                len.wrapping_sub(hdbuf.offset_from(mem as *mut i8) as u64),
             ) as *mut i8;
 
             /* header continuation lines are not supported */
@@ -2531,7 +2521,6 @@ unsafe extern "C" fn http2_send(
                 break 'fail;
             }
             if *hdbuf as i32 == ' ' as i32 || *hdbuf as i32 == '\t' as i32 {
-                // curl_mprintf(b"hanxj\n\0" as *const u8 as *const i8);
                 break 'fail;
             }
 
@@ -2580,7 +2569,7 @@ unsafe extern "C" fn http2_send(
                     (*nva.offset(i as isize)).value =
                         b"trailers\0" as *const u8 as *const i8 as *mut uint8_t;
                     (*nva.offset(i as isize)).valuelen =
-                        (::std::mem::size_of::<[i8; 9]>() as libc::c_ulong).wrapping_sub(1);
+                        (::std::mem::size_of::<[i8; 9]>() as u64).wrapping_sub(1);
                 }
                 _ => {
                     (*nva.offset(i as isize)).value = hdbuf as *mut u8;
@@ -2588,12 +2577,8 @@ unsafe extern "C" fn http2_send(
                 }
             }
 
-            (*nva.offset(i as isize)).flags = NGHTTP2_NV_FLAG_NONE as i32 as uint8_t;
-            if (*nva.offset(i as isize)).namelen > 0xffff as i32 as libc::c_ulong
-                || (*nva.offset(i as isize)).valuelen
-                    > (0xffff as i32 as libc::c_ulong)
-                        .wrapping_sub((*nva.offset(i as isize)).namelen)
-            {
+            (*nva.offset(i as isize)).flags = NGHTTP2_NV_FLAG_NONE as uint8_t;
+            if HEADER_OVERFLOW(*nva.offset(i as isize)) {
                 Curl_failf(
                     data,
                     b"Failed sending HTTP request: Header overflow\0" as *const u8 as *const i8,
@@ -2616,15 +2601,15 @@ unsafe extern "C" fn http2_send(
 
         /* Warn stream may be rejected if cumulative length of headers is too large.
         It appears nghttp2 will not send a header frame larger than 64KB. */
-        const MAX_ACC: libc::c_ulong = 60000;
+        const MAX_ACC: u64 = 60000;
         let mut acc: size_t = 0;
 
         i = 0;
         while i < nheader {
-            acc = (acc as libc::c_ulong).wrapping_add(
+            acc = (acc as u64).wrapping_add(
                 ((*nva.offset(i as isize)).namelen)
                     .wrapping_add((*nva.offset(i as isize)).valuelen),
-            ) as size_t as size_t;
+            ) as size_t;
             i = i.wrapping_add(1);
         }
 
