@@ -2868,7 +2868,8 @@ pub struct bufref {
     pub dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
-    // DEBUGBUILD
+    #[cfg(CURLDEBUG)]
+    dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
 }
 
 // new http.rs

@@ -54,10 +54,18 @@ pub unsafe extern "C" fn Curl_input_ntlm(
             let mut hdrlen: size_t = 0;
             result = Curl_base64_decode(header, &mut hdr, &mut hdrlen);
             if result as u64 == 0 {
+                #[cfg(not(CURLDEBUG))]
                 let mut hdrbuf: bufref = bufref {
                     dtor: None,
                     ptr: 0 as *const libc::c_uchar,
                     len: 0,
+                };
+                #[cfg(CURLDEBUG)]
+                let mut hdrbuf: bufref = bufref {
+                    dtor: None,
+                    ptr: 0 as *const libc::c_uchar,
+                    len: 0,
+                    signature: 0,
                 };
                 Curl_bufref_init(&mut hdrbuf);
                 Curl_bufref_set(
@@ -90,12 +98,12 @@ pub unsafe extern "C" fn Curl_input_ntlm(
                 return CURLE_REMOTE_ACCESS_DENIED;
             } else if *state as libc::c_uint >= NTLMSTATE_TYPE1 as libc::c_int as libc::c_uint {
                 // if *state as libc::c_uint >= NTLMSTATE_TYPE1 as libc::c_int as libc::c_uint {
-                Curl_infof(
-                    data,
-                    b"NTLM handshake failure (internal error)\0" as *const u8
-                        as *const libc::c_char,
-                );
-                return CURLE_REMOTE_ACCESS_DENIED;
+                    Curl_infof(
+                        data,
+                        b"NTLM handshake failure (internal error)\0" as *const u8
+                            as *const libc::c_char,
+                    );
+                    return CURLE_REMOTE_ACCESS_DENIED;
                 // }
             }
             *state = NTLMSTATE_TYPE1;
@@ -108,10 +116,18 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
     let mut base64: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut len: size_t = 0 as libc::c_int as size_t;
     let mut result: CURLcode = CURLE_OK;
+    #[cfg(not(CURLDEBUG))]
     let mut ntlmmsg: bufref = bufref {
         dtor: None,
         ptr: 0 as *const libc::c_uchar,
         len: 0,
+    };
+    #[cfg(CURLDEBUG)]
+    let mut ntlmmsg: bufref = bufref {
+        dtor: None,
+        ptr: 0 as *const libc::c_uchar,
+        len: 0,
+        signature: 0,
     };
     let mut allocuserpwd: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
     let mut userp: *const libc::c_char = 0 as *const libc::c_char;
@@ -122,25 +138,51 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
     let mut state: *mut curlntlm = 0 as *mut curlntlm;
     let mut authp: *mut auth = 0 as *mut auth;
     let mut conn: *mut connectdata = (*data).conn;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if !conn.is_null() {} else {
+        __assert_fail(
+            b"conn\0" as *const u8 as *const libc::c_char,
+            b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+            150 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 53],
+                &[libc::c_char; 53],
+            >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
+                .as_ptr(),
+        );
+    }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if !data.is_null() {} else {
+        __assert_fail(
+            b"data\0" as *const u8 as *const libc::c_char,
+            b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+            151 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 53],
+                &[libc::c_char; 53],
+            >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
+                .as_ptr(),
+        );
+    }
     if proxy {
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {
-                allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
-                userp = (*data).state.aptr.proxyuser;
-                passwdp = (*data).state.aptr.proxypasswd;
+        allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
+        userp = (*data).state.aptr.proxyuser;
+        passwdp = (*data).state.aptr.proxypasswd;
                 service = if !((*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize])
-                    .is_null()
-                {
-                    (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
-                        as *const libc::c_char
-                } else {
-                    b"HTTP\0" as *const u8 as *const libc::c_char
-                };
-                hostname = (*conn).http_proxy.host.name;
-                ntlm = &mut (*conn).proxyntlm;
-                state = &mut (*conn).proxy_ntlm_state;
-                authp = &mut (*data).state.authproxy;
+            .is_null()
+        {
+            (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
+                as *const libc::c_char
+        } else {
+            b"HTTP\0" as *const u8 as *const libc::c_char
+        };
+        hostname = (*conn).http_proxy.host.name;
+        ntlm = &mut (*conn).proxyntlm;
+        state = &mut (*conn).proxy_ntlm_state;
+        authp = &mut (*data).state.authproxy;
             }
             #[cfg(CURL_DISABLE_PROXY)]
             _ => {
@@ -182,8 +224,15 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
                     &mut len,
                 );
                 if result as u64 == 0 {
+                    #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(
                         *allocuserpwd as *mut libc::c_void,
+                    );
+                    #[cfg(CURLDEBUG)]
+                    curl_dbg_free(
+                        *allocuserpwd as *mut libc::c_void,
+                        234 as libc::c_int,
+                        b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
                     );
                     *allocuserpwd = curl_maprintf(
                         b"%sAuthorization: NTLM %s\r\n\0" as *const u8 as *const libc::c_char,
@@ -194,7 +243,14 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
                         },
                         base64,
                     );
+                    #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(base64 as *mut libc::c_void);
+                    #[cfg(CURLDEBUG)]
+                    curl_dbg_free(
+                        base64 as *mut libc::c_void,
+                        238 as libc::c_int,
+                        b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+                    );
                     if (*allocuserpwd).is_null() {
                         result = CURLE_OUT_OF_MEMORY;
                     } else {
@@ -223,6 +279,21 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
                 &mut ntlmmsg,
             );
             if result as u64 == 0 {
+                #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+                if Curl_bufref_len(&mut ntlmmsg) != 0 as libc::c_int as libc::c_ulong
+                {} else {
+                    __assert_fail(
+                        b"Curl_bufref_len(&ntlmmsg) != 0\0" as *const u8
+                            as *const libc::c_char,
+                        b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+                        209 as libc::c_int as libc::c_uint,
+                        (*::std::mem::transmute::<
+                            &[u8; 53],
+                            &[libc::c_char; 53],
+                        >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
+                            .as_ptr(),
+                    );
+                }
                 result = Curl_base64_encode(
                     data,
                     Curl_bufref_ptr(&mut ntlmmsg) as *const libc::c_char,
@@ -231,8 +302,15 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
                     &mut len,
                 );
                 if result as u64 == 0 {
+                    #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(
                         *allocuserpwd as *mut libc::c_void,
+                    );
+                    #[cfg(CURLDEBUG)]
+                    curl_dbg_free(
+                        *allocuserpwd as *mut libc::c_void,
+                        214 as libc::c_int,
+                        b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
                     );
                     *allocuserpwd = curl_maprintf(
                         b"%sAuthorization: NTLM %s\r\n\0" as *const u8 as *const libc::c_char,
@@ -243,7 +321,14 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
                         },
                         base64,
                     );
+                    #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(base64 as *mut libc::c_void);
+                    #[cfg(CURLDEBUG)]
+                    curl_dbg_free(
+                        base64 as *mut libc::c_void,
+                        218 as libc::c_int,
+                        b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+                    );
                     if (*allocuserpwd).is_null() {
                         result = CURLE_OUT_OF_MEMORY;
                     }
@@ -254,7 +339,14 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
     }
     match current_block_61 {
         660359442149512078 => {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(*allocuserpwd as *mut libc::c_void);
+            #[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                *allocuserpwd as *mut libc::c_void,
+                255 as libc::c_int,
+                b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
+            );
             *allocuserpwd = 0 as *mut libc::c_char;
             (*authp).set_done(1 as libc::c_int as bit);
         }
@@ -267,6 +359,5 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
 pub unsafe extern "C" fn Curl_http_auth_cleanup_ntlm(mut conn: *mut connectdata) {
     Curl_auth_cleanup_ntlm(&mut (*conn).ntlm);
     Curl_auth_cleanup_ntlm(&mut (*conn).proxyntlm);
-    #[cfg(NTLM_WB_ENABLED)]
     Curl_http_auth_cleanup_ntlm_wb(conn);
 }

@@ -1504,3 +1504,12 @@ int get_AVE_KEYLOG_CALLBACK()
     return 0;
 #endif
 }
+
+int get_HAVE_ASSERT_H()
+{
+#ifdef HAVE_ASSERT_H
+    return 1;
+#else
+    return 0;
+#endif
+}
