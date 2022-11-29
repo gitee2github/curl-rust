@@ -6,7 +6,7 @@ set +e
 aclocal
 automake
 
-LIBS=-ldl ./configure --without-ssl --disable-shared --without-nghttp2 --without-ngtcp2
+LIBS=-ldl ./configure --with-openssl --disable-shared --without-ngtcp2 --enable-debug
 cd lib
 make
 
@@ -38,6 +38,7 @@ cargo build --release -v
 
 # cargo doc --all --no-deps
 
+# libcurl.a
 cd ../lib/.libs/
 mkdir temp
 mv libcurl.a temp/
@@ -50,6 +51,20 @@ ar r libcurl.a *.o
 cp libcurl.a ../
 cd ..
 rm -r temp/
+
+# libcurlu.a 开启debug选项时使用
+mkdir temp
+mv libcurlu.a temp/
+cp ../../rust/target/release/librust_project.a temp/
+cd temp
+ar x libcurlu.a
+ar x librust_project.a
+rm libcurlu.a librust_project.a
+ar r libcurlu.a *.o
+cp libcurlu.a ../
+cd ..
+rm -r temp/
+
 cd ../../
 make
 
