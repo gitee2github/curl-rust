@@ -257,7 +257,14 @@ extern "C" {
         conn: *mut connectdata,
         sock: curl_socket_t,
     ) -> libc::c_int;
+    #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
     pub fn Curl_conncontrol(conn: *mut connectdata, closeit: libc::c_int);
+    #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
+    pub fn Curl_conncontrol(
+        conn: *mut connectdata,
+        closeit: libc::c_int,
+        reason: *const libc::c_char,
+    );
     pub fn Curl_conn_data_pending(conn: *mut connectdata, sockindex: libc::c_int) -> bool;
     pub fn Curl_strerror(
         err: libc::c_int,
@@ -2693,10 +2700,26 @@ extern "C" {
     ) -> CURLcode;
     
     //debug
-    fn __assert_fail(
+    pub fn __assert_fail(
         __assertion: *const libc::c_char,
         __file: *const libc::c_char,
         __line: libc::c_uint,
         __function: *const libc::c_char,
     ) -> !;
+    pub fn curl_dbg_free(
+        ptr: *mut libc::c_void,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    );
+    pub fn curl_dbg_strdup(
+        str: *const libc::c_char,
+        line: libc::c_int,
+        src: *const libc::c_char,
+    ) -> *mut libc::c_char;
+    pub fn curl_dbg_calloc(
+        elements: size_t,
+        size: size_t,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> *mut libc::c_void;
 }

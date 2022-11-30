@@ -2869,7 +2869,7 @@ pub struct bufref {
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
     #[cfg(CURLDEBUG)]
-    dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    pub signature: libc::c_int,
 }
 
 // new http.rs
