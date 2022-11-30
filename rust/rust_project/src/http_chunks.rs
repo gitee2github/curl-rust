@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: wyf<wuyf21@mail.ustc.edu.cn>, 
+ * Author: wyf<wuyf21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: http chunks
  ******************************************************************************/
@@ -255,11 +255,10 @@ pub unsafe extern "C" fn Curl_chunked_strerror(mut code: CHUNKcode) -> *const li
                 b"0\0" as *const u8 as *const libc::c_char,
                 b"http_chunks.c\0" as *const u8 as *const libc::c_char,
                 334 as libc::c_int as libc::c_uint,
-                (*::std::mem::transmute::<
-                    &[u8; 45],
-                    &[libc::c_char; 45],
-                >(b"const char *Curl_chunked_strerror(CHUNKcode)\0"))
-                    .as_ptr(),
+                (*::std::mem::transmute::<&[u8; 45], &[libc::c_char; 45]>(
+                    b"const char *Curl_chunked_strerror(CHUNKcode)\0",
+                ))
+                .as_ptr(),
             );
             return b"\0" as *const u8 as *const libc::c_char;
         }

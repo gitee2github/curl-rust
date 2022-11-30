@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: wyf<wuyf21@mail.ustc.edu.cn>, 
+ * Author: wyf<wuyf21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: get values of macro that the build of Rust code relies on from C side
  ******************************************************************************/
@@ -19,7 +19,7 @@ extern "C" {
     fn get_DEBUG_HTTP2() -> i32;
     fn get_NGHTTP2_HAS_SET_LOCAL_WINDOW_SIZE() -> i32;
     fn get_DEBUGBUILD() -> i32;
-    
+
     fn get_USE_RECV_BEFORE_SEND_WORKAROUND() -> i32;
     fn get_USE_KERBEROS5() -> i32;
     // http_proxy
@@ -337,7 +337,6 @@ pub fn get_all_cfg() {
 
     //debug
     get_HAVE_ASSERT_H_add_cfg();
-
 }
 
 // http2

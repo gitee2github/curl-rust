@@ -10,7 +10,6 @@
 #![feature(c_variadic, extern_types, label_break_value, register_tool)]
 #![register_tool(c2rust)]
 
-
 pub mod src {
     pub mod get_macros;
 }

@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: http proxy
  ******************************************************************************/
@@ -28,49 +28,49 @@ unsafe extern "C" fn https_proxy_connect(
     mut sockindex: libc::c_int,
 ) -> CURLcode {
     if cfg!(USE_SSL) {
-    let mut conn: *mut connectdata = (*data).conn;
-    let mut result: CURLcode = CURLE_OK;
-    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if (*conn).http_proxy.proxytype as libc::c_uint
-        == CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-    {} else {
-        __assert_fail(
-            b"conn->http_proxy.proxytype == CURLPROXY_HTTPS\0" as *const u8
-                as *const libc::c_char,
-            b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-            60 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
-                &[u8; 54],
-                &[libc::c_char; 54],
-            >(b"CURLcode https_proxy_connect(struct Curl_easy *, int)\0"))
+        let mut conn: *mut connectdata = (*data).conn;
+        let mut result: CURLcode = CURLE_OK;
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if (*conn).http_proxy.proxytype as libc::c_uint
+            == CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        {
+        } else {
+            __assert_fail(
+                b"conn->http_proxy.proxytype == CURLPROXY_HTTPS\0" as *const u8
+                    as *const libc::c_char,
+                b"http_proxy.c\0" as *const u8 as *const libc::c_char,
+                60 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<&[u8; 54], &[libc::c_char; 54]>(
+                    b"CURLcode https_proxy_connect(struct Curl_easy *, int)\0",
+                ))
                 .as_ptr(),
-        );
-    }
-    if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
-        result = Curl_ssl_connect_nonblocking(
-            data,
-            conn,
-            1 as libc::c_int != 0,
-            sockindex,
-            &mut *((*conn).bits.proxy_ssl_connected)
-                .as_mut_ptr()
-                .offset(sockindex as isize),
-        );
-        if result as u64 != 0 {
-            #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
-            Curl_conncontrol(
-                conn,
-                1 as libc::c_int,
-                b"TLS handshake failed\0" as *const u8 as *const libc::c_char,
             );
-            #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
-            Curl_conncontrol(conn, 1 as libc::c_int);
         }
-    }
-    return result;
+        if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
+            result = Curl_ssl_connect_nonblocking(
+                data,
+                conn,
+                1 as libc::c_int != 0,
+                sockindex,
+                &mut *((*conn).bits.proxy_ssl_connected)
+                    .as_mut_ptr()
+                    .offset(sockindex as isize),
+            );
+            if result as u64 != 0 {
+                #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
+                Curl_conncontrol(
+                    conn,
+                    1 as libc::c_int,
+                    b"TLS handshake failed\0" as *const u8 as *const libc::c_char,
+                );
+                #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+                Curl_conncontrol(conn, 1 as libc::c_int);
+            }
+        }
+        return result;
     } else {
         return CURLE_NOT_BUILT_IN;
-}
+    }
 }
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
@@ -94,39 +94,39 @@ pub unsafe extern "C" fn Curl_proxy_connect(
         && ((*conn).bits).httpproxy() as libc::c_int != 0
     {
         if cfg!(not(CURL_DISABLE_PROXY)) {
-        let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
-        let mut remote_port: libc::c_int = 0;
-        let mut result_0: CURLcode = CURLE_OK;
-        if ((*conn).bits).conn_to_host() != 0 {
-            hostname = (*conn).conn_to_host.name;
-        } else if sockindex == 1 as libc::c_int {
-            hostname = (*conn).secondaryhostname;
-        } else {
-            hostname = (*conn).host.name;
-        }
-        if sockindex == 1 as libc::c_int {
-            remote_port = (*conn).secondary_port as libc::c_int;
-        } else if ((*conn).bits).conn_to_port() != 0 {
-            remote_port = (*conn).conn_to_port;
-        } else {
-            remote_port = (*conn).remote_port;
-        }
-        result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
-        if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
-            return result_0;
-        }
-        #[cfg(not(CURLDEBUG))]
-        Curl_cfree.expect("non-null function pointer")(
-            (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-        );
-        #[cfg(CURLDEBUG)]
-        curl_dbg_free(
-            (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-            120 as libc::c_int,
-            b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-        );
-        let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
-        *fresh0 = 0 as *mut libc::c_char;
+            let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
+            let mut remote_port: libc::c_int = 0;
+            let mut result_0: CURLcode = CURLE_OK;
+            if ((*conn).bits).conn_to_host() != 0 {
+                hostname = (*conn).conn_to_host.name;
+            } else if sockindex == 1 as libc::c_int {
+                hostname = (*conn).secondaryhostname;
+            } else {
+                hostname = (*conn).host.name;
+            }
+            if sockindex == 1 as libc::c_int {
+                remote_port = (*conn).secondary_port as libc::c_int;
+            } else if ((*conn).bits).conn_to_port() != 0 {
+                remote_port = (*conn).conn_to_port;
+            } else {
+                remote_port = (*conn).remote_port;
+            }
+            result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
+            if CURLE_OK as libc::c_int as libc::c_uint != result_0 as libc::c_uint {
+                return result_0;
+            }
+            #[cfg(not(CURLDEBUG))]
+            Curl_cfree.expect("non-null function pointer")(
+                (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+            );
+            #[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+                120 as libc::c_int,
+                b"http_proxy.c\0" as *const u8 as *const libc::c_char,
+            );
+            let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
+            *fresh0 = 0 as *mut libc::c_char;
         } else {
             return CURLE_NOT_BUILT_IN;
         }
@@ -152,29 +152,29 @@ pub unsafe extern "C" fn Curl_connect_ongoing(mut conn: *mut connectdata) -> boo
 pub unsafe extern "C" fn Curl_connect_getsock(mut conn: *mut connectdata) -> libc::c_int {
     let mut http: *mut HTTP = 0 as *mut HTTP;
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !conn.is_null() {} else {
+    if !conn.is_null() {
+    } else {
         __assert_fail(
             b"conn\0" as *const u8 as *const libc::c_char,
             b"http_proxy.c\0" as *const u8 as *const libc::c_char,
             147 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
-                &[u8; 47],
-                &[libc::c_char; 47],
-            >(b"int Curl_connect_getsock(struct connectdata *)\0"))
-                .as_ptr(),
+            (*::std::mem::transmute::<&[u8; 47], &[libc::c_char; 47]>(
+                b"int Curl_connect_getsock(struct connectdata *)\0",
+            ))
+            .as_ptr(),
         );
     }
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !((*conn).connect_state).is_null() {} else {
+    if !((*conn).connect_state).is_null() {
+    } else {
         __assert_fail(
             b"conn->connect_state\0" as *const u8 as *const libc::c_char,
             b"http_proxy.c\0" as *const u8 as *const libc::c_char,
             148 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
-                &[u8; 47],
-                &[libc::c_char; 47],
-            >(b"int Curl_connect_getsock(struct connectdata *)\0"))
-                .as_ptr(),
+            (*::std::mem::transmute::<&[u8; 47], &[libc::c_char; 47]>(
+                b"int Curl_connect_getsock(struct connectdata *)\0",
+            ))
+            .as_ptr(),
         );
     }
     http = &mut (*(*conn).connect_state).http_proxy;
@@ -190,16 +190,16 @@ unsafe extern "C" fn connect_init(mut data: *mut Curl_easy, mut reinit: bool) ->
     if !reinit {
         let mut result: CURLcode = CURLE_OK;
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if ((*conn).connect_state).is_null() {} else {
+        if ((*conn).connect_state).is_null() {
+        } else {
             __assert_fail(
                 b"!conn->connect_state\0" as *const u8 as *const libc::c_char,
                 b"http_proxy.c\0" as *const u8 as *const libc::c_char,
                 163 as libc::c_int as libc::c_uint,
-                (*::std::mem::transmute::<
-                    &[u8; 49],
-                    &[libc::c_char; 49],
-                >(b"CURLcode connect_init(struct Curl_easy *, _Bool)\0"))
-                    .as_ptr(),
+                (*::std::mem::transmute::<&[u8; 49], &[libc::c_char; 49]>(
+                    b"CURLcode connect_init(struct Curl_easy *, _Bool)\0",
+                ))
+                .as_ptr(),
             );
         }
         result = Curl_get_upload_buffer(data);
@@ -243,16 +243,16 @@ unsafe extern "C" fn connect_init(mut data: *mut Curl_easy, mut reinit: bool) ->
         );
     } else {
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if !((*conn).connect_state).is_null() {} else {
+        if !((*conn).connect_state).is_null() {
+        } else {
             __assert_fail(
                 b"conn->connect_state\0" as *const u8 as *const libc::c_char,
                 b"http_proxy.c\0" as *const u8 as *const libc::c_char,
                 190 as libc::c_int as libc::c_uint,
-                (*::std::mem::transmute::<
-                    &[u8; 49],
-                    &[libc::c_char; 49],
-                >(b"CURLcode connect_init(struct Curl_easy *, _Bool)\0"))
-                    .as_ptr(),
+                (*::std::mem::transmute::<&[u8; 49], &[libc::c_char; 49]>(
+                    b"CURLcode connect_init(struct Curl_easy *, _Bool)\0",
+                ))
+                .as_ptr(),
             );
         }
         s = (*conn).connect_state;
@@ -430,7 +430,7 @@ unsafe extern "C" fn CONNECT(
                         conn,
                         b"User-Agent\0" as *const u8 as *const libc::c_char,
                     ))
-                        .is_null()
+                    .is_null()
                     && !((*data).set.str_0[STRING_USERAGENT as libc::c_int as usize]).is_null()
                 {
                     result = Curl_dyn_addf(
@@ -445,7 +445,7 @@ unsafe extern "C" fn CONNECT(
                         conn,
                         b"Proxy-Connection\0" as *const u8 as *const libc::c_char,
                     ))
-                        .is_null()
+                    .is_null()
                 {
                     result = Curl_dyn_add(
                         req,
@@ -706,23 +706,19 @@ unsafe extern "C" fn CONNECT(
                         (*s).tunnel_state = TUNNEL_COMPLETE;
                     }
                     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-                    if (*s).keepon as libc::c_uint
-                        == KEEPON_IGNORE as libc::c_int as libc::c_uint
-                        || (*s).keepon as libc::c_uint
-                            == KEEPON_DONE as libc::c_int as libc::c_uint
-                    {} else {
+                    if (*s).keepon as libc::c_uint == KEEPON_IGNORE as libc::c_int as libc::c_uint
+                        || (*s).keepon as libc::c_uint == KEEPON_DONE as libc::c_int as libc::c_uint
+                    {
+                    } else {
                         __assert_fail(
-                            b"s->keepon == KEEPON_IGNORE || s->keepon == KEEPON_DONE\0"
-                                as *const u8 as *const libc::c_char,
+                            b"s->keepon == KEEPON_IGNORE || s->keepon == KEEPON_DONE\0" as *const u8
+                                as *const libc::c_char,
                             b"http_proxy.c\0" as *const u8 as *const libc::c_char,
                             555 as libc::c_int as libc::c_uint,
-                            (*::std::mem::transmute::<
-                                &[u8; 61],
-                                &[libc::c_char; 61],
-                            >(
+                            (*::std::mem::transmute::<&[u8; 61], &[libc::c_char; 61]>(
                                 b"CURLcode CONNECT(struct Curl_easy *, int, const char *, int)\0",
                             ))
-                                .as_ptr(),
+                            .as_ptr(),
                         );
                     }
                 } else {
@@ -761,11 +757,11 @@ unsafe extern "C" fn CONNECT(
                             return result;
                         }
                     } else if curl_strnequal(
-                            b"Content-Length:\0" as *const u8 as *const libc::c_char,
-                            linep,
+                        b"Content-Length:\0" as *const u8 as *const libc::c_char,
+                        linep,
                         strlen(b"Content-Length:\0" as *const u8 as *const libc::c_char),
-                        ) != 0
-                        {
+                    ) != 0
+                    {
                         if (*k).httpcode / 100 as libc::c_int == 2 as libc::c_int {
                             Curl_infof(
                                 data,
@@ -776,7 +772,7 @@ unsafe extern "C" fn CONNECT(
                         } else {
                             curlx_strtoofft(
                                 linep.offset(strlen(
-                                            b"Content-Length:\0" as *const u8 as *const libc::c_char,
+                                    b"Content-Length:\0" as *const u8 as *const libc::c_char,
                                 ) as isize),
                                 0 as *mut *mut libc::c_char,
                                 10 as libc::c_int,
@@ -784,17 +780,17 @@ unsafe extern "C" fn CONNECT(
                             );
                         }
                     } else if Curl_compareheader(
-                            linep,
-                            b"Connection:\0" as *const u8 as *const libc::c_char,
-                            b"close\0" as *const u8 as *const libc::c_char,
-                        ) {
+                        linep,
+                        b"Connection:\0" as *const u8 as *const libc::c_char,
+                        b"close\0" as *const u8 as *const libc::c_char,
+                    ) {
                         (*s).set_close_connection(1 as libc::c_int as bit);
                     } else if curl_strnequal(
-                            b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
-                            linep,
+                        b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
+                        linep,
                         strlen(b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char),
-                        ) != 0
-                        {
+                    ) != 0
+                    {
                         if (*k).httpcode / 100 as libc::c_int == 2 as libc::c_int {
                             Curl_infof(
                                 data,
@@ -804,10 +800,10 @@ unsafe extern "C" fn CONNECT(
                                 (*k).httpcode,
                             );
                         } else if Curl_compareheader(
-                                linep,
-                                b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
-                                b"chunked\0" as *const u8 as *const libc::c_char,
-                            ) {
+                            linep,
+                            b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
+                            b"chunked\0" as *const u8 as *const libc::c_char,
+                        ) {
                             Curl_infof(
                                 data,
                                 b"CONNECT responded chunked\0" as *const u8 as *const libc::c_char,
@@ -816,19 +812,19 @@ unsafe extern "C" fn CONNECT(
                             Curl_httpchunk_init(data);
                         }
                     } else if Curl_compareheader(
-                            linep,
-                            b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
-                            b"close\0" as *const u8 as *const libc::c_char,
-                        ) {
+                        linep,
+                        b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
+                        b"close\0" as *const u8 as *const libc::c_char,
+                    ) {
                         (*s).set_close_connection(1 as libc::c_int as bit);
                     } else if 2 as libc::c_int
-                            == sscanf(
-                                linep,
-                                b"HTTP/1.%d %d\0" as *const u8 as *const libc::c_char,
-                                &mut subversion as *mut libc::c_int,
-                                &mut (*k).httpcode as *mut libc::c_int,
-                            )
-                        {
+                        == sscanf(
+                            linep,
+                            b"HTTP/1.%d %d\0" as *const u8 as *const libc::c_char,
+                            &mut subversion as *mut libc::c_int,
+                            &mut (*k).httpcode as *mut libc::c_int,
+                        )
+                    {
                         (*data).info.httpproxycode = (*k).httpcode;
                     }
                     Curl_dyn_reset(&mut (*s).rcvbuf);
@@ -1078,12 +1074,13 @@ unsafe extern "C" fn CONNECT(
                                         current_block = 14523688961733284890;
                                         break;
                                     } else if hyper_request_set_method(
-                                            req,
-                                            b"CONNECT\0" as *const u8 as *const libc::c_char
-                                                as *mut uint8_t,
-                                            strlen(b"CONNECT\0" as *const u8 as *const libc::c_char),
-                                        ) as u64 != 0
-                                        {
+                                        req,
+                                        b"CONNECT\0" as *const u8 as *const libc::c_char
+                                            as *mut uint8_t,
+                                        strlen(b"CONNECT\0" as *const u8 as *const libc::c_char),
+                                    ) as u64
+                                        != 0
+                                    {
                                         Curl_failf(
                                             data,
                                             b"error setting method\0" as *const u8
@@ -1108,11 +1105,13 @@ unsafe extern "C" fn CONNECT(
                                             req,
                                             hostheader as *mut uint8_t,
                                             strlen(hostheader),
-                                        ) as u64 != 0
+                                        ) as u64
+                                            != 0
                                         {
                                             Curl_failf(
                                                 data,
-                                                b"error setting path\0" as *const u8 as *const libc::c_char,
+                                                b"error setting path\0" as *const u8
+                                                    as *const libc::c_char,
                                             );
                                             result = CURLE_OUT_OF_MEMORY;
                                         }
@@ -1128,10 +1127,9 @@ unsafe extern "C" fn CONNECT(
                                             current_block = 14523688961733284890;
                                             break;
                                         }
-                                        Curl_cfree
-                                            .expect(
-                                                "non-null function pointer",
-                                            )(hostheader as *mut libc::c_void);
+                                        Curl_cfree.expect("non-null function pointer")(
+                                            hostheader as *mut libc::c_void,
+                                        );
                                         hostheader = 0 as *mut libc::c_char;
                                         if (*conn).http_proxy.proxytype as libc::c_uint
                                             == CURLPROXY_HTTP_1_0 as libc::c_int as libc::c_uint
@@ -1158,23 +1156,25 @@ unsafe extern "C" fn CONNECT(
                                                 break;
                                             } else {
                                                 if !host.is_null()
-                                                    && Curl_hyper_header(data, headers, host) as libc::c_uint
+                                                    && Curl_hyper_header(data, headers, host)
+                                                        as libc::c_uint
                                                         != 0
                                                 {
                                                     current_block = 14523688961733284890;
                                                     break;
                                                 }
-                                                Curl_cfree
-                                                    .expect(
-                                                        "non-null function pointer",
-                                                    )(host as *mut libc::c_void);
+                                                Curl_cfree.expect("non-null function pointer")(
+                                                    host as *mut libc::c_void,
+                                                );
                                                 host = 0 as *mut libc::c_char;
                                                 if !((*data).state.aptr.proxyuserpwd).is_null()
                                                     && Curl_hyper_header(
                                                         data,
                                                         headers,
                                                         (*data).state.aptr.proxyuserpwd,
-                                                    ) as libc::c_uint != 0
+                                                    )
+                                                        as libc::c_uint
+                                                        != 0
                                                 {
                                                     current_block = 14523688961733284890;
                                                     break;
@@ -1182,12 +1182,12 @@ unsafe extern "C" fn CONNECT(
                                                 if (Curl_checkProxyheaders(
                                                     data,
                                                     conn,
-                                                    b"User-Agent\0" as *const u8 as *const libc::c_char,
+                                                    b"User-Agent\0" as *const u8
+                                                        as *const libc::c_char,
                                                 ))
-                                                    .is_null()
-                                                    && !((*data)
-                                                        .set
-                                                        .str_0[STRING_USERAGENT as libc::c_int as usize])
+                                                .is_null()
+                                                    && !((*data).set.str_0
+                                                        [STRING_USERAGENT as libc::c_int as usize])
                                                         .is_null()
                                                 {
                                                     let mut ua: dynbuf = dynbuf {
@@ -1198,19 +1198,28 @@ unsafe extern "C" fn CONNECT(
                                                     };
                                                     Curl_dyn_init(
                                                         &mut ua,
-                                                        (1024 as libc::c_int * 1024 as libc::c_int) as size_t,
+                                                        (1024 as libc::c_int * 1024 as libc::c_int)
+                                                            as size_t,
                                                     );
                                                     result = Curl_dyn_addf(
                                                         &mut ua as *mut dynbuf,
-                                                        b"User-Agent: %s\r\n\0" as *const u8 as *const libc::c_char,
-                                                        (*data).set.str_0[STRING_USERAGENT as libc::c_int as usize],
+                                                        b"User-Agent: %s\r\n\0" as *const u8
+                                                            as *const libc::c_char,
+                                                        (*data).set.str_0[STRING_USERAGENT
+                                                            as libc::c_int
+                                                            as usize],
                                                     );
                                                     if result as u64 != 0 {
                                                         current_block = 14523688961733284890;
                                                         break;
                                                     }
-                                                    if Curl_hyper_header(data, headers, Curl_dyn_ptr(&mut ua))
-                                                        as u64 != 0
+                                                    if Curl_hyper_header(
+                                                        data,
+                                                        headers,
+                                                        Curl_dyn_ptr(&mut ua),
+                                                    )
+                                                        as u64
+                                                        != 0
                                                     {
                                                         current_block = 14523688961733284890;
                                                         break;
@@ -1220,15 +1229,19 @@ unsafe extern "C" fn CONNECT(
                                                 if (Curl_checkProxyheaders(
                                                     data,
                                                     conn,
-                                                    b"Proxy-Connection\0" as *const u8 as *const libc::c_char,
+                                                    b"Proxy-Connection\0" as *const u8
+                                                        as *const libc::c_char,
                                                 ))
-                                                    .is_null()
+                                                .is_null()
                                                     && Curl_hyper_header(
                                                         data,
                                                         headers,
-                                                        b"Proxy-Connection: Keep-Alive\0" as *const u8
+                                                        b"Proxy-Connection: Keep-Alive\0"
+                                                            as *const u8
                                                             as *const libc::c_char,
-                                                    ) as libc::c_uint != 0
+                                                    )
+                                                        as libc::c_uint
+                                                        != 0
                                                 {
                                                     current_block = 14523688961733284890;
                                                     break;
@@ -1237,7 +1250,9 @@ unsafe extern "C" fn CONNECT(
                                                     data,
                                                     1 as libc::c_int != 0,
                                                     headers as *mut libc::c_void,
-                                                ) as u64 != 0
+                                                )
+                                                    as u64
+                                                    != 0
                                                 {
                                                     current_block = 14523688961733284890;
                                                     break;
@@ -1252,11 +1267,13 @@ unsafe extern "C" fn CONNECT(
                                                     current_block = 14523688961733284890;
                                                     break;
                                                 } else if HYPERE_OK as libc::c_int as libc::c_uint
-                                                        != hyper_executor_push((*h).exec, sendtask) as libc::c_uint
-                                                    {
+                                                    != hyper_executor_push((*h).exec, sendtask)
+                                                        as libc::c_uint
+                                                {
                                                     Curl_failf(
                                                         data,
-                                                        b"Couldn't hyper_executor_push the send\0" as *const u8
+                                                        b"Couldn't hyper_executor_push the send\0"
+                                                            as *const u8
                                                             as *const libc::c_char,
                                                     );
                                                     current_block = 14523688961733284890;
@@ -1266,14 +1283,20 @@ unsafe extern "C" fn CONNECT(
                                                     loop {
                                                         task = hyper_executor_poll((*h).exec);
                                                         if !task.is_null() {
-                                                            let mut error: bool = hyper_task_type(task) as libc::c_uint
-                                                                == HYPER_TASK_ERROR as libc::c_int as libc::c_uint;
+                                                            let mut error: bool =
+                                                                hyper_task_type(task)
+                                                                    as libc::c_uint
+                                                                    == HYPER_TASK_ERROR
+                                                                        as libc::c_int
+                                                                        as libc::c_uint;
                                                             if error {
-                                                                hypererr = hyper_task_value(task) as *mut hyper_error;
+                                                                hypererr = hyper_task_value(task)
+                                                                    as *mut hyper_error;
                                                             }
                                                             hyper_task_free(task);
                                                             if error {
-                                                                current_block = 14523688961733284890;
+                                                                current_block =
+                                                                    14523688961733284890;
                                                                 break 's_65;
                                                             }
                                                         }
@@ -1344,27 +1367,22 @@ unsafe extern "C" fn CONNECT(
     match current_block {
         14027225908442187354 => {
             result = CURLE_OK;
-            if (*s).tunnel_state as libc::c_uint
-                == TUNNEL_COMPLETE as libc::c_int as libc::c_uint
-            {
+            if (*s).tunnel_state as libc::c_uint == TUNNEL_COMPLETE as libc::c_int as libc::c_uint {
                 (*data).info.httpproxycode = (*data).req.httpcode;
                 if (*data).info.httpproxycode / 100 as libc::c_int != 2 as libc::c_int {
-                    if ((*conn).bits).close() as libc::c_int != 0
-                        && !((*data).req.newurl).is_null()
+                    if ((*conn).bits).close() as libc::c_int != 0 && !((*data).req.newurl).is_null()
                     {
                         let ref mut fresh11 = (*conn).bits;
                         (*fresh11).set_proxy_connect_closed(1 as libc::c_int as bit);
                         Curl_infof(
                             data,
-                            b"Connect me again please\0" as *const u8
-                                as *const libc::c_char,
+                            b"Connect me again please\0" as *const u8 as *const libc::c_char,
                         );
                         connect_done(data);
                     } else {
-                        Curl_cfree
-                            .expect(
-                                "non-null function pointer",
-                            )((*data).req.newurl as *mut libc::c_void);
+                        Curl_cfree.expect("non-null function pointer")(
+                            (*data).req.newurl as *mut libc::c_void,
+                        );
                         let ref mut fresh12 = (*data).req.newurl;
                         *fresh12 = 0 as *mut libc::c_char;
                         Curl_conncontrol(conn, 2 as libc::c_int);
@@ -1375,8 +1393,8 @@ unsafe extern "C" fn CONNECT(
                     if ((*conn).bits).proxy_connect_closed() == 0 {
                         Curl_failf(
                             data,
-                            b"Received HTTP code %d from proxy after CONNECT\0"
-                                as *const u8 as *const libc::c_char,
+                            b"Received HTTP code %d from proxy after CONNECT\0" as *const u8
+                                as *const libc::c_char,
                             (*data).req.httpcode,
                         );
                         result = CURLE_RECV_ERROR;

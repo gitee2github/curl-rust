@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: pnext<pnext@mail.ustc.edu.cn>, 
+ * Author: pnext<pnext@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: extern C function declarations that ffi needed
  ******************************************************************************/
@@ -35,11 +35,7 @@ extern "C" {
     pub fn strlen(_: *const libc::c_char) -> libc::c_ulong;
 
     // vtls.rs
-    pub fn memcmp(
-        _: *const libc::c_void,
-        _: *const libc::c_void,
-        _: libc::c_ulong,
-    ) -> libc::c_int;
+    pub fn memcmp(_: *const libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> libc::c_int;
     pub fn strcmp(_: *const libc::c_char, _: *const libc::c_char) -> libc::c_int;
     pub fn Curl_safe_strcasecompare(
         first: *const libc::c_char,
@@ -55,18 +51,16 @@ extern "C" {
     ) -> libc::c_int;
     pub fn Curl_sec_end(_: *mut connectdata);
     pub fn Curl_sec_login(_: *mut Curl_easy, _: *mut connectdata) -> CURLcode;
-    pub fn Curl_sec_request_prot(conn: *mut connectdata, level: *const libc::c_char) -> libc::c_int;
+    pub fn Curl_sec_request_prot(conn: *mut connectdata, level: *const libc::c_char)
+        -> libc::c_int;
     pub fn strcpy(_: *mut libc::c_char, _: *const libc::c_char) -> *mut libc::c_char;
     pub fn strncpy(
         _: *mut libc::c_char,
         _: *const libc::c_char,
         _: libc::c_ulong,
     ) -> *mut libc::c_char;
-    pub fn strncmp(
-        _: *const libc::c_char,
-        _: *const libc::c_char,
-        _: libc::c_ulong,
-    ) -> libc::c_int;
+    pub fn strncmp(_: *const libc::c_char, _: *const libc::c_char, _: libc::c_ulong)
+        -> libc::c_int;
     pub fn bind(__fd: libc::c_int, __addr: *const sockaddr, __len: socklen_t) -> libc::c_int;
     pub fn getsockname(
         __fd: libc::c_int,
@@ -109,11 +103,7 @@ extern "C" {
     ) -> *const libc::c_char;
     pub fn Curl_now() -> curltime;
     pub fn Curl_timediff(t1: curltime, t2: curltime) -> timediff_t;
-    pub fn Curl_llist_remove(
-        _: *mut Curl_llist,
-        _: *mut Curl_llist_element,
-        _: *mut libc::c_void,
-    );
+    pub fn Curl_llist_remove(_: *mut Curl_llist, _: *mut Curl_llist_element, _: *mut libc::c_void);
     pub fn Curl_resolver_wait_resolv(
         data: *mut Curl_easy,
         dnsentry: *mut *mut Curl_dns_entry,
@@ -336,11 +326,7 @@ extern "C" {
     pub fn Curl_strntoupper(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
     pub fn Curl_strntolower(dest: *mut libc::c_char, src: *const libc::c_char, n: size_t);
     pub fn Curl_memdup(src: *const libc::c_void, buffer_length: size_t) -> *mut libc::c_void;
-    pub fn Curl_sha256it(
-        outbuffer: *mut libc::c_uchar,
-        input: *const libc::c_uchar,
-        len: size_t,
-    );
+    pub fn Curl_sha256it(outbuffer: *mut libc::c_uchar, input: *const libc::c_uchar, len: size_t);
     pub fn Curl_hmacit(
         hashparams: *const HMAC_params,
         key: *const libc::c_uchar,
@@ -461,11 +447,7 @@ extern "C" {
         _: *const libc::c_void,
         _: libc::c_ulong,
     ) -> *mut libc::c_void;
-    pub fn memchr(
-        _: *const libc::c_void,
-        _: libc::c_int,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
+    pub fn memchr(_: *const libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
     pub fn curl_mime_headers(
         part: *mut curl_mimepart,
         headers: *mut curl_slist,
@@ -510,10 +492,7 @@ extern "C" {
         post: *mut curl_httppost,
         fread_func: curl_read_callback,
     ) -> CURLcode;
-    pub fn Curl_rtsp_parseheader(
-        data: *mut Curl_easy,
-        header: *mut libc::c_char,
-    ) -> CURLcode;
+    pub fn Curl_rtsp_parseheader(data: *mut Curl_easy, header: *mut libc::c_char) -> CURLcode;
     pub fn Curl_readrewind(data: *mut Curl_easy) -> CURLcode;
     pub fn Curl_meets_timecondition(data: *mut Curl_easy, timeofdoc: time_t) -> bool;
     pub fn Curl_done_sending(data: *mut Curl_easy, k: *mut SingleRequest) -> CURLcode;
@@ -537,11 +516,8 @@ extern "C" {
         uripath: *const libc::c_uchar,
     ) -> CURLcode;
     pub fn Curl_output_aws_sigv4(data: *mut Curl_easy, proxy: bool) -> CURLcode;
-    pub fn Curl_share_lock(
-        _: *mut Curl_easy,
-        _: curl_lock_data,
-        _: curl_lock_access,
-    ) -> CURLSHcode;
+    pub fn Curl_share_lock(_: *mut Curl_easy, _: curl_lock_data, _: curl_lock_access)
+        -> CURLSHcode;
     pub fn Curl_share_unlock(_: *mut Curl_easy, _: curl_lock_data) -> CURLSHcode;
     pub fn Curl_expire_done(data: *mut Curl_easy, id: expire_id);
     pub fn Curl_strncasecompare(
@@ -590,7 +566,7 @@ extern "C" {
         outlen: *mut size_t,
     ) -> CURLcode;
     pub fn Curl_auth_digest_cleanup(digest: *mut digestdata);
-    
+
     // http2.rs
     pub fn curl_easy_duphandle(curl: *mut CURL) -> *mut CURL;
     pub fn curl_url() -> *mut CURLU;
@@ -709,9 +685,7 @@ extern "C" {
         flags: uint8_t,
         opaque_data: *const uint8_t,
     ) -> libc::c_int;
-    pub fn nghttp2_session_check_request_allowed(
-        session: *mut nghttp2_session,
-    ) -> libc::c_int;
+    pub fn nghttp2_session_check_request_allowed(session: *mut nghttp2_session) -> libc::c_int;
     pub fn nghttp2_session_set_local_window_size(
         session: *mut nghttp2_session,
         flags: uint8_t,
@@ -739,18 +713,14 @@ extern "C" {
     pub fn Curl_connalive(conn: *mut connectdata) -> bool;
     pub fn Curl_saferealloc(ptr: *mut libc::c_void, size: size_t) -> *mut libc::c_void;
 
-    // mbedtls ftp 
-    
+    // mbedtls ftp
+
     pub fn Curl_ssl_connect(
         data: *mut Curl_easy,
         conn: *mut connectdata,
         sockindex: libc::c_int,
     ) -> CURLcode;
-    pub fn Curl_ssl_close(
-        data: *mut Curl_easy,
-        conn: *mut connectdata,
-        sockindex: libc::c_int,
-    );
+    pub fn Curl_ssl_close(data: *mut Curl_easy, conn: *mut connectdata, sockindex: libc::c_int);
     pub fn Curl_ssl_shutdown(
         data: *mut Curl_easy,
         conn: *mut connectdata,
@@ -770,7 +740,7 @@ extern "C" {
         br: *mut bufref,
         ptr: *const libc::c_void,
         len: size_t,
-        dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+        dtor: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     );
     pub fn Curl_bufref_ptr(br: *const bufref) -> *const libc::c_uchar;
     pub fn Curl_bufref_len(br: *const bufref) -> size_t;
@@ -800,7 +770,7 @@ extern "C" {
         out: *mut bufref,
     ) -> CURLcode;
     #[cfg(USE_NTLM)]
-    pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata); 
+    pub fn Curl_auth_cleanup_ntlm(ntlm: *mut ntlmdata);
 
     // new http_proxy.rs
     pub fn Curl_ssl_connect_nonblocking(
@@ -842,8 +812,11 @@ extern "C" {
         proxy: bool,
         header: *const libc::c_char,
     ) -> CURLcode;
-    pub fn Curl_output_negotiate(data: *mut Curl_easy, conn: *mut connectdata, proxy: bool)
-        -> CURLcode;
+    pub fn Curl_output_negotiate(
+        data: *mut Curl_easy,
+        conn: *mut connectdata,
+        proxy: bool,
+    ) -> CURLcode;
 
     // mbedtls vtls.rs
     pub fn fread(
@@ -852,20 +825,11 @@ extern "C" {
         _: libc::c_ulong,
         _: *mut FILE,
     ) -> libc::c_ulong;
-    pub fn fseek(
-        __stream: *mut FILE,
-        __off: libc::c_long,
-        __whence: libc::c_int,
-    ) -> libc::c_int;
+    pub fn fseek(__stream: *mut FILE, __off: libc::c_long, __whence: libc::c_int) -> libc::c_int;
     pub fn ftell(__stream: *mut FILE) -> libc::c_long;
-    
-    pub fn curl_slist_free_all(_: *mut curl_slist);
-    pub fn memset(
-        _: *mut libc::c_void,
-        _: libc::c_int,
-        _: libc::c_ulong,
-    ) -> *mut libc::c_void;
 
+    pub fn curl_slist_free_all(_: *mut curl_slist);
+    pub fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
 
     pub fn Curl_slist_append_nodup(
         list: *mut curl_slist,
@@ -885,8 +849,7 @@ extern "C" {
         len: size_t,
         code: *mut CURLcode,
     ) -> ssize_t;
-    
-    
+
     // mbedtls_threadlock.rs
     pub fn pthread_mutex_init(
         __mutex: *mut pthread_mutex_t,
@@ -934,12 +897,8 @@ extern "C" {
         ssl: *const mbedtls_ssl_context,
         session: *mut mbedtls_ssl_session,
     ) -> libc::c_int;
-    pub fn mbedtls_ssl_get_peer_cert(
-        ssl: *const mbedtls_ssl_context,
-    ) -> *const mbedtls_x509_crt;
-    pub fn mbedtls_ssl_get_ciphersuite(
-        ssl: *const mbedtls_ssl_context,
-    ) -> *const libc::c_char;
+    pub fn mbedtls_ssl_get_peer_cert(ssl: *const mbedtls_ssl_context) -> *const mbedtls_x509_crt;
+    pub fn mbedtls_ssl_get_ciphersuite(ssl: *const mbedtls_ssl_context) -> *const libc::c_char;
     pub fn mbedtls_ssl_get_verify_result(ssl: *const mbedtls_ssl_context) -> uint32_t;
     pub fn mbedtls_ssl_get_bytes_avail(ssl: *const mbedtls_ssl_context) -> size_t;
     pub fn mbedtls_ssl_conf_renegotiation(
@@ -960,9 +919,7 @@ extern "C" {
         major: libc::c_int,
         minor: libc::c_int,
     );
-    pub fn mbedtls_ssl_get_alpn_protocol(
-        ssl: *const mbedtls_ssl_context,
-    ) -> *const libc::c_char;
+    pub fn mbedtls_ssl_get_alpn_protocol(ssl: *const mbedtls_ssl_context) -> *const libc::c_char;
     pub fn mbedtls_ssl_conf_alpn_protocols(
         conf: *mut mbedtls_ssl_config,
         protos: *mut *const libc::c_char,
@@ -996,18 +953,14 @@ extern "C" {
     pub fn mbedtls_ssl_set_bio(
         ssl: *mut mbedtls_ssl_context,
         p_bio: *mut libc::c_void,
-        f_send: Option::<mbedtls_ssl_send_t>,
-        f_recv: Option::<mbedtls_ssl_recv_t>,
-        f_recv_timeout: Option::<mbedtls_ssl_recv_timeout_t>,
+        f_send: Option<mbedtls_ssl_send_t>,
+        f_recv: Option<mbedtls_ssl_recv_t>,
+        f_recv_timeout: Option<mbedtls_ssl_recv_timeout_t>,
     );
     pub fn mbedtls_ssl_conf_rng(
         conf: *mut mbedtls_ssl_config,
-        f_rng: Option::<
-            unsafe extern "C" fn(
-                *mut libc::c_void,
-                *mut libc::c_uchar,
-                size_t,
-            ) -> libc::c_int,
+        f_rng: Option<
+            unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_uchar, size_t) -> libc::c_int,
         >,
         p_rng: *mut libc::c_void,
     );
@@ -1084,12 +1037,8 @@ extern "C" {
     pub fn mbedtls_ctr_drbg_init(ctx: *mut mbedtls_ctr_drbg_context);
     pub fn mbedtls_ctr_drbg_seed(
         ctx: *mut mbedtls_ctr_drbg_context,
-        f_entropy: Option::<
-            unsafe extern "C" fn(
-                *mut libc::c_void,
-                *mut libc::c_uchar,
-                size_t,
-            ) -> libc::c_int,
+        f_entropy: Option<
+            unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_uchar, size_t) -> libc::c_int,
         >,
         p_entropy: *mut libc::c_void,
         custom: *const libc::c_uchar,
@@ -1113,7 +1062,6 @@ extern "C" {
     pub fn Curl_mbedtlsthreadlock_lock_function(n: libc::c_int) -> libc::c_int;
     pub fn Curl_mbedtlsthreadlock_unlock_function(n: libc::c_int) -> libc::c_int;
 
-
     // gnutls gnutls.rs
     pub fn send(
         __fd: libc::c_int,
@@ -1127,9 +1075,7 @@ extern "C" {
         __n: size_t,
         __flags: libc::c_int,
     ) -> ssize_t;
-    pub fn gnutls_pk_algorithm_get_name(
-        algorithm: gnutls_pk_algorithm_t,
-    ) -> *const libc::c_char;
+    pub fn gnutls_pk_algorithm_get_name(algorithm: gnutls_pk_algorithm_t) -> *const libc::c_char;
     pub fn gnutls_init(session: *mut gnutls_session_t, flags: libc::c_uint) -> libc::c_int;
     pub fn gnutls_deinit(session: gnutls_session_t);
     pub fn gnutls_bye(session: gnutls_session_t, how: gnutls_close_request_t) -> libc::c_int;
@@ -1295,10 +1241,8 @@ extern "C" {
         cert: gnutls_x509_crt_t,
         dn: *mut gnutls_datum_t,
     ) -> libc::c_int;
-    pub fn gnutls_x509_crt_get_dn2(
-        cert: gnutls_x509_crt_t,
-        dn: *mut gnutls_datum_t,
-    ) -> libc::c_int;
+    pub fn gnutls_x509_crt_get_dn2(cert: gnutls_x509_crt_t, dn: *mut gnutls_datum_t)
+        -> libc::c_int;
     pub fn gnutls_x509_crt_get_dn_by_oid(
         cert: gnutls_x509_crt_t,
         oid: *const libc::c_char,
@@ -1343,7 +1287,7 @@ extern "C" {
         beg: *const libc::c_char,
         end: *const libc::c_char,
     ) -> CURLcode;
-    
+
     pub fn gnutls_ocsp_resp_init(resp: *mut gnutls_ocsp_resp_t) -> libc::c_int;
     pub fn gnutls_ocsp_resp_deinit(resp: gnutls_ocsp_resp_t);
     pub fn gnutls_ocsp_resp_import(
@@ -1363,7 +1307,7 @@ extern "C" {
         revocation_time: *mut time_t,
         revocation_reason: *mut libc::c_uint,
     ) -> libc::c_int;
-    
+
     // wolfssl.rs
 
     // pub fn Curl_none_check_cxn(conn: *mut connectdata) -> libc::c_int;
@@ -1438,14 +1382,8 @@ extern "C" {
         _: *const libc::c_char,
         _: *const libc::c_char,
     ) -> libc::c_int;
-    pub fn wolfSSL_CTX_set_cipher_list(
-        _: *mut WOLFSSL_CTX,
-        _: *const libc::c_char,
-    ) -> libc::c_int;
-    pub fn wolfSSL_CTX_SetMinVersion(
-        ctx: *mut WOLFSSL_CTX,
-        version: libc::c_int,
-    ) -> libc::c_int;
+    pub fn wolfSSL_CTX_set_cipher_list(_: *mut WOLFSSL_CTX, _: *const libc::c_char) -> libc::c_int;
+    pub fn wolfSSL_CTX_SetMinVersion(ctx: *mut WOLFSSL_CTX, version: libc::c_int) -> libc::c_int;
     pub fn wolfSSL_CTX_new(_: *mut WOLFSSL_METHOD) -> *mut WOLFSSL_CTX;
     pub fn wolfTLSv1_2_client_method() -> *mut WOLFSSL_METHOD;
     pub fn wolfTLSv1_1_client_method() -> *mut WOLFSSL_METHOD;
@@ -1457,16 +1395,10 @@ extern "C" {
     pub fn wolfSSL_lib_version() -> *const libc::c_char;
     pub fn wolfSSL_Cleanup() -> libc::c_int;
     pub fn wolfSSL_Init() -> libc::c_int;
-    pub fn wolfSSL_check_domain_name(
-        ssl: *mut WOLFSSL,
-        dn: *const libc::c_char,
-    ) -> libc::c_int;
+    pub fn wolfSSL_check_domain_name(ssl: *mut WOLFSSL, dn: *const libc::c_char) -> libc::c_int;
     pub fn wolfSSL_new(_: *mut WOLFSSL_CTX) -> *mut WOLFSSL;
     pub fn wolfSSL_KeepArrays(_: *mut WOLFSSL);
-    pub fn wolfSSL_set_session(
-        ssl: *mut WOLFSSL,
-        session: *mut WOLFSSL_SESSION,
-    ) -> libc::c_int;
+    pub fn wolfSSL_set_session(ssl: *mut WOLFSSL, session: *mut WOLFSSL_SESSION) -> libc::c_int;
     pub fn wolfSSL_set_fd(_: *mut WOLFSSL, _: libc::c_int) -> libc::c_int;
     pub fn wolfSSL_connect(_: *mut WOLFSSL) -> libc::c_int;
     pub fn wolfSSL_want_read(_: *mut WOLFSSL) -> libc::c_int;
@@ -1483,29 +1415,15 @@ extern "C" {
     ) -> libc::c_int;
     pub fn wolfSSL_FreeArrays(_: *mut WOLFSSL);
     pub fn wolfSSL_get_peer_certificate(ssl: *mut WOLFSSL) -> *mut WOLFSSL_X509;
-    pub fn wolfSSL_X509_get_der(
-        _: *mut WOLFSSL_X509,
-        _: *mut libc::c_int,
-    ) -> *const libc::c_uchar;
+    pub fn wolfSSL_X509_get_der(_: *mut WOLFSSL_X509, _: *mut libc::c_int) -> *const libc::c_uchar;
     pub fn wolfSSL_get_version(_: *mut WOLFSSL) -> *const libc::c_char;
     pub fn wolfSSL_get_cipher_name(ssl: *mut WOLFSSL) -> *const libc::c_char;
     pub fn wolfSSL_get_session(ssl: *mut WOLFSSL) -> *mut WOLFSSL_SESSION;
     pub fn wolfSSL_ERR_clear_error();
-    pub fn wolfSSL_write(
-        _: *mut WOLFSSL,
-        _: *const libc::c_void,
-        _: libc::c_int,
-    ) -> libc::c_int;
-    pub fn wolfSSL_ERR_error_string(
-        _: libc::c_ulong,
-        _: *mut libc::c_char,
-    ) -> *mut libc::c_char;
+    pub fn wolfSSL_write(_: *mut WOLFSSL, _: *const libc::c_void, _: libc::c_int) -> libc::c_int;
+    pub fn wolfSSL_ERR_error_string(_: libc::c_ulong, _: *mut libc::c_char) -> *mut libc::c_char;
     pub fn wolfSSL_get_error(_: *mut WOLFSSL, _: libc::c_int) -> libc::c_int;
-    pub fn wolfSSL_read(
-        _: *mut WOLFSSL,
-        _: *mut libc::c_void,
-        _: libc::c_int,
-    ) -> libc::c_int;
+    pub fn wolfSSL_read(_: *mut WOLFSSL, _: *mut libc::c_void, _: libc::c_int) -> libc::c_int;
     pub fn wolfSSL_shutdown(_: *mut WOLFSSL) -> libc::c_int;
     pub fn wolfSSL_free(_: *mut WOLFSSL);
     pub fn wolfSSL_CTX_free(_: *mut WOLFSSL_CTX);
@@ -1531,10 +1449,7 @@ extern "C" {
     pub fn PR_ErrorToName(code: PRErrorCode) -> *const libc::c_char;
     pub fn PR_GetError() -> PRErrorCode;
     pub fn PR_Lock(lock: *mut PRLock);
-    pub fn PR_ErrorToString(
-        code: PRErrorCode,
-        language: PRLanguageCode,
-    ) -> *const libc::c_char;
+    pub fn PR_ErrorToString(code: PRErrorCode, language: PRLanguageCode) -> *const libc::c_char;
     pub fn PR_Now() -> PRTime;
     pub fn PR_Free(ptr: *mut libc::c_void);
     pub fn PR_FormatTime(
@@ -1544,11 +1459,7 @@ extern "C" {
         time: *const PRExplodedTime,
     ) -> PRUint32;
     pub fn PR_GMTParameters(gmt: *const PRExplodedTime) -> PRTimeParameters;
-    pub fn PR_ExplodeTime(
-        usecs: PRTime,
-        params: PRTimeParamFn,
-        exploded: *mut PRExplodedTime,
-    );
+    pub fn PR_ExplodeTime(usecs: PRTime, params: PRTimeParamFn, exploded: *mut PRExplodedTime);
     pub fn PR_Unlock(lock: *mut PRLock) -> PRStatus;
     pub fn PR_MillisecondsToInterval(milli: PRUint32) -> PRIntervalTime;
     pub fn PR_Init(type_0: PRThreadType, priority: PRThreadPriority, maxPTDs: PRUintn);
@@ -1573,11 +1484,7 @@ extern "C" {
         methods: *const PRIOMethods,
     ) -> *mut PRFileDesc;
     pub fn PR_GetUniqueIdentity(layer_name: *const libc::c_char) -> PRDescIdentity;
-    pub fn PR_Open(
-        name: *const libc::c_char,
-        flags: PRIntn,
-        mode: PRIntn,
-    ) -> *mut PRFileDesc;
+    pub fn PR_Open(name: *const libc::c_char, flags: PRIntn, mode: PRIntn) -> *mut PRFileDesc;
     pub fn PR_NewTCPSocket() -> *mut PRFileDesc;
     pub fn PR_Recv(
         fd: *mut PRFileDesc,
@@ -1593,10 +1500,7 @@ extern "C" {
         flags: PRIntn,
         timeout: PRIntervalTime,
     ) -> PRInt32;
-    pub fn PR_SetSocketOption(
-        fd: *mut PRFileDesc,
-        data: *const PRSocketOptionData,
-    ) -> PRStatus;
+    pub fn PR_SetSocketOption(fd: *mut PRFileDesc, data: *const PRSocketOptionData) -> PRStatus;
     pub fn NSS_ShutdownContext(_: *mut NSSInitContext) -> SECStatus;
     pub fn NSS_GetVersion() -> *const libc::c_char;
     pub fn PORT_Strdup(s: *const libc::c_char) -> *mut libc::c_char;
@@ -1616,17 +1520,10 @@ extern "C" {
         protocolVariant: SSLProtocolVariant,
         vrange: *mut SSLVersionRange,
     ) -> SECStatus;
-    pub fn SSL_VersionRangeSet(
-        fd: *mut PRFileDesc,
-        vrange: *const SSLVersionRange,
-    ) -> SECStatus;
+    pub fn SSL_VersionRangeSet(fd: *mut PRFileDesc, vrange: *const SSLVersionRange) -> SECStatus;
     pub fn SSL_GetNumImplementedCiphers() -> PRUint16;
     pub fn SSL_GetImplementedCiphers() -> *const PRUint16;
-    pub fn SSL_CipherPrefSet(
-        fd: *mut PRFileDesc,
-        cipher: PRInt32,
-        enabled: PRBool,
-    ) -> SECStatus;
+    pub fn SSL_CipherPrefSet(fd: *mut PRFileDesc, cipher: PRInt32, enabled: PRBool) -> SECStatus;
     pub fn SSL_AuthCertificateHook(
         fd: *mut PRFileDesc,
         f: SSLAuthCertificate,
@@ -1657,10 +1554,7 @@ extern "C" {
         len: libc::c_uint,
     ) -> *mut SECItem;
     pub fn CERT_CacheCRL(dbhandle: *mut CERTCertDBHandle, newcrl: *mut SECItem) -> SECStatus;
-    pub fn CERT_UncacheCRL(
-        dbhandle: *mut CERTCertDBHandle,
-        oldcrl: *mut SECItem,
-    ) -> SECStatus;
+    pub fn CERT_UncacheCRL(dbhandle: *mut CERTCertDBHandle, oldcrl: *mut SECItem) -> SECStatus;
     pub fn CERT_GetDefaultCertDB() -> *mut CERTCertDBHandle;
     pub fn SSL_ClearSessionCache();
     pub fn SSL_GetClientAuthDataHook(
@@ -1696,10 +1590,8 @@ extern "C" {
     ) -> SECStatus;
     pub fn SSL_ResetHandshake(fd: *mut PRFileDesc, asServer: PRBool) -> SECStatus;
     pub fn SSL_SetURL(fd: *mut PRFileDesc, url: *const libc::c_char) -> SECStatus;
-    pub fn SSL_ForceHandshakeWithTimeout(
-        fd: *mut PRFileDesc,
-        timeout: PRIntervalTime,
-    ) -> SECStatus;
+    pub fn SSL_ForceHandshakeWithTimeout(fd: *mut PRFileDesc, timeout: PRIntervalTime)
+        -> SECStatus;
     pub fn SSL_GetChannelInfo(
         fd: *mut PRFileDesc,
         info: *mut SSLChannelInfo,
@@ -1862,9 +1754,7 @@ extern "C" {
         userdata: *mut libc::c_void,
         out_n: *mut size_t,
     ) -> rustls_io_result;
-    pub fn rustls_connection_process_new_packets(
-        conn: *mut rustls_connection,
-    ) -> rustls_result;
+    pub fn rustls_connection_process_new_packets(conn: *mut rustls_connection) -> rustls_result;
     pub fn rustls_connection_wants_read(conn: *const rustls_connection) -> bool;
     pub fn rustls_connection_wants_write(conn: *const rustls_connection) -> bool;
     pub fn rustls_connection_is_handshaking(conn: *const rustls_connection) -> bool;
@@ -1941,7 +1831,7 @@ extern "C" {
     pub fn mesalink_SSL_CTX_set_verify(
         _: *mut MESALINK_CTX,
         _: libc::c_int,
-        cb: Option::<unsafe extern "C" fn(libc::c_int, *mut MESALINK_CTX) -> libc::c_int>,
+        cb: Option<unsafe extern "C" fn(libc::c_int, *mut MESALINK_CTX) -> libc::c_int>,
     ) -> libc::c_int;
     pub fn mesalink_SSL_new(_: *mut MESALINK_CTX) -> *mut MESALINK_SSL;
     pub fn mesalink_SSL_set_tlsext_host_name(
@@ -1972,7 +1862,7 @@ extern "C" {
         len: size_t,
     ) -> *const libc::c_char;
     pub fn mesalink_ERR_print_errors_fp(_: *const FILE);
-    // openssl.rs  
+    // openssl.rs
     pub fn Curl_wait_ms(timeout_ms: timediff_t) -> libc::c_int;
     // pub fn Curl_none_false_start() -> bool;
     pub fn curl_slist_append(_: *mut curl_slist, _: *const libc::c_char) -> *mut curl_slist;
@@ -2028,17 +1918,14 @@ extern "C" {
     pub fn EVP_PKEY_get0_DH(pkey: *mut EVP_PKEY) -> *mut dh_st;
     pub fn EVP_PKEY_free(pkey: *mut EVP_PKEY);
     pub fn EVP_PKEY_copy_parameters(to: *mut EVP_PKEY, from: *const EVP_PKEY) -> libc::c_int;
-    pub fn OPENSSL_init_ssl(
-        opts: uint64_t,
-        settings: *const OPENSSL_INIT_SETTINGS,
-    ) -> libc::c_int;
+    pub fn OPENSSL_init_ssl(opts: uint64_t, settings: *const OPENSSL_INIT_SETTINGS) -> libc::c_int;
     pub fn SSL_get_shutdown(ssl: *const SSL) -> libc::c_int;
     pub fn SSL_pending(s: *const SSL) -> libc::c_int;
     pub fn TLS_client_method() -> *const SSL_METHOD;
     pub fn SSL_CTX_new(meth: *const SSL_METHOD) -> *mut SSL_CTX;
     pub fn SSL_CTX_set_msg_callback(
         ctx: *mut SSL_CTX,
-        cb: Option::<
+        cb: Option<
             unsafe extern "C" fn(
                 libc::c_int,
                 libc::c_int,
@@ -2063,11 +1950,11 @@ extern "C" {
         protos_len: libc::c_uint,
     ) -> libc::c_int;
     pub fn SSL_CTX_set_default_passwd_cb_userdata(ctx: *mut SSL_CTX, u: *mut libc::c_void);
-    pub fn SSL_CTX_set_default_passwd_cb(ctx: *mut SSL_CTX, cb: Option::<pem_password_cb>);
+    pub fn SSL_CTX_set_default_passwd_cb(ctx: *mut SSL_CTX, cb: Option<pem_password_cb>);
     pub fn PEM_read_bio_X509_AUX(
         bp: *mut BIO,
         x: *mut *mut X509,
-        cb: Option::<pem_password_cb>,
+        cb: Option<pem_password_cb>,
         u: *mut libc::c_void,
     ) -> *mut X509;
     pub fn SSL_CTX_use_certificate_chain_file(
@@ -2086,7 +1973,7 @@ extern "C" {
     pub fn PEM_read_bio_PrivateKey(
         bp: *mut BIO,
         x: *mut *mut EVP_PKEY,
-        cb: Option::<pem_password_cb>,
+        cb: Option<pem_password_cb>,
         u: *mut libc::c_void,
     ) -> *mut EVP_PKEY;
     pub fn d2i_PrivateKey_bio(bp: *mut BIO, a: *mut *mut EVP_PKEY) -> *mut EVP_PKEY;
@@ -2101,31 +1988,22 @@ extern "C" {
     pub fn RSA_free(r: *mut RSA);
     pub fn SSL_get_privatekey(ssl: *const SSL) -> *mut evp_pkey_st;
     pub fn SSL_CTX_check_private_key(ctx: *const SSL_CTX) -> libc::c_int;
-    pub fn SSL_CTX_set_ciphersuites(
-        ctx: *mut SSL_CTX,
-        str: *const libc::c_char,
-    ) -> libc::c_int;
+    pub fn SSL_CTX_set_ciphersuites(ctx: *mut SSL_CTX, str: *const libc::c_char) -> libc::c_int;
     pub fn SSL_CTX_set_post_handshake_auth(ctx: *mut SSL_CTX, val: libc::c_int);
-    pub fn SSL_CTX_set_srp_username(
-        ctx: *mut SSL_CTX,
-        name: *mut libc::c_char,
-    ) -> libc::c_int;
-    pub fn SSL_CTX_set_srp_password(
-        ctx: *mut SSL_CTX,
-        password: *mut libc::c_char,
-    ) -> libc::c_int;
+    pub fn SSL_CTX_set_srp_username(ctx: *mut SSL_CTX, name: *mut libc::c_char) -> libc::c_int;
+    pub fn SSL_CTX_set_srp_password(ctx: *mut SSL_CTX, password: *mut libc::c_char) -> libc::c_int;
     pub fn SSL_CTX_set_cipher_list(_: *mut SSL_CTX, str: *const libc::c_char) -> libc::c_int;
     pub fn PEM_X509_INFO_read_bio(
         bp: *mut BIO,
         sk: *mut stack_st_X509_INFO,
-        cb: Option::<pem_password_cb>,
+        cb: Option<pem_password_cb>,
         u: *mut libc::c_void,
     ) -> *mut stack_st_X509_INFO;
     pub fn X509_STORE_add_cert(ctx: *mut X509_STORE, x: *mut X509) -> libc::c_int;
     pub fn X509_STORE_add_crl(ctx: *mut X509_STORE, x: *mut X509_CRL) -> libc::c_int;
     pub fn OPENSSL_sk_pop_free(
         st: *mut OPENSSL_STACK,
-        func: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+        func: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     );
     pub fn X509_INFO_free(a: *mut X509_INFO);
     pub fn SSL_CTX_load_verify_locations(
@@ -2154,9 +2032,7 @@ extern "C" {
     ) -> libc::c_long;
     pub fn SSL_CTX_sess_set_new_cb(
         ctx: *mut SSL_CTX,
-        new_session_cb: Option::<
-            unsafe extern "C" fn(*mut ssl_st, *mut SSL_SESSION) -> libc::c_int,
-        >,
+        new_session_cb: Option<unsafe extern "C" fn(*mut ssl_st, *mut SSL_SESSION) -> libc::c_int>,
     );
     pub fn SSL_get_ex_data(ssl: *const SSL, idx: libc::c_int) -> *mut libc::c_void;
     pub fn SSL_new(ctx: *mut SSL_CTX) -> *mut SSL;
@@ -2212,22 +2088,14 @@ extern "C" {
         q: *mut *const BIGNUM,
         g: *mut *const BIGNUM,
     );
-    pub fn DSA_get0_key(
-        d: *const DSA,
-        pub_key: *mut *const BIGNUM,
-        priv_key: *mut *const BIGNUM,
-    );
+    pub fn DSA_get0_key(d: *const DSA, pub_key: *mut *const BIGNUM, priv_key: *mut *const BIGNUM);
     pub fn DH_get0_pqg(
         dh: *const DH,
         p: *mut *const BIGNUM,
         q: *mut *const BIGNUM,
         g: *mut *const BIGNUM,
     );
-    pub fn DH_get0_key(
-        dh: *const DH,
-        pub_key: *mut *const BIGNUM,
-        priv_key: *mut *const BIGNUM,
-    );
+    pub fn DH_get0_key(dh: *const DH, pub_key: *mut *const BIGNUM, priv_key: *mut *const BIGNUM);
     pub fn BN_print(bio: *mut BIO, a: *const BIGNUM) -> libc::c_int;
     pub fn BIO_printf(bio: *mut BIO, format: *const libc::c_char, _: ...) -> libc::c_int;
     pub fn PEM_write_bio_X509(bp: *mut BIO, x: *mut X509) -> libc::c_int;
@@ -2258,10 +2126,7 @@ extern "C" {
         in_0: *const ASN1_STRING,
     ) -> libc::c_int;
     pub fn X509_NAME_ENTRY_get_data(ne: *const X509_NAME_ENTRY) -> *mut ASN1_STRING;
-    pub fn X509_NAME_get_entry(
-        name: *const X509_NAME,
-        loc: libc::c_int,
-    ) -> *mut X509_NAME_ENTRY;
+    pub fn X509_NAME_get_entry(name: *const X509_NAME, loc: libc::c_int) -> *mut X509_NAME_ENTRY;
     pub fn X509_get_subject_name(a: *const X509) -> *mut X509_NAME;
     pub fn CRYPTO_free(ptr: *mut libc::c_void, file: *const libc::c_char, line: libc::c_int);
     pub fn X509_NAME_print_ex(
@@ -2284,7 +2149,7 @@ extern "C" {
     pub fn PEM_read_bio_X509(
         bp: *mut BIO,
         x: *mut *mut X509,
-        cb: Option::<pem_password_cb>,
+        cb: Option<pem_password_cb>,
         u: *mut libc::c_void,
     ) -> *mut X509;
     pub fn BIO_free(a: *mut BIO) -> libc::c_int;
@@ -2304,11 +2169,7 @@ extern "C" {
     pub fn i2d_X509_PUBKEY(a: *mut X509_PUBKEY, out: *mut *mut libc::c_uchar) -> libc::c_int;
     pub fn X509_get_X509_PUBKEY(x: *const X509) -> *mut X509_PUBKEY;
     pub fn X509_free(a: *mut X509);
-    pub fn SSL_write(
-        ssl: *mut SSL,
-        buf: *const libc::c_void,
-        num: libc::c_int,
-    ) -> libc::c_int;
+    pub fn SSL_write(ssl: *mut SSL, buf: *const libc::c_void, num: libc::c_int) -> libc::c_int;
     pub fn SSL_get_error(s: *const SSL, ret_code: libc::c_int) -> libc::c_int;
     pub fn OpenSSL_version_num() -> libc::c_ulong;
     pub fn SSL_read(ssl: *mut SSL, buf: *mut libc::c_void, num: libc::c_int) -> libc::c_int;
@@ -2317,18 +2178,15 @@ extern "C" {
     pub fn SSL_free(ssl: *mut SSL);
     pub fn SSL_CTX_free(_: *mut SSL_CTX);
     pub fn SSL_SESSION_free(ses: *mut SSL_SESSION);
-    pub fn SSL_set_ex_data(
-        ssl: *mut SSL,
-        idx: libc::c_int,
-        data: *mut libc::c_void,
-    ) -> libc::c_int;
+    pub fn SSL_set_ex_data(ssl: *mut SSL, idx: libc::c_int, data: *mut libc::c_void)
+        -> libc::c_int;
     pub fn CRYPTO_get_ex_new_index(
         class_index: libc::c_int,
         argl: libc::c_long,
         argp: *mut libc::c_void,
-        new_func: Option::<CRYPTO_EX_new>,
-        dup_func: Option::<CRYPTO_EX_dup>,
-        free_func: Option::<CRYPTO_EX_free>,
+        new_func: Option<CRYPTO_EX_new>,
+        dup_func: Option<CRYPTO_EX_dup>,
+        free_func: Option<CRYPTO_EX_free>,
     ) -> libc::c_int;
     pub fn RAND_bytes(buf: *mut libc::c_uchar, num: libc::c_int) -> libc::c_int;
     pub fn RAND_add(buf: *const libc::c_void, num: libc::c_int, randomness: libc::c_double);
@@ -2405,14 +2263,14 @@ extern "C" {
         cmd: libc::c_int,
         i: libc::c_long,
         p: *mut libc::c_void,
-        f: Option::<unsafe extern "C" fn() -> ()>,
+        f: Option<unsafe extern "C" fn() -> ()>,
     ) -> libc::c_int;
     pub fn ENGINE_ctrl_cmd(
         e: *mut ENGINE,
         cmd_name: *const libc::c_char,
         i: libc::c_long,
         p: *mut libc::c_void,
-        f: Option::<unsafe extern "C" fn() -> ()>,
+        f: Option<unsafe extern "C" fn() -> ()>,
         cmd_optional: libc::c_int,
     ) -> libc::c_int;
     pub fn ENGINE_free(e: *mut ENGINE) -> libc::c_int;
@@ -2430,33 +2288,33 @@ extern "C" {
     pub fn UI_get0_user_data(ui: *mut UI) -> *mut libc::c_void;
     pub fn UI_method_set_opener(
         method: *mut UI_METHOD,
-        opener: Option::<unsafe extern "C" fn(*mut UI) -> libc::c_int>,
+        opener: Option<unsafe extern "C" fn(*mut UI) -> libc::c_int>,
     ) -> libc::c_int;
     pub fn UI_method_get_opener(
         method: *const UI_METHOD,
-    ) -> Option::<unsafe extern "C" fn(*mut UI) -> libc::c_int>;
+    ) -> Option<unsafe extern "C" fn(*mut UI) -> libc::c_int>;
     pub fn UI_method_set_closer(
         method: *mut UI_METHOD,
-        closer: Option::<unsafe extern "C" fn(*mut UI) -> libc::c_int>,
+        closer: Option<unsafe extern "C" fn(*mut UI) -> libc::c_int>,
     ) -> libc::c_int;
     pub fn UI_method_get_closer(
         method: *const UI_METHOD,
-    ) -> Option::<unsafe extern "C" fn(*mut UI) -> libc::c_int>;
+    ) -> Option<unsafe extern "C" fn(*mut UI) -> libc::c_int>;
     pub fn UI_create_method(name: *const libc::c_char) -> *mut UI_METHOD;
     pub fn UI_destroy_method(ui_method: *mut UI_METHOD);
     pub fn UI_method_get_writer(
         method: *const UI_METHOD,
-    ) -> Option::<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>;
+    ) -> Option<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>;
     pub fn UI_method_set_writer(
         method: *mut UI_METHOD,
-        writer: Option::<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>,
+        writer: Option<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>,
     ) -> libc::c_int;
     pub fn UI_method_get_reader(
         method: *const UI_METHOD,
-    ) -> Option::<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>;
+    ) -> Option<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>;
     pub fn UI_method_set_reader(
         method: *mut UI_METHOD,
-        reader: Option::<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>,
+        reader: Option<unsafe extern "C" fn(*mut UI, *mut UI_STRING) -> libc::c_int>,
     ) -> libc::c_int;
     pub fn UI_set_result(
         ui: *mut UI,
@@ -2527,11 +2385,7 @@ extern "C" {
         len: *mut size_t,
     ) -> *mut libc::c_uchar;
     pub fn br_ssl_engine_recvapp_ack(cc: *mut br_ssl_engine_context, len: size_t);
-    pub fn br_sha224_update(
-        ctx: *mut br_sha224_context,
-        data: *const libc::c_void,
-        len: size_t,
-    );
+    pub fn br_sha224_update(ctx: *mut br_sha224_context, data: *const libc::c_void, len: size_t);
     pub fn br_sha256_init(ctx: *mut br_sha256_context);
     pub fn br_sha256_out(ctx: *const br_sha256_context, out: *mut libc::c_void);
     pub fn br_ssl_engine_recvapp_buf(
@@ -2545,7 +2399,7 @@ extern "C" {
     );
     pub fn br_x509_decoder_init(
         ctx: *mut br_x509_decoder_context,
-        append_dn_0: Option::<
+        append_dn_0: Option<
             unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
         >,
         append_dn_ctx: *mut libc::c_void,
@@ -2581,11 +2435,8 @@ extern "C" {
         exec: *const hyper_executor,
     );
     pub fn hyper_error_free(err: *mut hyper_error);
-    pub fn hyper_error_print(
-        err: *const hyper_error,
-        dst: *mut uint8_t,
-        dst_len: size_t,
-    ) -> size_t;
+    pub fn hyper_error_print(err: *const hyper_error, dst: *mut uint8_t, dst_len: size_t)
+        -> size_t;
     pub fn hyper_request_new() -> *mut hyper_request;
     pub fn hyper_request_set_method(
         req: *mut hyper_request,
@@ -2597,10 +2448,7 @@ extern "C" {
         uri: *const uint8_t,
         uri_len: size_t,
     ) -> hyper_code;
-    pub fn hyper_request_set_version(
-        req: *mut hyper_request,
-        version: libc::c_int,
-    ) -> hyper_code;
+    pub fn hyper_request_set_version(req: *mut hyper_request, version: libc::c_int) -> hyper_code;
     pub fn hyper_request_headers(req: *mut hyper_request) -> *mut hyper_headers;
     pub fn hyper_io_new() -> *mut hyper_io;
     pub fn hyper_io_free(io: *mut hyper_io);
@@ -2609,10 +2457,7 @@ extern "C" {
     pub fn hyper_io_set_write(io: *mut hyper_io, func: hyper_io_write_callback);
     pub fn hyper_executor_new() -> *const hyper_executor;
     pub fn hyper_executor_free(exec: *const hyper_executor);
-    pub fn hyper_executor_push(
-        exec: *const hyper_executor,
-        task: *mut hyper_task,
-    ) -> hyper_code;
+    pub fn hyper_executor_push(exec: *const hyper_executor, task: *mut hyper_task) -> hyper_code;
     pub fn hyper_executor_poll(exec: *const hyper_executor) -> *mut hyper_task;
     pub fn hyper_task_free(task: *mut hyper_task);
     pub fn hyper_task_value(task: *mut hyper_task) -> *mut libc::c_void;
@@ -2661,10 +2506,7 @@ extern "C" {
 
     // libssh2
     pub fn Curl_none_false_start() -> bool;
-    pub fn Curl_ssl_getsock(
-        conn: *mut connectdata,
-        socks: *mut curl_socket_t,
-    ) -> libc::c_int;
+    pub fn Curl_ssl_getsock(conn: *mut connectdata, socks: *mut curl_socket_t) -> libc::c_int;
     pub fn Curl_ssl_init_certinfo(data: *mut Curl_easy, num: libc::c_int) -> CURLcode;
     pub fn Curl_ssl_push_certinfo_len(
         data: *mut Curl_easy,
@@ -2698,7 +2540,7 @@ extern "C" {
         pubkey: *const libc::c_uchar,
         pubkeylen: size_t,
     ) -> CURLcode;
-    
+
     //debug
     pub fn __assert_fail(
         __assertion: *const libc::c_char,
@@ -2706,11 +2548,7 @@ extern "C" {
         __line: libc::c_uint,
         __function: *const libc::c_char,
     ) -> !;
-    pub fn curl_dbg_free(
-        ptr: *mut libc::c_void,
-        line: libc::c_int,
-        source: *const libc::c_char,
-    );
+    pub fn curl_dbg_free(ptr: *mut libc::c_void, line: libc::c_int, source: *const libc::c_char);
     pub fn curl_dbg_strdup(
         str: *const libc::c_char,
         line: libc::c_int,

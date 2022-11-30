@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: pnext<pnext@mail.ustc.edu.cn>, 
+ * Author: pnext<pnext@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: Rust module declaration
  ******************************************************************************/

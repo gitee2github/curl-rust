@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: wyf<wuyf21@mail.ustc.edu.cn>, 
+ * Author: wyf<wuyf21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: http ntlm
  ******************************************************************************/
@@ -98,12 +98,12 @@ pub unsafe extern "C" fn Curl_input_ntlm(
                 return CURLE_REMOTE_ACCESS_DENIED;
             } else if *state as libc::c_uint >= NTLMSTATE_TYPE1 as libc::c_int as libc::c_uint {
                 // if *state as libc::c_uint >= NTLMSTATE_TYPE1 as libc::c_int as libc::c_uint {
-                    Curl_infof(
-                        data,
-                        b"NTLM handshake failure (internal error)\0" as *const u8
-                            as *const libc::c_char,
-                    );
-                    return CURLE_REMOTE_ACCESS_DENIED;
+                Curl_infof(
+                    data,
+                    b"NTLM handshake failure (internal error)\0" as *const u8
+                        as *const libc::c_char,
+                );
+                return CURLE_REMOTE_ACCESS_DENIED;
                 // }
             }
             *state = NTLMSTATE_TYPE1;
@@ -139,50 +139,50 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
     let mut authp: *mut auth = 0 as *mut auth;
     let mut conn: *mut connectdata = (*data).conn;
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !conn.is_null() {} else {
+    if !conn.is_null() {
+    } else {
         __assert_fail(
             b"conn\0" as *const u8 as *const libc::c_char,
             b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
             150 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
-                &[u8; 53],
-                &[libc::c_char; 53],
-            >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
-                .as_ptr(),
+            (*::std::mem::transmute::<&[u8; 53], &[libc::c_char; 53]>(
+                b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0",
+            ))
+            .as_ptr(),
         );
     }
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !data.is_null() {} else {
+    if !data.is_null() {
+    } else {
         __assert_fail(
             b"data\0" as *const u8 as *const libc::c_char,
             b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
             151 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<
-                &[u8; 53],
-                &[libc::c_char; 53],
-            >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
-                .as_ptr(),
+            (*::std::mem::transmute::<&[u8; 53], &[libc::c_char; 53]>(
+                b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0",
+            ))
+            .as_ptr(),
         );
     }
     if proxy {
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {
-        allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
-        userp = (*data).state.aptr.proxyuser;
-        passwdp = (*data).state.aptr.proxypasswd;
+                allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
+                userp = (*data).state.aptr.proxyuser;
+                passwdp = (*data).state.aptr.proxypasswd;
                 service = if !((*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize])
-            .is_null()
-        {
-            (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
-                as *const libc::c_char
-        } else {
-            b"HTTP\0" as *const u8 as *const libc::c_char
-        };
-        hostname = (*conn).http_proxy.host.name;
-        ntlm = &mut (*conn).proxyntlm;
-        state = &mut (*conn).proxy_ntlm_state;
-        authp = &mut (*data).state.authproxy;
+                    .is_null()
+                {
+                    (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
+                        as *const libc::c_char
+                } else {
+                    b"HTTP\0" as *const u8 as *const libc::c_char
+                };
+                hostname = (*conn).http_proxy.host.name;
+                ntlm = &mut (*conn).proxyntlm;
+                state = &mut (*conn).proxy_ntlm_state;
+                authp = &mut (*data).state.authproxy;
             }
             #[cfg(CURL_DISABLE_PROXY)]
             _ => {
@@ -280,18 +280,16 @@ pub unsafe extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: b
             );
             if result as u64 == 0 {
                 #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-                if Curl_bufref_len(&mut ntlmmsg) != 0 as libc::c_int as libc::c_ulong
-                {} else {
+                if Curl_bufref_len(&mut ntlmmsg) != 0 as libc::c_int as libc::c_ulong {
+                } else {
                     __assert_fail(
-                        b"Curl_bufref_len(&ntlmmsg) != 0\0" as *const u8
-                            as *const libc::c_char,
+                        b"Curl_bufref_len(&ntlmmsg) != 0\0" as *const u8 as *const libc::c_char,
                         b"http_ntlm.c\0" as *const u8 as *const libc::c_char,
                         209 as libc::c_int as libc::c_uint,
-                        (*::std::mem::transmute::<
-                            &[u8; 53],
-                            &[libc::c_char; 53],
-                        >(b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0"))
-                            .as_ptr(),
+                        (*::std::mem::transmute::<&[u8; 53], &[libc::c_char; 53]>(
+                            b"CURLcode Curl_output_ntlm(struct Curl_easy *, _Bool)\0",
+                        ))
+                        .as_ptr(),
                     );
                 }
                 result = Curl_base64_encode(
