@@ -207,17 +207,18 @@ unsafe extern "C" fn connect_init(mut data: *mut Curl_easy, mut reinit: bool) ->
             return result;
         }
         #[cfg(not(CURLDEBUG))]
-        s = Curl_ccalloc.expect("non-null function pointer")(
+        let news: *mut http_connect_state = Curl_ccalloc.expect("non-null function pointer")(
             1 as libc::c_int as size_t,
             ::std::mem::size_of::<http_connect_state>() as libc::c_ulong,
         ) as *mut http_connect_state;
         #[cfg(CURLDEBUG)]
-        s = curl_dbg_calloc(
+        let news: *mut http_connect_state = curl_dbg_calloc(
             1 as libc::c_int as size_t,
             ::std::mem::size_of::<http_connect_state>() as libc::c_ulong,
             169 as libc::c_int,
             b"http_proxy.c\0" as *const u8 as *const libc::c_char,
         ) as *mut http_connect_state;
+        s = news;
         if s.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
