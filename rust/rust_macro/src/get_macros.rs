@@ -172,6 +172,8 @@ extern "C" {
     fn get_SSL_ERROR_WANT_ASYNC() -> i32;
     fn get_AVE_KEYLOG_CALLBACK() -> i32;
 
+    //debug
+    fn get_HAVE_ASSERT_H() -> i32;
 }
 pub fn get_all_cfg() {
     // http2
@@ -333,7 +335,8 @@ pub fn get_all_cfg() {
     get_SSL_ERROR_WANT_ASYNC_add_cfg();
     get_AVE_KEYLOG_CALLBACK_add_cfg();
 
-
+    //debug
+    get_HAVE_ASSERT_H_add_cfg();
 
 }
 
@@ -1013,5 +1016,11 @@ fn get_SSL_ERROR_WANT_ASYNC_add_cfg() {
 fn get_AVE_KEYLOG_CALLBACK_add_cfg() {
     if unsafe { get_AVE_KEYLOG_CALLBACK() } == 1 {
         println!("cargo:rustc-cfg=AVE_KEYLOG_CALLBACK");
+    }
+}
+//debug
+fn get_HAVE_ASSERT_H_add_cfg() {
+    if unsafe { get_HAVE_ASSERT_H() } == 1 {
+        println!("cargo:rustc-cfg=HAVE_ASSERT_H");
     }
 }

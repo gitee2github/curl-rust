@@ -257,7 +257,14 @@ extern "C" {
         conn: *mut connectdata,
         sock: curl_socket_t,
     ) -> libc::c_int;
+    #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
     pub fn Curl_conncontrol(conn: *mut connectdata, closeit: libc::c_int);
+    #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
+    pub fn Curl_conncontrol(
+        conn: *mut connectdata,
+        closeit: libc::c_int,
+        reason: *const libc::c_char,
+    );
     pub fn Curl_conn_data_pending(conn: *mut connectdata, sockindex: libc::c_int) -> bool;
     pub fn Curl_strerror(
         err: libc::c_int,
@@ -2653,22 +2660,22 @@ extern "C" {
     ) -> CURLcode;
 
     // libssh2
-    fn Curl_none_false_start() -> bool;
-    fn Curl_ssl_getsock(
+    pub fn Curl_none_false_start() -> bool;
+    pub fn Curl_ssl_getsock(
         conn: *mut connectdata,
         socks: *mut curl_socket_t,
     ) -> libc::c_int;
-    fn Curl_ssl_init_certinfo(data: *mut Curl_easy, num: libc::c_int) -> CURLcode;
-    fn Curl_ssl_push_certinfo_len(
+    pub fn Curl_ssl_init_certinfo(data: *mut Curl_easy, num: libc::c_int) -> CURLcode;
+    pub fn Curl_ssl_push_certinfo_len(
         data: *mut Curl_easy,
         certnum: libc::c_int,
         label: *const libc::c_char,
         value: *const libc::c_char,
         valuelen: size_t,
     ) -> CURLcode;
-    fn Curl_ssl_sessionid_lock(data: *mut Curl_easy);
-    fn Curl_ssl_sessionid_unlock(data: *mut Curl_easy);
-    fn Curl_ssl_getsessionid(
+    pub fn Curl_ssl_sessionid_lock(data: *mut Curl_easy);
+    pub fn Curl_ssl_sessionid_unlock(data: *mut Curl_easy);
+    pub fn Curl_ssl_getsessionid(
         data: *mut Curl_easy,
         conn: *mut connectdata,
         isProxy: bool,
@@ -2676,7 +2683,7 @@ extern "C" {
         idsize: *mut size_t,
         sockindex: libc::c_int,
     ) -> bool;
-    fn Curl_ssl_addsessionid(
+    pub fn Curl_ssl_addsessionid(
         data: *mut Curl_easy,
         conn: *mut connectdata,
         isProxy: bool,
@@ -2684,11 +2691,35 @@ extern "C" {
         idsize: size_t,
         sockindex: libc::c_int,
     ) -> CURLcode;
-    fn Curl_ssl_delsessionid(data: *mut Curl_easy, ssl_sessionid: *mut libc::c_void);
-    fn Curl_pin_peer_pubkey(
+    pub fn Curl_ssl_delsessionid(data: *mut Curl_easy, ssl_sessionid: *mut libc::c_void);
+    pub fn Curl_pin_peer_pubkey(
         data: *mut Curl_easy,
         pinnedpubkey: *const libc::c_char,
         pubkey: *const libc::c_uchar,
         pubkeylen: size_t,
     ) -> CURLcode;
+    
+    //debug
+    pub fn __assert_fail(
+        __assertion: *const libc::c_char,
+        __file: *const libc::c_char,
+        __line: libc::c_uint,
+        __function: *const libc::c_char,
+    ) -> !;
+    pub fn curl_dbg_free(
+        ptr: *mut libc::c_void,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    );
+    pub fn curl_dbg_strdup(
+        str: *const libc::c_char,
+        line: libc::c_int,
+        src: *const libc::c_char,
+    ) -> *mut libc::c_char;
+    pub fn curl_dbg_calloc(
+        elements: size_t,
+        size: size_t,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> *mut libc::c_void;
 }

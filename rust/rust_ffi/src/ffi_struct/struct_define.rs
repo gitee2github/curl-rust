@@ -359,6 +359,7 @@ pub struct UrlState {
     #[cfg(USE_HYPER)]
     pub hresult: CURLcode,
     pub aptr: dynamically_allocated_data,
+    #[cfg(not(CURLDEBUG))]
     #[bitfield(name = "multi_owned_by_easy", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "this_is_a_follow", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "refused_stream", ty = "bit", bits = "2..=2")]
@@ -381,6 +382,30 @@ pub struct UrlState {
     #[bitfield(name = "referer_alloc", ty = "bit", bits = "19..=19")]
     #[bitfield(name = "wildcard_resolve", ty = "bit", bits = "20..=20")]
     // pub multi_owned_by_easy_this_is_a_follow_refused_stream_errorbuf_allow_port_authproblem_ftp_trying_alternative_wildcardmatch_expect100header_disableexpect_use_range_rangestringalloc_done_stream_depends_e_previouslypending_cookie_engine_prefer_ascii_list_only_url_alloc_referer_alloc_wildcard_resolve: [u8; 3],
+    pub c2rust_abbr: [u8; 3],
+    #[cfg(CURLDEBUG)]
+    #[bitfield(name = "conncache_lock", ty = "bit", bits = "0..=0")]
+    #[bitfield(name = "multi_owned_by_easy", ty = "bit", bits = "1..=1")]
+    #[bitfield(name = "this_is_a_follow", ty = "bit", bits = "2..=2")]
+    #[bitfield(name = "refused_stream", ty = "bit", bits = "3..=3")]
+    #[bitfield(name = "errorbuf", ty = "bit", bits = "4..=4")]
+    #[bitfield(name = "allow_port", ty = "bit", bits = "5..=5")]
+    #[bitfield(name = "authproblem", ty = "bit", bits = "6..=6")]
+    #[bitfield(name = "ftp_trying_alternative", ty = "bit", bits = "7..=7")]
+    #[bitfield(name = "wildcardmatch", ty = "bit", bits = "8..=8")]
+    #[bitfield(name = "expect100header", ty = "bit", bits = "9..=9")]
+    #[bitfield(name = "disableexpect", ty = "bit", bits = "10..=10")]
+    #[bitfield(name = "use_range", ty = "bit", bits = "11..=11")]
+    #[bitfield(name = "rangestringalloc", ty = "bit", bits = "12..=12")]
+    #[bitfield(name = "done", ty = "bit", bits = "13..=13")]
+    #[bitfield(name = "stream_depends_e", ty = "bit", bits = "14..=14")]
+    #[bitfield(name = "previouslypending", ty = "bit", bits = "15..=15")]
+    #[bitfield(name = "cookie_engine", ty = "bit", bits = "16..=16")]
+    #[bitfield(name = "prefer_ascii", ty = "bit", bits = "17..=17")]
+    #[bitfield(name = "list_only", ty = "bit", bits = "18..=18")]
+    #[bitfield(name = "url_alloc", ty = "bit", bits = "19..=19")]
+    #[bitfield(name = "referer_alloc", ty = "bit", bits = "20..=20")]
+    #[bitfield(name = "wildcard_resolve", ty = "bit", bits = "21..=21")]
     pub c2rust_abbr: [u8; 3],
     #[bitfield(padding)]
     pub c2rust_padding_0: [u8; 5],
@@ -410,6 +435,8 @@ pub struct dynbuf {
     pub leng: size_t,
     pub allc: size_t,
     pub toobig: size_t,
+    #[cfg(DEBUGBUILD)]
+    pub init: libc::c_int,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -2868,7 +2895,8 @@ pub struct bufref {
     pub dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
-    // DEBUGBUILD
+    #[cfg(CURLDEBUG)]
+    pub signature: libc::c_int,
 }
 
 // new http.rs
@@ -5835,3 +5863,4 @@ pub struct libssh2_agent_publickey {
     pub blob_len: size_t,
     pub comment: *mut libc::c_char,
 }
+
