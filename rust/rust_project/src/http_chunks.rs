@@ -249,7 +249,20 @@ pub unsafe extern "C" fn Curl_chunked_strerror(mut code: CHUNKcode) -> *const li
                 as *const libc::c_char;
         }
         3 => return b"Malformed encoding found\0" as *const u8 as *const libc::c_char,
-        6 => return b"\0" as *const u8 as *const libc::c_char,
+        6 => {
+            #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+            __assert_fail(
+                b"0\0" as *const u8 as *const libc::c_char,
+                b"http_chunks.c\0" as *const u8 as *const libc::c_char,
+                334 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 45],
+                    &[libc::c_char; 45],
+                >(b"const char *Curl_chunked_strerror(CHUNKcode)\0"))
+                    .as_ptr(),
+            );
+            return b"\0" as *const u8 as *const libc::c_char;
+        }
         4 => return b"Bad content-encoding found\0" as *const u8 as *const libc::c_char,
         5 => return b"Out of memory\0" as *const u8 as *const libc::c_char,
         _ => return b"OK\0" as *const u8 as *const libc::c_char,
