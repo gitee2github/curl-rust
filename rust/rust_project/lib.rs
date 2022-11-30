@@ -7,7 +7,13 @@
     unused_assignments,
     unused_mut
 )]
-#![feature(c_variadic, extern_types, label_break_value, register_tool, stmt_expr_attributes)]
+#![feature(
+    c_variadic,
+    extern_types,
+    label_break_value,
+    register_tool,
+    stmt_expr_attributes
+)]
 #![register_tool(c2rust)]
 
 #[macro_use]
@@ -20,6 +26,9 @@ pub mod src {
     pub mod ftp;
     #[cfg(not(CURL_DISABLE_FTP))]
     pub mod ftplistparser;
+    #[cfg(not(CURL_DISABLE_HTTP))]
+    pub mod http;
+    pub mod http2;
     #[cfg(all(not(CURL_DISABLE_HTTP), not(CURL_DISABLE_CRYPTO_AUTH)))]
     pub mod http_aws_sigv4;
     #[cfg(not(CURL_DISABLE_HTTP))]
@@ -28,9 +37,6 @@ pub mod src {
     pub mod http_digest;
     #[cfg(all(not(CURL_DISABLE_HTTP), USE_SPNEGO))]
     pub mod http_negotiate;
-    #[cfg(not(CURL_DISABLE_HTTP))]
-    pub mod http;
-    pub mod http2;
     #[cfg(all(not(CURL_DISABLE_HTTP), USE_NTLM))]
     pub mod http_ntlm;
     pub mod http_proxy;
@@ -42,9 +48,9 @@ pub mod src {
         pub mod gtls;
         pub mod keylog;
         #[cfg(USE_MBEDTLS)]
-        pub mod mbedtls_threadlock;
-        #[cfg(USE_MBEDTLS)]
         pub mod mbedtls;
+        #[cfg(USE_MBEDTLS)]
+        pub mod mbedtls_threadlock;
         #[cfg(USE_MESALINK)]
         pub mod mesalink;
         #[cfg(USE_NSS)]

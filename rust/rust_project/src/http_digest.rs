@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: http digest
  ******************************************************************************/
@@ -66,12 +66,12 @@ pub unsafe extern "C" fn Curl_output_digest(
     let mut authp: *mut auth = 0 as *mut auth;
     if proxy {
         if cfg!(not(CURL_DISABLE_PROXY)) {
-        digest = &mut (*data).state.proxydigest;
-        allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
-        userp = (*data).state.aptr.proxyuser;
-        passwdp = (*data).state.aptr.proxypasswd;
-        authp = &mut (*data).state.authproxy;
-    } else {
+            digest = &mut (*data).state.proxydigest;
+            allocuserpwd = &mut (*data).state.aptr.proxyuserpwd;
+            userp = (*data).state.aptr.proxyuser;
+            passwdp = (*data).state.aptr.proxypasswd;
+            authp = &mut (*data).state.authproxy;
+        } else {
             return CURLE_NOT_BUILT_IN;
         }
     } else {
@@ -119,8 +119,9 @@ pub unsafe extern "C" fn Curl_output_digest(
     }
     if tmp.is_null() {
         #[cfg(not(CURLDEBUG))]
-        let mut newpath: *mut libc::c_uchar = Curl_cstrdup.expect("non-null function pointer")(uripath as *mut libc::c_char)
-        as *mut libc::c_uchar;
+        let mut newpath: *mut libc::c_uchar =
+            Curl_cstrdup.expect("non-null function pointer")(uripath as *mut libc::c_char)
+                as *mut libc::c_uchar;
         #[cfg(CURLDEBUG)]
         let mut newpath: *mut libc::c_uchar = curl_dbg_strdup(
             uripath as *mut libc::c_char,
@@ -128,7 +129,7 @@ pub unsafe extern "C" fn Curl_output_digest(
             b"http_digest.c\0" as *const u8 as *const libc::c_char,
         ) as *mut libc::c_uchar;
         path = newpath;
-    }  
+    }
     if path.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }

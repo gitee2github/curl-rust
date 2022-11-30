@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: wyf<wuyf21@mail.ustc.edu.cn>, 
+ * Author: wyf<wuyf21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: build script for Rust project, get macros from C side for conditional compilation
  ******************************************************************************/

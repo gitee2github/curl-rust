@@ -6,7 +6,7 @@ set +e
 aclocal
 automake
 
-LIBS=-ldl ./configure --with-openssl --disable-shared --without-ngtcp2 --enable-debug
+LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2 
 cd lib
 make
 

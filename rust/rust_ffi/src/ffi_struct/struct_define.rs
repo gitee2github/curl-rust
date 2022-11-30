@@ -8,12 +8,12 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: wyf<wuyf21@mail.ustc.edu.cn>, 
+ * Author: wyf<wuyf21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: extern C struct definitions that ffi needed
  ******************************************************************************/
-use c2rust_bitfields::BitfieldStruct;
 use crate::src::ffi_alias::type_alias::*;
+use c2rust_bitfields::BitfieldStruct;
 
 // extern "C" {
 //     pub type ssl_backend_data;
@@ -152,7 +152,7 @@ pub struct sockaddr_storage {
     pub __ss_align: libc::c_ulong,
 }
 #[derive(Copy, Clone)]
-#[repr(C)] 
+#[repr(C)]
 // cfg __USE_MISC
 pub struct tm {
     pub tm_sec: libc::c_int,
@@ -192,7 +192,7 @@ pub struct Curl_easy {
     pub set: UserDefined,
     pub cookies: *mut CookieInfo,
     #[cfg(not(CURL_DISABLE_HSTS))]
-    pub hsts: *mut hsts, 
+    pub hsts: *mut hsts,
     #[cfg(not(CURL_DISABLE_ALTSVC))]
     pub asi: *mut altsvcinfo,
     pub progress: Progress,
@@ -201,7 +201,7 @@ pub struct Curl_easy {
     pub wildcard: WildcardData,
     pub info: PureInfo,
     pub tsi: curl_tlssessioninfo,
-    #[cfg(USE_HYPER)] 
+    #[cfg(USE_HYPER)]
     pub hyp: hyptransfer,
 }
 #[cfg(USE_HYPER)]
@@ -307,7 +307,7 @@ pub struct UrlState {
     pub scratch: *mut libc::c_char,
     pub followlocation: libc::c_long,
     #[cfg(HAVE_SIGNAL)]
-    pub prev_signal: Option::<unsafe extern "C" fn(libc::c_int) -> ()>,
+    pub prev_signal: Option<unsafe extern "C" fn(libc::c_int) -> ()>,
     pub digest: digestdata,
     pub proxydigest: digestdata,
     pub authhost: auth,
@@ -901,7 +901,7 @@ pub struct UserDefined {
     #[bitfield(name = "http09_allowed", ty = "bit", bits = "55..=55")]
     #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "56..=56")]
     // pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
-        // [u8; 8],
+    // [u8; 8],
     pub c2rust_abbr: [u8; 8],
     #[cfg(all(not(CURL_DISABLE_FTP), HAVE_GSSAPI))]
     #[bitfield(name = "is_fread_set", ty = "bit", bits = "0..=0")]
@@ -1029,7 +1029,7 @@ pub struct UserDefined {
     #[bitfield(name = "http09_allowed", ty = "bit", bits = "56..=56")]
     #[bitfield(name = "mail_rcpt_allowfails", ty = "bit", bits = "57..=57")]
     // pub is_fread_set_is_fwrite_set_free_referer_tftp_no_options_sep_headers_cookiesession_crlf_strip_path_slash_ssh_compression_get_filetime_tunnel_thru_httpproxy_prefer_ascii_remote_append_list_only_hide_progress_http_fail_on_error_http_keep_sending_on_error_http_follow_location_http_transfer_encoding_allow_auth_to_other_hosts_include_header_http_set_referer_http_auto_referer_opt_no_body_upload_verbose_krb_reuse_forbid_reuse_fresh_no_signal_tcp_nodelay_ignorecl_connect_only_http_te_skip_http_ce_skip_proxy_transfer_mode_socks5_gssapi_nec_sasl_ir_wildcard_enabled_tcp_keepalive_tcp_fastopen_ssl_enable_npn_ssl_enable_alpn_path_as_is_pipewait_suppress_connect_headers_dns_shuffle_addresses_stream_depends_e_haproxyprotocol_abstract_unix_socket_disallow_username_in_url_doh_doh_get_doh_verifypeer_doh_verifyhost_doh_verifystatus_http09_allowed_mail_rcpt_allowfails:
-        // [u8; 8],
+    // [u8; 8],
     pub c2rust_abbr: [u8; 8],
 }
 #[derive(Copy, Clone)]
@@ -1122,15 +1122,9 @@ pub struct mime_encoder_state {
 #[repr(C)]
 pub struct mime_encoder {
     pub name: *const libc::c_char,
-    pub encodefunc: Option::<
-        unsafe extern "C" fn(
-            *mut libc::c_char,
-            size_t,
-            bool,
-            *mut curl_mimepart,
-        ) -> size_t,
-    >,
-    pub sizefunc: Option::<unsafe extern "C" fn(*mut curl_mimepart) -> curl_off_t>,
+    pub encodefunc:
+        Option<unsafe extern "C" fn(*mut libc::c_char, size_t, bool, *mut curl_mimepart) -> size_t>,
+    pub sizefunc: Option<unsafe extern "C" fn(*mut curl_mimepart) -> curl_off_t>,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1548,8 +1542,8 @@ pub struct connectdata {
     pub sock: [curl_socket_t; 2],
     pub tempsock: [curl_socket_t; 2],
     pub tempfamily: [libc::c_int; 2],
-    pub recv: [Option::<Curl_recv>; 2],
-    pub send: [Option::<Curl_send>; 2],
+    pub recv: [Option<Curl_recv>; 2],
+    pub send: [Option<Curl_send>; 2],
     pub ssl: [ssl_connect_data; 2],
     #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl: [ssl_connect_data; 2],
@@ -1568,7 +1562,7 @@ pub struct connectdata {
     pub sockfd: curl_socket_t,
     pub writesockfd: curl_socket_t,
     #[cfg(HAVE_GSSAPI)]
-    #[bitfield(name = "sec_complete", ty = "bit", bits = "0..=0")]   
+    #[bitfield(name = "sec_complete", ty = "bit", bits = "0..=0")]
     pub sec_complete: [u8; 1],
     #[cfg(HAVE_GSSAPI)]
     #[bitfield(padding)]
@@ -1731,7 +1725,7 @@ pub struct SASLproto {
     pub contcode: libc::c_int,
     pub finalcode: libc::c_int,
     pub maxirlen: size_t,
-    pub sendauth: Option::<
+    pub sendauth: Option<
         unsafe extern "C" fn(
             *mut Curl_easy,
             *mut connectdata,
@@ -1739,16 +1733,10 @@ pub struct SASLproto {
             *const libc::c_char,
         ) -> CURLcode,
     >,
-    pub sendcont: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *const libc::c_char,
-        ) -> CURLcode,
+    pub sendcont: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *const libc::c_char) -> CURLcode,
     >,
-    pub getmessage: Option::<
-        unsafe extern "C" fn(*mut libc::c_char, *mut *mut libc::c_char) -> (),
-    >,
+    pub getmessage: Option<unsafe extern "C" fn(*mut libc::c_char, *mut *mut libc::c_char) -> ()>,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1764,10 +1752,8 @@ pub struct pingpong {
     pub response: curltime,
     pub response_time: timediff_t,
     pub sendbuf: dynbuf,
-    pub statemachine: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode,
-    >,
-    pub endofresp: Option::<
+    pub statemachine: Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode>,
+    pub endofresp: Option<
         unsafe extern "C" fn(
             *mut Curl_easy,
             *mut connectdata,
@@ -1963,9 +1949,9 @@ pub struct ssh_conn {
     #[cfg(all(not(USE_LIBSSH), USE_LIBSSH2))]
     pub sftp_handle: *mut LIBSSH2_SFTP_HANDLE,
     #[cfg(all(not(USE_LIBSSH), USE_LIBSSH2, not(CURL_DISABLE_PROXY)))]
-    pub tls_recv: Option::<Curl_recv>,
+    pub tls_recv: Option<Curl_recv>,
     #[cfg(all(not(USE_LIBSSH), USE_LIBSSH2, not(CURL_DISABLE_PROXY)))]
-    pub tls_send: Option::<Curl_send>,
+    pub tls_send: Option<Curl_send>,
     #[cfg(all(not(USE_LIBSSH), USE_LIBSSH2))]
     pub ssh_agent: *mut LIBSSH2_AGENT,
     #[cfg(all(not(USE_LIBSSH), USE_LIBSSH2))]
@@ -1987,9 +1973,9 @@ pub struct http_conn {
     #[cfg(USE_NGHTTP2)]
     pub h2: *mut nghttp2_session,
     #[cfg(USE_NGHTTP2)]
-    pub send_underlying: Option::<Curl_send>,
+    pub send_underlying: Option<Curl_send>,
     #[cfg(USE_NGHTTP2)]
-    pub recv_underlying: Option::<Curl_recv>,
+    pub recv_underlying: Option<Curl_recv>,
     #[cfg(USE_NGHTTP2)]
     pub inbuf: *mut libc::c_char,
     #[cfg(USE_NGHTTP2)]
@@ -2054,68 +2040,35 @@ pub struct ftp_conn {
 #[repr(C)]
 pub struct Curl_handler {
     pub scheme: *const libc::c_char,
-    pub setup_connection: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode,
+    pub setup_connection:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> CURLcode>,
+    pub do_it: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub done: Option<unsafe extern "C" fn(*mut Curl_easy, CURLcode, bool) -> CURLcode>,
+    pub do_more: Option<unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_int) -> CURLcode>,
+    pub connect_it: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub connecting: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub doing: Option<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
+    pub proto_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub do_it: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
-    pub done: Option::<unsafe extern "C" fn(*mut Curl_easy, CURLcode, bool) -> CURLcode>,
-    pub do_more: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_int) -> CURLcode,
+    pub doing_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub connect_it: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode,
+    pub domore_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub connecting: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode,
+    pub perform_getsock: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut curl_socket_t) -> libc::c_int,
     >,
-    pub doing: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut bool) -> CURLcode>,
-    pub proto_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
+    pub disconnect:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, bool) -> CURLcode>,
+    pub readwrite: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, *mut ssize_t, *mut bool) -> CURLcode,
     >,
-    pub doing_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
+    pub connection_check: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_uint) -> libc::c_uint,
     >,
-    pub domore_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
-    >,
-    pub perform_getsock: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut curl_socket_t,
-        ) -> libc::c_int,
-    >,
-    pub disconnect: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, bool) -> CURLcode,
-    >,
-    pub readwrite: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            *mut ssize_t,
-            *mut bool,
-        ) -> CURLcode,
-    >,
-    pub connection_check: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            libc::c_uint,
-        ) -> libc::c_uint,
-    >,
-    pub attach: Option::<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> ()>,
+    pub attach: Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata) -> ()>,
     pub defport: libc::c_int,
     pub protocol: libc::c_uint,
     pub family: libc::c_uint,
@@ -2127,7 +2080,11 @@ pub struct ConnectBits {
     pub tcpconnect: [bool; 2],
     #[cfg(not(CURL_DISABLE_PROXY))]
     pub proxy_ssl_connected: [bool; 2],
-    #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_FTP), not(CURL_DISABLE_NETRC)))]
+    #[cfg(all(
+        not(CURL_DISABLE_PROXY),
+        not(CURL_DISABLE_FTP),
+        not(CURL_DISABLE_NETRC)
+    ))]
     #[bitfield(name = "httpproxy", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "socksproxy", ty = "bit", bits = "1..=1")]
     #[bitfield(name = "proxy_user_passwd", ty = "bit", bits = "2..=2")]
@@ -2165,9 +2122,13 @@ pub struct ConnectBits {
     #[bitfield(name = "parallel_connect", ty = "bit", bits = "34..=34")]
     // pub httpproxy_socksproxy_proxy_user_passwd_tunnel_proxy_proxy_connect_closed_close_reuse_altused_conn_to_host_conn_to_port_proxy_user_passwd_ipv6_ip_ipv6_do_more_protoconnstart_retry_authneg_rewindaftersend_ftp_use_epsv_ftp_use_eprt_ftp_use_data_ssl_ftp_use_control_ssl_netrc_bound_multiplex_tcp_fastopen_tls_enable_npn_tls_enable_alpn_connect_only_doh_abstract_unix_socket_tls_upgraded_sock_accepted_parallel_connect: [u8; 5],
     pub c2rust_abbr: [u8; 5],
-    #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_FTP), not(CURL_DISABLE_NETRC)))]
+    #[cfg(all(
+        not(CURL_DISABLE_PROXY),
+        not(CURL_DISABLE_FTP),
+        not(CURL_DISABLE_NETRC)
+    ))]
     #[bitfield(padding)]
-    pub c2rust_padding: [u8; 3],  
+    pub c2rust_padding: [u8; 3],
     #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_FTP), CURL_DISABLE_NETRC))]
     #[bitfield(name = "httpproxy", ty = "bit", bits = "0..=0")]
     #[bitfield(name = "socksproxy", ty = "bit", bits = "1..=1")]
@@ -2643,10 +2604,8 @@ pub struct contenc_writer {
 pub struct content_encoding {
     pub name: *const libc::c_char,
     pub alias: *const libc::c_char,
-    pub init_writer: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> CURLcode,
-    >,
-    pub unencode_write: Option::<
+    pub init_writer: Option<unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> CURLcode>,
+    pub unencode_write: Option<
         unsafe extern "C" fn(
             *mut Curl_easy,
             *mut contenc_writer,
@@ -2654,9 +2613,7 @@ pub struct content_encoding {
             size_t,
         ) -> CURLcode,
     >,
-    pub close_writer: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> (),
-    >,
+    pub close_writer: Option<unsafe extern "C" fn(*mut Curl_easy, *mut contenc_writer) -> ()>,
     pub paramsize: size_t,
 }
 
@@ -2854,7 +2811,7 @@ pub union nghttp2_frame {
     pub ext: nghttp2_extension,
 }
 
-// mbedtls ftp 
+// mbedtls ftp
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct curl_index {
@@ -2892,7 +2849,7 @@ pub struct ntlmdata {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct bufref {
-    pub dtor: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    pub dtor: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub ptr: *const libc::c_uchar,
     pub len: size_t,
     #[cfg(CURLDEBUG)]
@@ -2906,66 +2863,38 @@ pub struct Curl_ssl {
     pub info: curl_ssl_backend,
     pub supports: libc::c_uint,
     pub sizeof_ssl_backend_data: size_t,
-    pub init: Option::<unsafe extern "C" fn() -> libc::c_int>,
-    pub cleanup: Option::<unsafe extern "C" fn() -> ()>,
-    pub version: Option::<unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t>,
-    pub check_cxn: Option::<unsafe extern "C" fn(*mut connectdata) -> libc::c_int>,
-    pub shut_down: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            libc::c_int,
-        ) -> libc::c_int,
+    pub init: Option<unsafe extern "C" fn() -> libc::c_int>,
+    pub cleanup: Option<unsafe extern "C" fn() -> ()>,
+    pub version: Option<unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t>,
+    pub check_cxn: Option<unsafe extern "C" fn(*mut connectdata) -> libc::c_int>,
+    pub shut_down:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> libc::c_int>,
+    pub data_pending: Option<unsafe extern "C" fn(*const connectdata, libc::c_int) -> bool>,
+    pub random:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_uchar, size_t) -> CURLcode>,
+    pub cert_status_request: Option<unsafe extern "C" fn() -> bool>,
+    pub connect_blocking:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> CURLcode>,
+    pub connect_nonblocking: Option<
+        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int, *mut bool) -> CURLcode,
     >,
-    pub data_pending: Option::<
-        unsafe extern "C" fn(*const connectdata, libc::c_int) -> bool,
+    pub getsock: Option<unsafe extern "C" fn(*mut connectdata, *mut curl_socket_t) -> libc::c_int>,
+    pub get_internals:
+        Option<unsafe extern "C" fn(*mut ssl_connect_data, CURLINFO) -> *mut libc::c_void>,
+    pub close_one:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> ()>,
+    pub close_all: Option<unsafe extern "C" fn(*mut Curl_easy) -> ()>,
+    pub session_free: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    pub set_engine: Option<unsafe extern "C" fn(*mut Curl_easy, *const libc::c_char) -> CURLcode>,
+    pub set_engine_default: Option<unsafe extern "C" fn(*mut Curl_easy) -> CURLcode>,
+    pub engines_list: Option<unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist>,
+    pub false_start: Option<unsafe extern "C" fn() -> bool>,
+    pub sha256sum: Option<
+        unsafe extern "C" fn(*const libc::c_uchar, size_t, *mut libc::c_uchar, size_t) -> CURLcode,
     >,
-    pub random: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_uchar, size_t) -> CURLcode,
-    >,
-    pub cert_status_request: Option::<unsafe extern "C" fn() -> bool>,
-    pub connect_blocking: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> CURLcode,
-    >,
-    pub connect_nonblocking: Option::<
-        unsafe extern "C" fn(
-            *mut Curl_easy,
-            *mut connectdata,
-            libc::c_int,
-            *mut bool,
-        ) -> CURLcode,
-    >,
-    pub getsock: Option::<
-        unsafe extern "C" fn(*mut connectdata, *mut curl_socket_t) -> libc::c_int,
-    >,
-    pub get_internals: Option::<
-        unsafe extern "C" fn(*mut ssl_connect_data, CURLINFO) -> *mut libc::c_void,
-    >,
-    pub close_one: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> (),
-    >,
-    pub close_all: Option::<unsafe extern "C" fn(*mut Curl_easy) -> ()>,
-    pub session_free: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
-    pub set_engine: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *const libc::c_char) -> CURLcode,
-    >,
-    pub set_engine_default: Option::<unsafe extern "C" fn(*mut Curl_easy) -> CURLcode>,
-    pub engines_list: Option::<unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist>,
-    pub false_start: Option::<unsafe extern "C" fn() -> bool>,
-    pub sha256sum: Option::<
-        unsafe extern "C" fn(
-            *const libc::c_uchar,
-            size_t,
-            *mut libc::c_uchar,
-            size_t,
-        ) -> CURLcode,
-    >,
-    pub associate_connection: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> (),
-    >,
-    pub disassociate_connection: Option::<
-        unsafe extern "C" fn(*mut Curl_easy, libc::c_int) -> (),
-    >,
+    pub associate_connection:
+        Option<unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> ()>,
+    pub disassociate_connection: Option<unsafe extern "C" fn(*mut Curl_easy, libc::c_int) -> ()>,
 }
 // mbedtls_threadlock.rs
 #[derive(Copy, Clone)]
@@ -3073,7 +3002,7 @@ pub union pthread_mutex_t {
 #[repr(C)]
 pub struct mbedtls_ssl_config {
     pub ciphersuite_list: [*const libc::c_int; 4],
-    pub f_dbg: Option::<
+    pub f_dbg: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             libc::c_int,
@@ -3083,25 +3012,15 @@ pub struct mbedtls_ssl_config {
         ) -> (),
     >,
     pub p_dbg: *mut libc::c_void,
-    pub f_rng: Option::<
-        unsafe extern "C" fn(
-            *mut libc::c_void,
-            *mut libc::c_uchar,
-            size_t,
-        ) -> libc::c_int,
-    >,
+    pub f_rng:
+        Option<unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_uchar, size_t) -> libc::c_int>,
     pub p_rng: *mut libc::c_void,
-    pub f_get_cache: Option::<
-        unsafe extern "C" fn(*mut libc::c_void, *mut mbedtls_ssl_session) -> libc::c_int,
-    >,
-    pub f_set_cache: Option::<
-        unsafe extern "C" fn(
-            *mut libc::c_void,
-            *const mbedtls_ssl_session,
-        ) -> libc::c_int,
-    >,
+    pub f_get_cache:
+        Option<unsafe extern "C" fn(*mut libc::c_void, *mut mbedtls_ssl_session) -> libc::c_int>,
+    pub f_set_cache:
+        Option<unsafe extern "C" fn(*mut libc::c_void, *const mbedtls_ssl_session) -> libc::c_int>,
     pub p_cache: *mut libc::c_void,
-    pub f_sni: Option::<
+    pub f_sni: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *mut mbedtls_ssl_context,
@@ -3110,7 +3029,7 @@ pub struct mbedtls_ssl_config {
         ) -> libc::c_int,
     >,
     pub p_sni: *mut libc::c_void,
-    pub f_vrfy: Option::<
+    pub f_vrfy: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *mut mbedtls_x509_crt,
@@ -3119,7 +3038,7 @@ pub struct mbedtls_ssl_config {
         ) -> libc::c_int,
     >,
     pub p_vrfy: *mut libc::c_void,
-    pub f_psk: Option::<
+    pub f_psk: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *mut mbedtls_ssl_context,
@@ -3128,7 +3047,7 @@ pub struct mbedtls_ssl_config {
         ) -> libc::c_int,
     >,
     pub p_psk: *mut libc::c_void,
-    pub f_cookie_write: Option::<
+    pub f_cookie_write: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *mut *mut libc::c_uchar,
@@ -3137,7 +3056,7 @@ pub struct mbedtls_ssl_config {
             size_t,
         ) -> libc::c_int,
     >,
-    pub f_cookie_check: Option::<
+    pub f_cookie_check: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *const libc::c_uchar,
@@ -3147,7 +3066,7 @@ pub struct mbedtls_ssl_config {
         ) -> libc::c_int,
     >,
     pub p_cookie: *mut libc::c_void,
-    pub f_ticket_write: Option::<
+    pub f_ticket_write: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *const mbedtls_ssl_session,
@@ -3157,7 +3076,7 @@ pub struct mbedtls_ssl_config {
             *mut uint32_t,
         ) -> libc::c_int,
     >,
-    pub f_ticket_parse: Option::<
+    pub f_ticket_parse: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *mut mbedtls_ssl_session,
@@ -3166,7 +3085,7 @@ pub struct mbedtls_ssl_config {
         ) -> libc::c_int,
     >,
     pub p_ticket: *mut libc::c_void,
-    pub f_export_keys: Option::<
+    pub f_export_keys: Option<
         unsafe extern "C" fn(
             *mut libc::c_void,
             *const libc::c_uchar,
@@ -3204,7 +3123,11 @@ pub struct mbedtls_ssl_config {
     #[bitfield(name = "endpoint", ty = "libc::c_uint", bits = "0..=0")]
     #[bitfield(name = "transport", ty = "libc::c_uint", bits = "1..=1")]
     #[bitfield(name = "authmode", ty = "libc::c_uint", bits = "2..=3")]
-    #[bitfield(name = "allow_legacy_renegotiation", ty = "libc::c_uint", bits = "4..=5")]
+    #[bitfield(
+        name = "allow_legacy_renegotiation",
+        ty = "libc::c_uint",
+        bits = "4..=5"
+    )]
     #[bitfield(name = "arc4_disabled", ty = "libc::c_uint", bits = "6..=6")]
     #[bitfield(name = "mfl_code", ty = "libc::c_uint", bits = "7..=9")]
     #[bitfield(name = "encrypt_then_mac", ty = "libc::c_uint", bits = "10..=10")]
@@ -3361,9 +3284,9 @@ pub struct mbedtls_ssl_context {
     pub major_ver: libc::c_int,
     pub minor_ver: libc::c_int,
     pub badmac_seen: libc::c_uint,
-    pub f_send: Option::<mbedtls_ssl_send_t>,
-    pub f_recv: Option::<mbedtls_ssl_recv_t>,
-    pub f_recv_timeout: Option::<mbedtls_ssl_recv_timeout_t>,
+    pub f_send: Option<mbedtls_ssl_send_t>,
+    pub f_recv: Option<mbedtls_ssl_recv_t>,
+    pub f_recv_timeout: Option<mbedtls_ssl_recv_timeout_t>,
     pub p_bio: *mut libc::c_void,
     pub session_in: *mut mbedtls_ssl_session,
     pub session_out: *mut mbedtls_ssl_session,
@@ -3375,8 +3298,8 @@ pub struct mbedtls_ssl_context {
     pub transform: *mut mbedtls_ssl_transform,
     pub transform_negotiate: *mut mbedtls_ssl_transform,
     pub p_timer: *mut libc::c_void,
-    pub f_set_timer: Option::<mbedtls_ssl_set_timer_t>,
-    pub f_get_timer: Option::<mbedtls_ssl_get_timer_t>,
+    pub f_set_timer: Option<mbedtls_ssl_set_timer_t>,
+    pub f_get_timer: Option<mbedtls_ssl_get_timer_t>,
     pub in_buf: *mut libc::c_uchar,
     pub in_ctr: *mut libc::c_uchar,
     pub in_hdr: *mut libc::c_uchar,
@@ -3468,13 +3391,8 @@ pub struct mbedtls_ctr_drbg_context {
     pub entropy_len: size_t,
     pub reseed_interval: libc::c_int,
     pub aes_ctx: mbedtls_aes_context,
-    pub f_entropy: Option::<
-        unsafe extern "C" fn(
-            *mut libc::c_void,
-            *mut libc::c_uchar,
-            size_t,
-        ) -> libc::c_int,
-    >,
+    pub f_entropy:
+        Option<unsafe extern "C" fn(*mut libc::c_void, *mut libc::c_uchar, size_t) -> libc::c_int>,
     pub p_entropy: *mut libc::c_void,
     pub mutex: mbedtls_threading_mutex_t,
 }
@@ -3485,7 +3403,6 @@ pub struct mbedtls_aes_context {
     pub rk: *mut uint32_t,
     pub buf: [uint32_t; 68],
 }
-
 
 // gnutls http2.rs
 // gnutls gtls.rs
@@ -3503,7 +3420,6 @@ pub struct sha256_ctx {
     pub block: [uint8_t; 64],
     pub index: libc::c_uint,
 }
-
 
 // gnutls vtls.rs
 // gnutls ftp.rs
@@ -3626,7 +3542,7 @@ pub struct PRFileDesc {
     pub secret: *mut PRFilePrivate,
     pub lower: *mut PRFileDesc,
     pub higher: *mut PRFileDesc,
-    pub dtor: Option::<unsafe extern "C" fn(*mut PRFileDesc) -> ()>,
+    pub dtor: Option<unsafe extern "C" fn(*mut PRFileDesc) -> ()>,
     pub identity: PRDescIdentity,
 }
 #[derive(Copy, Clone)]
@@ -3909,7 +3825,11 @@ pub union nss_C2RustUnnamed_15 {
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct nss_C2RustUnnamed_16 {
-    #[bitfield(name = "hasUnsupportedCriticalExt", ty = "libc::c_uint", bits = "0..=0")]
+    #[bitfield(
+        name = "hasUnsupportedCriticalExt",
+        ty = "libc::c_uint",
+        bits = "0..=0"
+    )]
     pub hasUnsupportedCriticalExt: [u8; 1],
     #[bitfield(padding)]
     pub c2rust_padding: [u8; 3],
@@ -4639,14 +4559,10 @@ pub struct br_x509_minimal_context {
 #[repr(C)]
 pub struct br_ec_impl {
     pub supported_curves: uint32_t,
-    pub generator: Option::<
-        unsafe extern "C" fn(libc::c_int, *mut size_t) -> *const libc::c_uchar,
-    >,
-    pub order: Option::<
-        unsafe extern "C" fn(libc::c_int, *mut size_t) -> *const libc::c_uchar,
-    >,
-    pub xoff: Option::<unsafe extern "C" fn(libc::c_int, *mut size_t) -> size_t>,
-    pub mul: Option::<
+    pub generator: Option<unsafe extern "C" fn(libc::c_int, *mut size_t) -> *const libc::c_uchar>,
+    pub order: Option<unsafe extern "C" fn(libc::c_int, *mut size_t) -> *const libc::c_uchar>,
+    pub xoff: Option<unsafe extern "C" fn(libc::c_int, *mut size_t) -> size_t>,
+    pub mul: Option<
         unsafe extern "C" fn(
             *mut libc::c_uchar,
             size_t,
@@ -4655,7 +4571,7 @@ pub struct br_ec_impl {
             libc::c_int,
         ) -> uint32_t,
     >,
-    pub mulgen: Option::<
+    pub mulgen: Option<
         unsafe extern "C" fn(
             *mut libc::c_uchar,
             *const libc::c_uchar,
@@ -4663,7 +4579,7 @@ pub struct br_ec_impl {
             libc::c_int,
         ) -> size_t,
     >,
-    pub muladd: Option::<
+    pub muladd: Option<
         unsafe extern "C" fn(
             *mut libc::c_uchar,
             *const libc::c_uchar,
@@ -4710,26 +4626,14 @@ pub struct br_md5sha1_context {
 pub struct br_hash_class_ {
     pub context_size: size_t,
     pub desc: uint32_t,
-    pub init: Option::<unsafe extern "C" fn(*mut *const br_hash_class) -> ()>,
-    pub update: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_hash_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
-    >,
-    pub out: Option::<
-        unsafe extern "C" fn(*const *const br_hash_class, *mut libc::c_void) -> (),
-    >,
-    pub state: Option::<
-        unsafe extern "C" fn(*const *const br_hash_class, *mut libc::c_void) -> uint64_t,
-    >,
-    pub set_state: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_hash_class,
-            *const libc::c_void,
-            uint64_t,
-        ) -> (),
+    pub init: Option<unsafe extern "C" fn(*mut *const br_hash_class) -> ()>,
+    pub update:
+        Option<unsafe extern "C" fn(*mut *const br_hash_class, *const libc::c_void, size_t) -> ()>,
+    pub out: Option<unsafe extern "C" fn(*const *const br_hash_class, *mut libc::c_void) -> ()>,
+    pub state:
+        Option<unsafe extern "C" fn(*const *const br_hash_class, *mut libc::c_void) -> uint64_t>,
+    pub set_state: Option<
+        unsafe extern "C" fn(*mut *const br_hash_class, *const libc::c_void, uint64_t) -> (),
     >,
 }
 #[derive(Copy, Clone)]
@@ -4784,28 +4688,15 @@ pub struct bear_C2RustUnnamed_7 {
 #[repr(C)]
 pub struct br_x509_class_ {
     pub context_size: size_t,
-    pub start_chain: Option::<
-        unsafe extern "C" fn(*mut *const br_x509_class, *const libc::c_char) -> (),
-    >,
-    pub start_cert: Option::<
-        unsafe extern "C" fn(*mut *const br_x509_class, uint32_t) -> (),
-    >,
-    pub append: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_x509_class,
-            *const libc::c_uchar,
-            size_t,
-        ) -> (),
-    >,
-    pub end_cert: Option::<unsafe extern "C" fn(*mut *const br_x509_class) -> ()>,
-    pub end_chain: Option::<
-        unsafe extern "C" fn(*mut *const br_x509_class) -> libc::c_uint,
-    >,
-    pub get_pkey: Option::<
-        unsafe extern "C" fn(
-            *const *const br_x509_class,
-            *mut libc::c_uint,
-        ) -> *const br_x509_pkey,
+    pub start_chain:
+        Option<unsafe extern "C" fn(*mut *const br_x509_class, *const libc::c_char) -> ()>,
+    pub start_cert: Option<unsafe extern "C" fn(*mut *const br_x509_class, uint32_t) -> ()>,
+    pub append:
+        Option<unsafe extern "C" fn(*mut *const br_x509_class, *const libc::c_uchar, size_t) -> ()>,
+    pub end_cert: Option<unsafe extern "C" fn(*mut *const br_x509_class) -> ()>,
+    pub end_chain: Option<unsafe extern "C" fn(*mut *const br_x509_class) -> libc::c_uint>,
+    pub get_pkey: Option<
+        unsafe extern "C" fn(*const *const br_x509_class, *mut libc::c_uint) -> *const br_x509_pkey,
     >,
 }
 #[derive(Copy, Clone)]
@@ -4858,26 +4749,21 @@ pub struct br_x509_certificate {
 #[repr(C)]
 pub struct br_ssl_client_certificate_class_ {
     pub context_size: size_t,
-    pub start_name_list: Option::<
-        unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> (),
-    >,
-    pub start_name: Option::<
-        unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class, size_t) -> (),
-    >,
-    pub append_name: Option::<
+    pub start_name_list:
+        Option<unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> ()>,
+    pub start_name:
+        Option<unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class, size_t) -> ()>,
+    pub append_name: Option<
         unsafe extern "C" fn(
             *mut *const br_ssl_client_certificate_class,
             *const libc::c_uchar,
             size_t,
         ) -> (),
     >,
-    pub end_name: Option::<
-        unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> (),
-    >,
-    pub end_name_list: Option::<
-        unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> (),
-    >,
-    pub choose: Option::<
+    pub end_name: Option<unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> ()>,
+    pub end_name_list:
+        Option<unsafe extern "C" fn(*mut *const br_ssl_client_certificate_class) -> ()>,
+    pub choose: Option<
         unsafe extern "C" fn(
             *mut *const br_ssl_client_certificate_class,
             *const br_ssl_client_context,
@@ -4885,14 +4771,14 @@ pub struct br_ssl_client_certificate_class_ {
             *mut br_ssl_client_certificate,
         ) -> (),
     >,
-    pub do_keyx: Option::<
+    pub do_keyx: Option<
         unsafe extern "C" fn(
             *mut *const br_ssl_client_certificate_class,
             *mut libc::c_uchar,
             *mut size_t,
         ) -> uint32_t,
     >,
-    pub do_sign: Option::<
+    pub do_sign: Option<
         unsafe extern "C" fn(
             *mut *const br_ssl_client_certificate_class,
             libc::c_int,
@@ -4987,7 +4873,7 @@ pub struct br_ssl_engine_context {
     pub saved_hbuf_out: *mut libc::c_uchar,
     pub hlen_in: size_t,
     pub hlen_out: size_t,
-    pub hsrun: Option::<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
+    pub hsrun: Option<unsafe extern "C" fn(*mut libc::c_void) -> ()>,
     pub action: libc::c_uchar,
     pub alert: libc::c_uchar,
     pub close_received: libc::c_uchar,
@@ -5028,7 +4914,7 @@ pub struct br_ssl_engine_context {
 #[repr(C)]
 pub struct br_sslrec_out_ccm_class_ {
     pub inner: br_sslrec_out_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_out_ccm_class,
             *const br_block_ctrcbc_class,
@@ -5045,14 +4931,10 @@ pub struct br_block_ctrcbc_class_ {
     pub context_size: size_t,
     pub block_size: libc::c_uint,
     pub log_block_size: libc::c_uint,
-    pub init: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_block_ctrcbc_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
+    pub init: Option<
+        unsafe extern "C" fn(*mut *const br_block_ctrcbc_class, *const libc::c_void, size_t) -> (),
     >,
-    pub encrypt: Option::<
+    pub encrypt: Option<
         unsafe extern "C" fn(
             *const *const br_block_ctrcbc_class,
             *mut libc::c_void,
@@ -5061,7 +4943,7 @@ pub struct br_block_ctrcbc_class_ {
             size_t,
         ) -> (),
     >,
-    pub decrypt: Option::<
+    pub decrypt: Option<
         unsafe extern "C" fn(
             *const *const br_block_ctrcbc_class,
             *mut libc::c_void,
@@ -5070,7 +4952,7 @@ pub struct br_block_ctrcbc_class_ {
             size_t,
         ) -> (),
     >,
-    pub ctr: Option::<
+    pub ctr: Option<
         unsafe extern "C" fn(
             *const *const br_block_ctrcbc_class,
             *mut libc::c_void,
@@ -5078,7 +4960,7 @@ pub struct br_block_ctrcbc_class_ {
             size_t,
         ) -> (),
     >,
-    pub mac: Option::<
+    pub mac: Option<
         unsafe extern "C" fn(
             *const *const br_block_ctrcbc_class,
             *mut libc::c_void,
@@ -5091,14 +4973,10 @@ pub struct br_block_ctrcbc_class_ {
 #[repr(C)]
 pub struct br_sslrec_out_class_ {
     pub context_size: size_t,
-    pub max_plaintext: Option::<
-        unsafe extern "C" fn(
-            *const *const br_sslrec_out_class,
-            *mut size_t,
-            *mut size_t,
-        ) -> (),
+    pub max_plaintext: Option<
+        unsafe extern "C" fn(*const *const br_sslrec_out_class, *mut size_t, *mut size_t) -> (),
     >,
-    pub encrypt: Option::<
+    pub encrypt: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_out_class,
             libc::c_int,
@@ -5112,7 +4990,7 @@ pub struct br_sslrec_out_class_ {
 #[repr(C)]
 pub struct br_sslrec_in_ccm_class_ {
     pub inner: br_sslrec_in_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_in_ccm_class,
             *const br_block_ctrcbc_class,
@@ -5127,10 +5005,9 @@ pub struct br_sslrec_in_ccm_class_ {
 #[repr(C)]
 pub struct br_sslrec_in_class_ {
     pub context_size: size_t,
-    pub check_length: Option::<
-        unsafe extern "C" fn(*const *const br_sslrec_in_class, size_t) -> libc::c_int,
-    >,
-    pub decrypt: Option::<
+    pub check_length:
+        Option<unsafe extern "C" fn(*const *const br_sslrec_in_class, size_t) -> libc::c_int>,
+    pub decrypt: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_in_class,
             libc::c_int,
@@ -5144,7 +5021,7 @@ pub struct br_sslrec_in_class_ {
 #[repr(C)]
 pub struct br_sslrec_out_chapol_class_ {
     pub inner: br_sslrec_out_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_out_chapol_class,
             br_chacha20_run,
@@ -5158,7 +5035,7 @@ pub struct br_sslrec_out_chapol_class_ {
 #[repr(C)]
 pub struct br_sslrec_in_chapol_class_ {
     pub inner: br_sslrec_in_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_in_chapol_class,
             br_chacha20_run,
@@ -5172,7 +5049,7 @@ pub struct br_sslrec_in_chapol_class_ {
 #[repr(C)]
 pub struct br_sslrec_out_gcm_class_ {
     pub inner: br_sslrec_out_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_out_gcm_class,
             *const br_block_ctr_class,
@@ -5189,14 +5066,10 @@ pub struct br_block_ctr_class_ {
     pub context_size: size_t,
     pub block_size: libc::c_uint,
     pub log_block_size: libc::c_uint,
-    pub init: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_block_ctr_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
+    pub init: Option<
+        unsafe extern "C" fn(*mut *const br_block_ctr_class, *const libc::c_void, size_t) -> (),
     >,
-    pub run: Option::<
+    pub run: Option<
         unsafe extern "C" fn(
             *const *const br_block_ctr_class,
             *const libc::c_void,
@@ -5210,7 +5083,7 @@ pub struct br_block_ctr_class_ {
 #[repr(C)]
 pub struct br_sslrec_in_gcm_class_ {
     pub inner: br_sslrec_in_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_in_gcm_class,
             *const br_block_ctr_class,
@@ -5225,7 +5098,7 @@ pub struct br_sslrec_in_gcm_class_ {
 #[repr(C)]
 pub struct br_sslrec_out_cbc_class_ {
     pub inner: br_sslrec_out_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_out_cbc_class,
             *const br_block_cbcenc_class,
@@ -5245,14 +5118,10 @@ pub struct br_block_cbcenc_class_ {
     pub context_size: size_t,
     pub block_size: libc::c_uint,
     pub log_block_size: libc::c_uint,
-    pub init: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_block_cbcenc_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
+    pub init: Option<
+        unsafe extern "C" fn(*mut *const br_block_cbcenc_class, *const libc::c_void, size_t) -> (),
     >,
-    pub run: Option::<
+    pub run: Option<
         unsafe extern "C" fn(
             *const *const br_block_cbcenc_class,
             *mut libc::c_void,
@@ -5265,7 +5134,7 @@ pub struct br_block_cbcenc_class_ {
 #[repr(C)]
 pub struct br_sslrec_in_cbc_class_ {
     pub inner: br_sslrec_in_class,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_sslrec_in_cbc_class,
             *const br_block_cbcdec_class,
@@ -5285,14 +5154,10 @@ pub struct br_block_cbcdec_class_ {
     pub context_size: size_t,
     pub block_size: libc::c_uint,
     pub log_block_size: libc::c_uint,
-    pub init: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_block_cbcdec_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
+    pub init: Option<
+        unsafe extern "C" fn(*mut *const br_block_cbcdec_class, *const libc::c_void, size_t) -> (),
     >,
-    pub run: Option::<
+    pub run: Option<
         unsafe extern "C" fn(
             *const *const br_block_cbcdec_class,
             *mut libc::c_void,
@@ -5335,7 +5200,7 @@ pub struct br_hmac_drbg_context {
 #[repr(C)]
 pub struct br_prng_class_ {
     pub context_size: size_t,
-    pub init: Option::<
+    pub init: Option<
         unsafe extern "C" fn(
             *mut *const br_prng_class,
             *const libc::c_void,
@@ -5343,16 +5208,10 @@ pub struct br_prng_class_ {
             size_t,
         ) -> (),
     >,
-    pub generate: Option::<
-        unsafe extern "C" fn(*mut *const br_prng_class, *mut libc::c_void, size_t) -> (),
-    >,
-    pub update: Option::<
-        unsafe extern "C" fn(
-            *mut *const br_prng_class,
-            *const libc::c_void,
-            size_t,
-        ) -> (),
-    >,
+    pub generate:
+        Option<unsafe extern "C" fn(*mut *const br_prng_class, *mut libc::c_void, size_t) -> ()>,
+    pub update:
+        Option<unsafe extern "C" fn(*mut *const br_prng_class, *const libc::c_void, size_t) -> ()>,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -5794,9 +5653,8 @@ pub struct br_x509_decoder_context {
     pub isCA: libc::c_uchar,
     pub copy_dn: libc::c_uchar,
     pub append_dn_ctx: *mut libc::c_void,
-    pub append_dn: Option::<
-        unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
-    >,
+    pub append_dn:
+        Option<unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> ()>,
     pub hbuf: *const libc::c_uchar,
     pub hlen: size_t,
     pub pkey_data: [libc::c_uchar; 520],
@@ -5819,9 +5677,7 @@ pub struct br_pem_decoder_context {
     pub err: libc::c_int,
     pub hbuf: *const libc::c_uchar,
     pub hlen: size_t,
-    pub dest: Option::<
-        unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
-    >,
+    pub dest: Option<unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> ()>,
     pub dest_ctx: *mut libc::c_void,
     pub event: libc::c_uchar,
     pub name: [libc::c_char; 128],
@@ -5863,4 +5719,3 @@ pub struct libssh2_agent_publickey {
     pub blob_len: size_t,
     pub comment: *mut libc::c_char,
 }
-
