@@ -99,41 +99,44 @@ extern "C" fn http2_getsock(
     conn: *mut connectdata,
     sock: *mut curl_socket_t,
 ) -> i32 {
-    unsafe {
-        let c: *const http_conn = &mut (*conn).proto.httpc;
-        let mut k: *mut SingleRequest = &mut (*data).req;
-        let mut bitmap: i32 = GETSOCK_BLANK;
-        *sock.offset(0) = (*conn).sock[FIRSTSOCKET];
-        if (*k).keepon & KEEP_RECV_PAUSE == 0 {
-            bitmap |= GETSOCK_READSOCK(FIRSTSOCKET as i32);
-        }
-        if (*k).keepon & (KEEP_SEND | KEEP_SEND_PAUSE) == KEEP_SEND
-            || nghttp2_session_want_write((*c).h2) != 0
-        {
-            bitmap |= GETSOCK_WRITESOCK(FIRSTSOCKET as i32);
-        }
-        return bitmap;
+    let c: *const http_conn = unsafe { &mut (*conn).proto.httpc };
+    let mut k: *mut SingleRequest = unsafe { &mut (*data).req };
+    let mut bitmap: i32 = GETSOCK_BLANK;
+
+    unsafe { *sock.offset(0) = (*conn).sock[FIRSTSOCKET] };
+
+    if unsafe { (*k).keepon } & KEEP_RECV_PAUSE == 0 {
+        bitmap |= GETSOCK_READSOCK(FIRSTSOCKET as i32);
     }
+
+    if unsafe { (*k).keepon } & (KEEP_SEND | KEEP_SEND_PAUSE) == KEEP_SEND
+        || unsafe { nghttp2_session_want_write((*c).h2) } != 0
+    {
+        bitmap |= GETSOCK_WRITESOCK(FIRSTSOCKET as i32);
+    }
+    return bitmap;
 }
+
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_stream_free(http: *mut HTTP) {
-    unsafe {
+    
         if !http.is_null() {
-            Curl_dyn_free(&mut (*http).header_recvbuf);
-            while (*http).push_headers_used > 0 {
+            unsafe {Curl_dyn_free( &mut (*http).header_recvbuf)};
+            while unsafe { (*http).push_headers_used } > 0 {
+                unsafe {
                 Curl_cfree.expect("non-null function pointer")(
                     *((*http).push_headers)
                         .offset(((*http).push_headers_used).wrapping_sub(1) as isize)
                         as *mut libc::c_void,
-                );
-                (*http).push_headers_used = (*http).push_headers_used.wrapping_sub(1);
+                ); 
+                (*http).push_headers_used = (*http).push_headers_used.wrapping_sub(1) ;}
             }
+            unsafe {
             Curl_cfree.expect("non-null function pointer")(
-                (*http).push_headers as *mut libc::c_void,
+                (*http).push_headers as *mut libc::c_void ,
             );
-            (*http).push_headers = 0 as *mut *mut i8;
+            (*http).push_headers = 0 as *mut *mut i8; }
         }
-    }
 }
 #[cfg(USE_NGHTTP2)]
 extern "C" fn http2_disconnect(
@@ -233,11 +236,12 @@ extern "C" fn http2_conncheck(
     conn: *mut connectdata,
     checks_to_perform: u32,
 ) -> u32 {
+    let mut ret_val: u32 = CONNRESULT_NONE;
+    let c: *mut http_conn = unsafe { &mut (*conn).proto.httpc };
+    let mut rc: i32 = 0;
+    let mut send_frames: bool = false;
+
     unsafe {
-        let mut ret_val: u32 = CONNRESULT_NONE;
-        let c: *mut http_conn = &mut (*conn).proto.httpc;
-        let mut rc: i32 = 0;
-        let mut send_frames: bool = false;
         if checks_to_perform & CONNCHECK_ISDEAD != 0 {
             if http2_connisdead(data, conn) {
                 ret_val |= CONNRESULT_DEAD;
