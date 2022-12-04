@@ -23,6 +23,19 @@ unsafe extern "C" fn sha256_to_hex(
     mut dst_l: size_t,
 ) {
     let mut i: libc::c_int = 0;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if dst_l >= 65 as libc::c_int as libc::c_ulong {
+    } else {
+        __assert_fail(
+            b"dst_l >= 65\0" as *const u8 as *const libc::c_char,
+            b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+            63 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<&[u8; 52], &[libc::c_char; 52]>(
+                b"void sha256_to_hex(char *, unsigned char *, size_t)\0",
+            ))
+            .as_ptr(),
+        );
+    }
     i = 0 as libc::c_int;
     while i < 32 as libc::c_int {
         curl_msnprintf(
@@ -52,6 +65,7 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
     let mut region: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut service: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut hostname: *const libc::c_char = (*conn).host.name;
+    let mut force_timestamp: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut clock: time_t = 0;
     let mut tm: tm = tm {
         tm_sec: 0,
@@ -165,6 +179,19 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
         0,
     ];
     let mut auth_headers: *mut libc::c_char = 0 as *mut libc::c_char;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if !proxy {
+    } else {
+        __assert_fail(
+            b"!proxy\0" as *const u8 as *const libc::c_char,
+            b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+            109 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<&[u8; 58], &[libc::c_char; 58]>(
+                b"CURLcode Curl_output_aws_sigv4(struct Curl_easy *, _Bool)\0",
+            ))
+            .as_ptr(),
+        );
+    }
     if !(Curl_checkheaders(data, b"Authorization\0" as *const u8 as *const libc::c_char)).is_null()
     {
         return CURLE_OK;
@@ -187,12 +214,28 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
         );
         ret = CURLE_BAD_FUNCTION_ARGUMENT;
     } else {
-        provider0_low = Curl_cmalloc.expect("non-null function pointer")(
+        #[cfg(not(CURLDEBUG))]
+        let mut new_provider0_low: *mut libc::c_char = Curl_cmalloc.expect("non-null function pointer")(
             len.wrapping_add(1 as libc::c_int as libc::c_ulong),
         ) as *mut libc::c_char;
-        provider0_up = Curl_cmalloc.expect("non-null function pointer")(
+        #[cfg(CURLDEBUG)]
+        let mut new_provider0_low: *mut libc::c_char = curl_dbg_malloc(
+            len.wrapping_add(1 as libc::c_int as libc::c_ulong),
+            133 as libc::c_int,
+            b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+        ) as *mut libc::c_char;
+        provider0_low = new_provider0_low;
+        #[cfg(not(CURLDEBUG))]
+        let mut new_provider0_up: *mut libc::c_char = Curl_cmalloc.expect("non-null function pointer")(
             len.wrapping_add(1 as libc::c_int as libc::c_ulong),
         ) as *mut libc::c_char;
+        #[cfg(CURLDEBUG)]
+        let mut new_provider0_up: *mut libc::c_char = curl_dbg_malloc(
+            len.wrapping_add(1 as libc::c_int as libc::c_ulong),
+            134 as libc::c_int,
+            b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+        ) as *mut libc::c_char;
+        provider0_up = new_provider0_up;
         if !(provider0_low.is_null() || provider0_up.is_null()) {
             Curl_strntolower(provider0_low, tmp0, len);
             *provider0_low.offset(len as isize) = '\0' as i32 as libc::c_char;
@@ -214,12 +257,28 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
                     ret = CURLE_BAD_FUNCTION_ARGUMENT;
                     current_block = 16896850163988546332;
                 } else {
-                    provider1_low = Curl_cmalloc.expect("non-null function pointer")(
+                    #[cfg(not(CURLDEBUG))]
+                    let mut new_provider1_low: *mut libc::c_char = Curl_cmalloc.expect("non-null function pointer")(
                         len.wrapping_add(1 as libc::c_int as libc::c_ulong),
                     ) as *mut libc::c_char;
-                    provider1_mid = Curl_cmalloc.expect("non-null function pointer")(
+                    #[cfg(CURLDEBUG)]
+                    let mut new_provider1_low: *mut libc::c_char = curl_dbg_malloc(
+                        len.wrapping_add(1 as libc::c_int as libc::c_ulong),
+                        152 as libc::c_int,
+                        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+                    ) as *mut libc::c_char;
+                    provider1_low = new_provider1_low;
+                    #[cfg(not(CURLDEBUG))]
+                    let mut new_provider1_mid: *mut libc::c_char = Curl_cmalloc.expect("non-null function pointer")(
                         len.wrapping_add(1 as libc::c_int as libc::c_ulong),
                     ) as *mut libc::c_char;
+                    #[cfg(CURLDEBUG)]
+                    let mut new_provider1_mid: *mut libc::c_char = curl_dbg_malloc(
+                        len.wrapping_add(1 as libc::c_int as libc::c_ulong),
+                        153 as libc::c_int,
+                        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+                    ) as *mut libc::c_char;
+                    provider1_mid = new_provider1_mid;
                     if provider1_low.is_null() || provider1_mid.is_null() {
                         current_block = 16896850163988546332;
                     } else {
@@ -255,8 +314,17 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
                                     *region.offset(len as isize) = '\0' as i32 as libc::c_char;
                                     if !tmp1.is_null() {
                                         tmp0 = tmp1.offset(1 as libc::c_int as isize);
-                                        service =
-                                            Curl_cstrdup.expect("non-null function pointer")(tmp0);
+                                        #[cfg(not(CURLDEBUG))]
+                                        let mut new_service: *mut libc::c_char =
+                                        Curl_cstrdup.expect("non-null function pointer")(tmp0);
+                                        #[cfg(CURLDEBUG)]
+                                        let mut new_service: *mut libc::c_char = curl_dbg_strdup(
+                                            tmp0,
+                                            180 as libc::c_int,
+                                            b"http_aws_sigv4.c\0" as *const u8
+                                                as *const libc::c_char,
+                                        );
+                                        service = new_service;
                                         if service.is_null() {
                                             current_block = 16896850163988546332;
                                         } else if strlen(service)
@@ -361,7 +429,22 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
                     match current_block {
                         16896850163988546332 => {}
                         _ => {
-                            time(&mut clock);
+                            match () {
+                                #[cfg(CURLDEBUG)]
+                                _ => {
+                                    force_timestamp =
+                                    getenv(b"CURL_FORCETIME\0" as *const u8 as *const libc::c_char);
+                                    if !force_timestamp.is_null() {
+                                        clock = 0 as libc::c_int as time_t;
+                                    } else {
+                                        time(&mut clock);
+                                    }
+                                }
+                                #[cfg(not(CURLDEBUG))]
+                                _ => {
+                                    time(&mut clock);
+                                }
+                            }      
                             ret = Curl_gmtime(clock, &mut tm);
                             if !(ret as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint) {
                                 if !(strftime(
@@ -596,10 +679,17 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
                                                                                             timestamp.as_mut_ptr(),
                                                                                         );
                                                                                         if !auth_headers.is_null() {
+                                                                                            #[cfg(not(CURLDEBUG))]
                                                                                             Curl_cfree
-                                                                                                .expect(
-                                                                                                    "non-null function pointer",
-                                                                                                )((*data).state.aptr.userpwd as *mut libc::c_void);
+                                                                                            .expect(
+                                                                                                "non-null function pointer",
+                                                                                            )((*data).state.aptr.userpwd as *mut libc::c_void);
+                                                                                            #[cfg(CURLDEBUG)]
+                                                                                            curl_dbg_free(
+                                                                                                (*data).state.aptr.userpwd as *mut libc::c_void,
+                                                                                                372 as libc::c_int,
+                                                                                                b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+                                                                                            );
                                                                                             let ref mut fresh0 = (*data).state.aptr.userpwd;
                                                                                             *fresh0 = 0 as *mut libc::c_char;
                                                                                             let ref mut fresh1 = (*data).state.aptr.userpwd;
@@ -629,18 +719,109 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
             }
         }
     }
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(provider0_low as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(provider0_up as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(provider1_low as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(provider1_mid as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(region as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(service as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(canonical_headers as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(signed_headers as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(canonical_request as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(request_type as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(credential_scope as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(str_to_sign as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(secret as *mut libc::c_void);
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        provider0_low as *mut libc::c_void,
+        378 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        provider0_up as *mut libc::c_void,
+        379 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        provider1_low as *mut libc::c_void,
+        380 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        provider1_mid as *mut libc::c_void,
+        381 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        region as *mut libc::c_void,
+        382 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        service as *mut libc::c_void,
+        383 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        canonical_headers as *mut libc::c_void,
+        384 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        signed_headers as *mut libc::c_void,
+        385 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        canonical_request as *mut libc::c_void,
+        386 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        request_type as *mut libc::c_void,
+        387 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        credential_scope as *mut libc::c_void,
+        388 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        str_to_sign as *mut libc::c_void,
+        389 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        secret as *mut libc::c_void,
+        390 as libc::c_int,
+        b"http_aws_sigv4.c\0" as *const u8 as *const libc::c_char,
+    );
     return ret;
 }

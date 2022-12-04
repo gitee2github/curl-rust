@@ -2487,6 +2487,7 @@ extern "C" {
         headers: *mut hyper_headers,
         line: *const libc::c_char,
     ) -> CURLcode;
+    pub fn Curl_hyper_done(_: *mut Curl_easy);
 
     // in http.rs, remove in future
     #[cfg(USE_HYPER)]
@@ -2504,6 +2505,7 @@ extern "C" {
         req: *mut dynbuf,
     ) -> CURLcode;
 
+    
     //debug
     pub fn __assert_fail(
         __assertion: *const libc::c_char,
@@ -2519,6 +2521,11 @@ extern "C" {
     ) -> *mut libc::c_char;
     pub fn curl_dbg_calloc(
         elements: size_t,
+        size: size_t,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> *mut libc::c_void;
+    pub fn curl_dbg_malloc(
         size: size_t,
         line: libc::c_int,
         source: *const libc::c_char,
