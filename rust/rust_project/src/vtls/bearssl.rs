@@ -8,15 +8,15 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: support bearssl backend
  ******************************************************************************/
+use crate::src::vtls::vtls::*;
 use ::libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
-use crate::src::vtls::vtls::*;
 
 #[inline]
 unsafe extern "C" fn br_pem_decoder_name(
@@ -27,9 +27,7 @@ unsafe extern "C" fn br_pem_decoder_name(
 #[inline]
 unsafe extern "C" fn br_pem_decoder_setdest(
     mut ctx: *mut br_pem_decoder_context,
-    mut dest: Option::<
-        unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
-    >,
+    mut dest: Option<unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> ()>,
     mut dest_ctx: *mut libc::c_void,
 ) {
     let ref mut fresh0 = (*ctx).dest;
@@ -38,9 +36,7 @@ unsafe extern "C" fn br_pem_decoder_setdest(
     *fresh1 = dest_ctx;
 }
 #[inline]
-unsafe extern "C" fn br_ssl_engine_last_error(
-    mut cc: *const br_ssl_engine_context,
-) -> libc::c_int {
+unsafe extern "C" fn br_ssl_engine_last_error(mut cc: *const br_ssl_engine_context) -> libc::c_int {
     return (*cc).err;
 }
 #[inline]
@@ -70,9 +66,9 @@ unsafe extern "C" fn br_x509_decoder_get_pkey(
     mut ctx: *mut br_x509_decoder_context,
 ) -> *mut br_x509_pkey {
     if (*ctx).decoded as libc::c_int != 0 && (*ctx).err == 0 as libc::c_int {
-        return &mut (*ctx).pkey
+        return &mut (*ctx).pkey;
     } else {
-        return 0 as *mut br_x509_pkey
+        return 0 as *mut br_x509_pkey;
     };
 }
 #[inline]
@@ -88,9 +84,7 @@ unsafe extern "C" fn br_x509_decoder_last_error(
     return 0 as libc::c_int;
 }
 #[inline]
-unsafe extern "C" fn br_x509_decoder_isCA(
-    mut ctx: *mut br_x509_decoder_context,
-) -> libc::c_int {
+unsafe extern "C" fn br_x509_decoder_isCA(mut ctx: *mut br_x509_decoder_context) -> libc::c_int {
     return (*ctx).isCA as libc::c_int;
 }
 #[inline]
@@ -126,13 +120,10 @@ unsafe extern "C" fn br_ssl_engine_get_selected_protocol(
 ) -> *const libc::c_char {
     let mut k: libc::c_uint = 0;
     k = (*ctx).selected_protocol as libc::c_uint;
-    return if k == 0 as libc::c_int as libc::c_uint
-        || k == 0xffff as libc::c_int as libc::c_uint
-    {
+    return if k == 0 as libc::c_int as libc::c_uint || k == 0xffff as libc::c_int as libc::c_uint {
         0 as *const libc::c_char
     } else {
-        *((*ctx).protocol_names)
-            .offset(k.wrapping_sub(1 as libc::c_int as libc::c_uint) as isize)
+        *((*ctx).protocol_names).offset(k.wrapping_sub(1 as libc::c_int as libc::c_uint) as isize)
     };
 }
 unsafe extern "C" fn append_dn(
@@ -141,13 +132,11 @@ unsafe extern "C" fn append_dn(
     mut len: size_t,
 ) {
     let mut ca: *mut cafile_parser = ctx as *mut cafile_parser;
-    if (*ca).err as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint
-        || !(*ca).in_cert
-    {
+    if (*ca).err as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint || !(*ca).in_cert {
         return;
     }
-    if (::std::mem::size_of::<[libc::c_uchar; 1024]>() as libc::c_ulong)
-        .wrapping_sub((*ca).dn_len) < len
+    if (::std::mem::size_of::<[libc::c_uchar; 1024]>() as libc::c_ulong).wrapping_sub((*ca).dn_len)
+        < len
     {
         (*ca).err = CURLE_FAILED_INIT;
         return;
@@ -256,9 +245,7 @@ unsafe extern "C" fn load_cafile(
             return CURLE_SSL_CACERT_BADFILE;
         }
     }
-    if (*source).type_0 == 2 as libc::c_int
-        && (*source).len > 2147483647 as libc::c_int as size_t
-    {
+    if (*source).type_0 == 2 as libc::c_int && (*source).len > 2147483647 as libc::c_int as size_t {
         return CURLE_SSL_CACERT_BADFILE;
     }
     ca.err = CURLE_OK;
@@ -269,215 +256,187 @@ unsafe extern "C" fn load_cafile(
     br_pem_decoder_setdest(
         &mut pc,
         Some(
-            x509_push
-                as unsafe extern "C" fn(
-                    *mut libc::c_void,
-                    *const libc::c_void,
-                    size_t,
-                ) -> (),
+            x509_push as unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
         ),
         &mut ca as *mut cafile_parser as *mut libc::c_void,
     );
-    's_106: loop {
-        if (*source).type_0 == 1 as libc::c_int {
-            n = fread(
-                buf.as_mut_ptr() as *mut libc::c_void,
-                1 as libc::c_int as libc::c_ulong,
-                ::std::mem::size_of::<[libc::c_uchar; 8192]>() as libc::c_ulong,
-                fp,
-            );
-            if n == 0 as libc::c_int as libc::c_ulong {
-                current_block = 8062065914618164218;
-                break;
+    'fail: loop {
+        loop {
+            if (*source).type_0 == 1 as libc::c_int {
+                n = fread(
+                    buf.as_mut_ptr() as *mut libc::c_void,
+                    1 as libc::c_int as libc::c_ulong,
+                    ::std::mem::size_of::<[libc::c_uchar; 8192]>() as libc::c_ulong,
+                    fp,
+                );
+                if n == 0 as libc::c_int as libc::c_ulong {
+                    break;
+                }
+                p = buf.as_mut_ptr();
+            } else if (*source).type_0 == 2 as libc::c_int {
+                n = (*source).len;
+                p = (*source).data as *mut libc::c_uchar;
             }
-            p = buf.as_mut_ptr();
-        } else if (*source).type_0 == 2 as libc::c_int {
-            n = (*source).len;
-            p = (*source).data as *mut libc::c_uchar;
-        }
-        while n != 0 {
-            pushed = br_pem_decoder_push(&mut pc, p as *const libc::c_void, n);
-            if ca.err as u64 != 0 {
-                current_block = 16641473711560579579;
-                break 's_106;
-            }
-            p = p.offset(pushed as isize);
-            n = (n as libc::c_ulong).wrapping_sub(pushed) as size_t as size_t;
-            match br_pem_decoder_event(&mut pc) {
-                0 => {}
-                1 => {
-                    name = br_pem_decoder_name(&mut pc);
-                    if strcmp(name, b"CERTIFICATE\0" as *const u8 as *const libc::c_char)
-                        != 0
-                        && strcmp(
-                            name,
-                            b"X509 CERTIFICATE\0" as *const u8 as *const libc::c_char,
-                        ) != 0
-                    {
-                        continue;
-                    }
-                    br_x509_decoder_init(
-                        &mut ca.xc,
-                        Some(
-                            append_dn
-                                as unsafe extern "C" fn(
-                                    *mut libc::c_void,
-                                    *const libc::c_void,
-                                    size_t,
-                                ) -> (),
-                        ),
-                        &mut ca as *mut cafile_parser as *mut libc::c_void,
-                    );
-                    if ca.anchors_len
-                        == (18446744073709551615 as libc::c_ulong)
-                            .wrapping_div(
-                                ::std::mem::size_of::<br_x509_trust_anchor>()
-                                    as libc::c_ulong,
-                            )
-                    {
-                        ca.err = CURLE_OUT_OF_MEMORY;
-                        current_block = 16641473711560579579;
-                        break 's_106;
-                    } else {
-                        new_anchors_len = (ca.anchors_len)
-                            .wrapping_add(1 as libc::c_int as libc::c_ulong);
-                        new_anchors = Curl_crealloc
-                            .expect(
-                                "non-null function pointer",
-                            )(
-                            ca.anchors as *mut libc::c_void,
-                            new_anchors_len
-                                .wrapping_mul(
-                                    ::std::mem::size_of::<br_x509_trust_anchor>()
-                                        as libc::c_ulong,
+            while n != 0 {
+                pushed = br_pem_decoder_push(&mut pc, p as *const libc::c_void, n);
+                if ca.err as u64 != 0 {
+                    break 'fail;
+                }
+                p = p.offset(pushed as isize);
+                n = (n as libc::c_ulong).wrapping_sub(pushed) as size_t as size_t;
+                match br_pem_decoder_event(&mut pc) {
+                    0 => {}
+                    1 => {
+                        name = br_pem_decoder_name(&mut pc);
+                        if !(strcmp(name, b"CERTIFICATE\0" as *const u8 as *const libc::c_char)
+                            != 0
+                            && strcmp(
+                                name,
+                                b"X509 CERTIFICATE\0" as *const u8 as *const libc::c_char,
+                            ) != 0)
+                        {
+                            br_x509_decoder_init(
+                                &mut ca.xc,
+                                Some(
+                                    append_dn
+                                        as unsafe extern "C" fn(
+                                            *mut libc::c_void,
+                                            *const libc::c_void,
+                                            size_t,
+                                        )
+                                            -> (),
                                 ),
-                        ) as *mut br_x509_trust_anchor;
-                        if new_anchors.is_null() {
-                            ca.err = CURLE_OUT_OF_MEMORY;
-                            current_block = 16641473711560579579;
-                            break 's_106;
-                        } else {
+                                &mut ca as *mut cafile_parser as *mut libc::c_void,
+                            );
+                            if ca.anchors_len
+                                == (18446744073709551615 as libc::c_ulong)
+                                    .wrapping_div(::std::mem::size_of::<br_x509_trust_anchor>()
+                                        as libc::c_ulong)
+                            {
+                                ca.err = CURLE_OUT_OF_MEMORY;
+                                break 'fail;
+                            }
+                            new_anchors_len =
+                                (ca.anchors_len).wrapping_add(1 as libc::c_int as libc::c_ulong);
+                            new_anchors = Curl_crealloc.expect("non-null function pointer")(
+                                ca.anchors as *mut libc::c_void,
+                                new_anchors_len
+                                    .wrapping_mul(::std::mem::size_of::<br_x509_trust_anchor>()
+                                        as libc::c_ulong),
+                            )
+                                as *mut br_x509_trust_anchor;
+                            if new_anchors.is_null() {
+                                ca.err = CURLE_OUT_OF_MEMORY;
+                                break 'fail;
+                            }
                             ca.anchors = new_anchors;
                             ca.anchors_len = new_anchors_len;
                             ca.in_cert = 1 as libc::c_int != 0;
                             ca.dn_len = 0 as libc::c_int as size_t;
-                            ta = &mut *(ca.anchors)
-                                .offset(
-                                    (ca.anchors_len)
-                                        .wrapping_sub(1 as libc::c_int as libc::c_ulong) as isize,
-                                ) as *mut br_x509_trust_anchor;
+                            ta = &mut *(ca.anchors).offset(
+                                (ca.anchors_len).wrapping_sub(1 as libc::c_int as libc::c_ulong)
+                                    as isize,
+                            ) as *mut br_x509_trust_anchor;
                             let ref mut fresh5 = (*ta).dn.data;
                             *fresh5 = 0 as *mut libc::c_uchar;
                         }
                     }
-                }
-                2 => {
-                    if !ca.in_cert {
-                        continue;
-                    }
-                    ca.in_cert = 0 as libc::c_int != 0;
-                    if br_x509_decoder_last_error(&mut ca.xc) != 0 {
-                        ca.err = CURLE_SSL_CACERT_BADFILE;
-                        current_block = 16641473711560579579;
-                        break 's_106;
-                    } else {
-                        (*ta).flags = 0 as libc::c_int as libc::c_uint;
-                        if br_x509_decoder_isCA(&mut ca.xc) != 0 {
-                            (*ta).flags |= 0x1 as libc::c_int as libc::c_uint;
-                        }
-                        pkey = br_x509_decoder_get_pkey(&mut ca.xc);
-                        if pkey.is_null() {
-                            ca.err = CURLE_SSL_CACERT_BADFILE;
-                            current_block = 16641473711560579579;
-                            break 's_106;
-                        } else {
+                    2 => {
+                        if ca.in_cert {
+                            ca.in_cert = 0 as libc::c_int != 0;
+                            if br_x509_decoder_last_error(&mut ca.xc) != 0 {
+                                ca.err = CURLE_SSL_CACERT_BADFILE;
+                                break 'fail;
+                            }
+                            (*ta).flags = 0 as libc::c_int as libc::c_uint;
+                            if br_x509_decoder_isCA(&mut ca.xc) != 0 {
+                                (*ta).flags |= 0x1 as libc::c_int as libc::c_uint;
+                            }
+                            pkey = br_x509_decoder_get_pkey(&mut ca.xc);
+                            if pkey.is_null() {
+                                ca.err = CURLE_SSL_CACERT_BADFILE;
+                                break 'fail;
+                            }
                             (*ta).pkey = *pkey;
                             ta_size = ca.dn_len;
                             match (*pkey).key_type as libc::c_int {
                                 1 => {
-                                    ta_size = (ta_size as libc::c_ulong)
-                                        .wrapping_add(
-                                            ((*pkey).key.rsa.nlen).wrapping_add((*pkey).key.rsa.elen),
-                                        ) as size_t as size_t;
+                                    ta_size = (ta_size as libc::c_ulong).wrapping_add(
+                                        ((*pkey).key.rsa.nlen).wrapping_add((*pkey).key.rsa.elen),
+                                    ) as size_t
+                                        as size_t;
                                 }
                                 2 => {
                                     ta_size = (ta_size as libc::c_ulong)
-                                        .wrapping_add((*pkey).key.ec.qlen) as size_t as size_t;
+                                        .wrapping_add((*pkey).key.ec.qlen)
+                                        as size_t
+                                        as size_t;
                                 }
                                 _ => {
                                     ca.err = CURLE_FAILED_INIT;
-                                    current_block = 16641473711560579579;
-                                    break 's_106;
+                                    break 'fail;
                                 }
                             }
                             let ref mut fresh6 = (*ta).dn.data;
-                            *fresh6 = Curl_cmalloc
-                                .expect("non-null function pointer")(ta_size)
+                            *fresh6 = Curl_cmalloc.expect("non-null function pointer")(ta_size)
                                 as *mut libc::c_uchar;
                             if ((*ta).dn.data).is_null() {
                                 ca.err = CURLE_OUT_OF_MEMORY;
-                                current_block = 16641473711560579579;
-                                break 's_106;
-                            } else {
-                                memcpy(
-                                    (*ta).dn.data as *mut libc::c_void,
-                                    (ca.dn).as_mut_ptr() as *const libc::c_void,
-                                    ca.dn_len,
-                                );
-                                (*ta).dn.len = ca.dn_len;
-                                match (*pkey).key_type as libc::c_int {
-                                    1 => {
-                                        let ref mut fresh7 = (*ta).pkey.key.rsa.n;
-                                        *fresh7 = ((*ta).dn.data).offset((*ta).dn.len as isize);
-                                        memcpy(
-                                            (*ta).pkey.key.rsa.n as *mut libc::c_void,
-                                            (*pkey).key.rsa.n as *const libc::c_void,
-                                            (*pkey).key.rsa.nlen,
-                                        );
-                                        let ref mut fresh8 = (*ta).pkey.key.rsa.e;
-                                        *fresh8 = ((*ta).pkey.key.rsa.n)
-                                            .offset((*ta).pkey.key.rsa.nlen as isize);
-                                        memcpy(
-                                            (*ta).pkey.key.rsa.e as *mut libc::c_void,
-                                            (*pkey).key.rsa.e as *const libc::c_void,
-                                            (*pkey).key.rsa.elen,
-                                        );
-                                    }
-                                    2 => {
-                                        let ref mut fresh9 = (*ta).pkey.key.ec.q;
-                                        *fresh9 = ((*ta).dn.data).offset((*ta).dn.len as isize);
-                                        memcpy(
-                                            (*ta).pkey.key.ec.q as *mut libc::c_void,
-                                            (*pkey).key.ec.q as *const libc::c_void,
-                                            (*pkey).key.ec.qlen,
-                                        );
-                                    }
-                                    _ => {}
+                                break 'fail;
+                            }
+                            memcpy(
+                                (*ta).dn.data as *mut libc::c_void,
+                                (ca.dn).as_mut_ptr() as *const libc::c_void,
+                                ca.dn_len,
+                            );
+                            (*ta).dn.len = ca.dn_len;
+                            match (*pkey).key_type as libc::c_int {
+                                1 => {
+                                    let ref mut fresh7 = (*ta).pkey.key.rsa.n;
+                                    *fresh7 = ((*ta).dn.data).offset((*ta).dn.len as isize);
+                                    memcpy(
+                                        (*ta).pkey.key.rsa.n as *mut libc::c_void,
+                                        (*pkey).key.rsa.n as *const libc::c_void,
+                                        (*pkey).key.rsa.nlen,
+                                    );
+                                    let ref mut fresh8 = (*ta).pkey.key.rsa.e;
+                                    *fresh8 = ((*ta).pkey.key.rsa.n)
+                                        .offset((*ta).pkey.key.rsa.nlen as isize);
+                                    memcpy(
+                                        (*ta).pkey.key.rsa.e as *mut libc::c_void,
+                                        (*pkey).key.rsa.e as *const libc::c_void,
+                                        (*pkey).key.rsa.elen,
+                                    );
                                 }
+                                2 => {
+                                    let ref mut fresh9 = (*ta).pkey.key.ec.q;
+                                    *fresh9 = ((*ta).dn.data).offset((*ta).dn.len as isize);
+                                    memcpy(
+                                        (*ta).pkey.key.ec.q as *mut libc::c_void,
+                                        (*pkey).key.ec.q as *const libc::c_void,
+                                        (*pkey).key.ec.qlen,
+                                    );
+                                }
+                                _ => {}
                             }
                         }
                     }
-                }
-                _ => {
-                    ca.err = CURLE_SSL_CACERT_BADFILE;
-                    current_block = 16641473711560579579;
-                    break 's_106;
+                    _ => {
+                        ca.err = CURLE_SSL_CACERT_BADFILE;
+                        break 'fail;
+                    }
                 }
             }
-        }
-        if !((*source).type_0 != 2 as libc::c_int) {
-            current_block = 8062065914618164218;
-            break;
-        }
-    }
-    match current_block {
-        8062065914618164218 => {
-            if !fp.is_null() && ferror(fp) != 0 {
-                ca.err = CURLE_READ_ERROR;
+            if !((*source).type_0 != 2 as libc::c_int) {
+                break;
             }
         }
-        _ => {}
+        if !fp.is_null() && ferror(fp) != 0 {
+            ca.err = CURLE_READ_ERROR;
+        }
+        break 'fail;
     }
+
     if !fp.is_null() {
         fclose(fp);
     }
@@ -487,10 +446,9 @@ unsafe extern "C" fn load_cafile(
     } else {
         i = 0 as libc::c_int as size_t;
         while i < ca.anchors_len {
-            Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )((*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+            Curl_cfree.expect("non-null function pointer")(
+                (*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void,
+            );
             i = i.wrapping_add(1);
         }
         Curl_cfree.expect("non-null function pointer")(ca.anchors as *mut libc::c_void);
@@ -505,16 +463,17 @@ unsafe extern "C" fn x509_start_chain(
     if !(*x509).verifyhost {
         server_name = 0 as *const libc::c_char;
     }
-    ((*(*x509).minimal.vtable).start_chain)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable, server_name);
+    ((*(*x509).minimal.vtable).start_chain).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+        server_name,
+    );
 }
-unsafe extern "C" fn x509_start_cert(
-    mut ctx: *mut *const br_x509_class,
-    mut length: uint32_t,
-) {
+unsafe extern "C" fn x509_start_cert(mut ctx: *mut *const br_x509_class, mut length: uint32_t) {
     let mut x509: *mut x509_context = ctx as *mut x509_context;
-    ((*(*x509).minimal.vtable).start_cert)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable, length);
+    ((*(*x509).minimal.vtable).start_cert).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+        length,
+    );
 }
 unsafe extern "C" fn x509_append(
     mut ctx: *mut *const br_x509_class,
@@ -522,19 +481,24 @@ unsafe extern "C" fn x509_append(
     mut len: size_t,
 ) {
     let mut x509: *mut x509_context = ctx as *mut x509_context;
-    ((*(*x509).minimal.vtable).append)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable, buf, len);
+    ((*(*x509).minimal.vtable).append).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+        buf,
+        len,
+    );
 }
 unsafe extern "C" fn x509_end_cert(mut ctx: *mut *const br_x509_class) {
     let mut x509: *mut x509_context = ctx as *mut x509_context;
-    ((*(*x509).minimal.vtable).end_cert)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable);
+    ((*(*x509).minimal.vtable).end_cert).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+    );
 }
 unsafe extern "C" fn x509_end_chain(mut ctx: *mut *const br_x509_class) -> libc::c_uint {
     let mut x509: *mut x509_context = ctx as *mut x509_context;
     let mut err: libc::c_uint = 0;
-    err = ((*(*x509).minimal.vtable).end_chain)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable);
+    err = ((*(*x509).minimal.vtable).end_chain).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+    );
     if err != 0 && !(*x509).verifypeer {
         err = 0 as libc::c_int as libc::c_uint;
     }
@@ -545,8 +509,10 @@ unsafe extern "C" fn x509_get_pkey(
     mut usages: *mut libc::c_uint,
 ) -> *const br_x509_pkey {
     let mut x509: *mut x509_context = ctx as *mut x509_context;
-    return ((*(*x509).minimal.vtable).get_pkey)
-        .expect("non-null function pointer")(&mut (*x509).minimal.vtable, usages);
+    return ((*(*x509).minimal.vtable).get_pkey).expect("non-null function pointer")(
+        &mut (*x509).minimal.vtable,
+        usages,
+    );
 }
 
 static mut x509_vtable: br_x509_class = unsafe {
@@ -555,14 +521,10 @@ static mut x509_vtable: br_x509_class = unsafe {
             context_size: ::std::mem::size_of::<x509_context>() as libc::c_ulong,
             start_chain: Some(
                 x509_start_chain
-                    as unsafe extern "C" fn(
-                        *mut *const br_x509_class,
-                        *const libc::c_char,
-                    ) -> (),
+                    as unsafe extern "C" fn(*mut *const br_x509_class, *const libc::c_char) -> (),
             ),
             start_cert: Some(
-                x509_start_cert
-                    as unsafe extern "C" fn(*mut *const br_x509_class, uint32_t) -> (),
+                x509_start_cert as unsafe extern "C" fn(*mut *const br_x509_class, uint32_t) -> (),
             ),
             append: Some(
                 x509_append
@@ -572,12 +534,9 @@ static mut x509_vtable: br_x509_class = unsafe {
                         size_t,
                     ) -> (),
             ),
-            end_cert: Some(
-                x509_end_cert as unsafe extern "C" fn(*mut *const br_x509_class) -> (),
-            ),
+            end_cert: Some(x509_end_cert as unsafe extern "C" fn(*mut *const br_x509_class) -> ()),
             end_chain: Some(
-                x509_end_chain
-                    as unsafe extern "C" fn(*mut *const br_x509_class) -> libc::c_uint,
+                x509_end_chain as unsafe extern "C" fn(*mut *const br_x509_class) -> libc::c_uint,
             ),
             get_pkey: Some(
                 x509_get_pkey
@@ -595,23 +554,20 @@ unsafe extern "C" fn bearssl_connect_step1(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) -> CURLcode {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let mut ca_info_blob: *const curl_blob = if CURLPROXY_HTTPS as libc::c_int
-    as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-    && ssl_connection_complete as libc::c_int as libc::c_uint
-        != (*conn)
-            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                == -(1 as libc::c_int)
+    let mut ca_info_blob: *const curl_blob = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
             {
                 0 as libc::c_int
             } else {
                 1 as libc::c_int
             }) as usize]
-            .state as libc::c_uint
+                .state as libc::c_uint
     {
         (*conn).proxy_ssl_config.ca_info_blob
     } else {
@@ -623,17 +579,15 @@ unsafe extern "C" fn bearssl_connect_step1(
     let ssl_cafile: *const libc::c_char = if !ca_info_blob.is_null() {
         0 as *mut libc::c_char
     } else if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-    == (*conn).http_proxy.proxytype as libc::c_uint
-    && ssl_connection_complete as libc::c_int as libc::c_uint
-        != (*conn)
-            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                == -(1 as libc::c_int)
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
             {
                 0 as libc::c_int
             } else {
                 1 as libc::c_int
             }) as usize]
-            .state as libc::c_uint
+                .state as libc::c_uint
     {
         (*conn).proxy_ssl_config.CAfile
     } else {
@@ -642,18 +596,16 @@ unsafe extern "C" fn bearssl_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let ssl_cafile: *const libc::c_char = (*conn).ssl_config.CAfile;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let mut hostname: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-    as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-    && ssl_connection_complete as libc::c_int as libc::c_uint
-        != (*conn)
-            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                == -(1 as libc::c_int)
+    let mut hostname: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
             {
                 0 as libc::c_int
             } else {
                 1 as libc::c_int
             }) as usize]
-            .state as libc::c_uint
+                .state as libc::c_uint
     {
         (*conn).http_proxy.host.name
     } else {
@@ -663,17 +615,15 @@ unsafe extern "C" fn bearssl_connect_step1(
     let mut hostname: *const libc::c_char = (*conn).host.name;
     #[cfg(not(CURL_DISABLE_PROXY))]
     let verifypeer: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-    == (*conn).http_proxy.proxytype as libc::c_uint
-    && ssl_connection_complete as libc::c_int as libc::c_uint
-        != (*conn)
-            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                == -(1 as libc::c_int)
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
             {
                 0 as libc::c_int
             } else {
                 1 as libc::c_int
             }) as usize]
-            .state as libc::c_uint
+                .state as libc::c_uint
     {
         ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
     } else {
@@ -683,17 +633,15 @@ unsafe extern "C" fn bearssl_connect_step1(
     let verifypeer: bool = ((*conn).ssl_config).verifypeer() as libc::c_int != 0;
     #[cfg(not(CURL_DISABLE_PROXY))]
     let verifyhost: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-    == (*conn).http_proxy.proxytype as libc::c_uint
-    && ssl_connection_complete as libc::c_int as libc::c_uint
-        != (*conn)
-            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                == -(1 as libc::c_int)
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
             {
                 0 as libc::c_int
             } else {
                 1 as libc::c_int
             }) as usize]
-            .state as libc::c_uint
+                .state as libc::c_uint
     {
         ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
     } else {
@@ -712,29 +660,26 @@ unsafe extern "C" fn bearssl_connect_step1(
     };
     #[cfg(not(ENABLE_IPV6))]
     let mut addr: in_addr = in_addr { s_addr: 0 };
-    
+
     #[cfg(not(CURL_DISABLE_PROXY))]
     let flag6: libc::c_long = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
         == (*conn).http_proxy.proxytype as libc::c_uint
         && ssl_connection_complete as libc::c_int as libc::c_uint
-            != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
-                {
-                    0 as libc::c_int
-                } else {
-                    1 as libc::c_int
-                }) as usize]
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
+            {
+                0 as libc::c_int
+            } else {
+                1 as libc::c_int
+            }) as usize]
                 .state as libc::c_uint
-                {
-                    (*conn).proxy_ssl_config.version
-                } else {
-                    (*conn).ssl_config.version
-                };
+    {
+        (*conn).proxy_ssl_config.version
+    } else {
+        (*conn).ssl_config.version
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let flag6: libc::c_long = (*conn).ssl_config.version;
-    match flag6
-    {
+    match flag6 {
         2 => {
             Curl_failf(
                 data,
@@ -768,8 +713,7 @@ unsafe extern "C" fn bearssl_connect_step1(
         _ => {
             Curl_failf(
                 data,
-                b"BearSSL: unknown CURLOPT_SSLVERSION\0" as *const u8
-                    as *const libc::c_char,
+                b"BearSSL: unknown CURLOPT_SSLVERSION\0" as *const u8 as *const libc::c_char,
             );
             return CURLE_SSL_CONNECT_ERROR;
         }
@@ -792,8 +736,7 @@ unsafe extern "C" fn bearssl_connect_step1(
             if verifypeer {
                 Curl_failf(
                     data,
-                    b"error importing CA certificate blob\0" as *const u8
-                        as *const libc::c_char,
+                    b"error importing CA certificate blob\0" as *const u8 as *const libc::c_char,
                 );
                 return ret;
             }
@@ -822,16 +765,16 @@ unsafe extern "C" fn bearssl_connect_step1(
             if verifypeer {
                 Curl_failf(
                     data,
-                    b"error setting certificate verify locations. CAfile: %s\0"
-                        as *const u8 as *const libc::c_char,
+                    b"error setting certificate verify locations. CAfile: %s\0" as *const u8
+                        as *const libc::c_char,
                     ssl_cafile,
                 );
                 return ret;
             }
             Curl_infof(
                 data,
-                b"error setting certificate verify locations, continuing anyway:\0"
-                    as *const u8 as *const libc::c_char,
+                b"error setting certificate verify locations, continuing anyway:\0" as *const u8
+                    as *const libc::c_char,
             );
         }
     }
@@ -857,46 +800,41 @@ unsafe extern "C" fn bearssl_connect_step1(
     let flag7: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
         == (*conn).http_proxy.proxytype as libc::c_uint
         && ssl_connection_complete as libc::c_int as libc::c_uint
-            != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
-                {
-                    0 as libc::c_int
-                } else {
-                    1 as libc::c_int
-                }) as usize]
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
+            {
+                0 as libc::c_int
+            } else {
+                1 as libc::c_int
+            }) as usize]
                 .state as libc::c_uint
-                {
-                    ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                } else {
-                    ((*data).set.ssl.primary).sessionid() as libc::c_int
-                } != 0;
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
+    } != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let flag7: bool = ((*data).set.ssl.primary).sessionid() as libc::c_int != 0;
-    if flag7
-    {
+    if flag7 {
         let mut session: *mut libc::c_void = 0 as *mut libc::c_void;
         Curl_ssl_sessionid_lock(data);
         #[cfg(not(CURL_DISABLE_PROXY))]
         let flag8: bool = CURLPROXY_HTTPS as libc::c_int as libc::c_uint
             == (*conn).http_proxy.proxytype as libc::c_uint
             && ssl_connection_complete as libc::c_int as libc::c_uint
-                != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
-                    {
-                        0 as libc::c_int
-                    } else {
-                        1 as libc::c_int
-                    }) as usize]
+                != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
                     .state as libc::c_uint;
         #[cfg(CURL_DISABLE_PROXY)]
         let flag8: bool = false;
         if !Curl_ssl_getsessionid(
             data,
             conn,
-            if flag8
-            {
+            if flag8 {
                 1 as libc::c_int
             } else {
                 0 as libc::c_int
@@ -923,17 +861,17 @@ unsafe extern "C" fn bearssl_connect_step1(
             _ => {
                 #[cfg(not(CURL_DISABLE_PROXY))]
                 let CURL_DISABLE_PROXY_flag = (!(CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                        != (*conn)
-                                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                                == -(1 as libc::c_int)
-                                                            {
-                                                                0 as libc::c_int
-                                                            } else {
-                                                                1 as libc::c_int
-                                                            }) as usize]
-                                                            .state as libc::c_uint) || ((*conn).bits).tunnel_proxy() == 0);
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                            .state as libc::c_uint)
+                    || ((*conn).bits).tunnel_proxy() == 0);
                 #[cfg(CURL_DISABLE_PROXY)]
                 let CURL_DISABLE_PROXY_flag = true;
                 if (*data).state.httpwant as libc::c_int >= CURL_HTTP_VERSION_2_0 as libc::c_int
@@ -951,7 +889,7 @@ unsafe extern "C" fn bearssl_connect_step1(
                 }
             }
             #[cfg(not(USE_HTTP2))]
-            _ => { }
+            _ => {}
         }
         let fresh13 = cur;
         cur = cur + 1;
@@ -988,13 +926,12 @@ unsafe extern "C" fn bearssl_connect_step1(
             hostname,
             &mut addr as *mut in_addr as *mut libc::c_void,
         );
-    if ENABLE_IPV6_flag
-    {
+    if ENABLE_IPV6_flag {
         if verifyhost {
             Curl_failf(
                 data,
-                b"BearSSL: host verification of IP address is not supported\0"
-                    as *const u8 as *const libc::c_char,
+                b"BearSSL: host verification of IP address is not supported\0" as *const u8
+                    as *const libc::c_char,
             );
             return CURLE_PEER_FAILED_VERIFICATION;
         }
@@ -1014,9 +951,8 @@ unsafe extern "C" fn bearssl_run_until(
     mut sockindex: libc::c_int,
     mut target: libc::c_uint,
 ) -> CURLcode {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
     let mut state: libc::c_uint = 0;
@@ -1104,8 +1040,7 @@ unsafe extern "C" fn bearssl_run_until(
             if ret == 0 as libc::c_int as libc::c_long {
                 Curl_failf(
                     data,
-                    b"SSL: EOF without close notify\0" as *const u8
-                        as *const libc::c_char,
+                    b"SSL: EOF without close notify\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_READ_ERROR;
             }
@@ -1124,7 +1059,7 @@ unsafe extern "C" fn bearssl_run_until(
             }
             br_ssl_engine_recvrec_ack(&mut (*backend).bear_ctx.eng, ret as size_t);
         }
-    };
+    }
 }
 
 unsafe extern "C" fn bearssl_connect_step2(
@@ -1132,9 +1067,8 @@ unsafe extern "C" fn bearssl_connect_step2(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) -> CURLcode {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut ret: CURLcode = CURLE_OK;
     ret = bearssl_run_until(
@@ -1152,8 +1086,7 @@ unsafe extern "C" fn bearssl_connect_step2(
         {
             Curl_failf(
                 data,
-                b"SSL: connection closed during handshake\0" as *const u8
-                    as *const libc::c_char,
+                b"SSL: connection closed during handshake\0" as *const u8 as *const libc::c_char,
             );
             return CURLE_SSL_CONNECT_ERROR;
         }
@@ -1167,9 +1100,8 @@ unsafe extern "C" fn bearssl_connect_step3(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) -> CURLcode {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut ret: CURLcode = CURLE_OK;
     if ((*conn).bits).tls_enable_alpn() != 0 {
@@ -1192,17 +1124,14 @@ unsafe extern "C" fn bearssl_connect_step3(
                         (*conn).negnpn = CURL_HTTP_VERSION_2_0 as libc::c_int;
                     }
                     #[cfg(not(USE_HTTP2))]
-                    _ => { }
+                    _ => {}
                 }
-            } else if strcmp(protocol, b"http/1.1\0" as *const u8 as *const libc::c_char)
-                    == 0
-                {
+            } else if strcmp(protocol, b"http/1.1\0" as *const u8 as *const libc::c_char) == 0 {
                 (*conn).negnpn = CURL_HTTP_VERSION_1_1 as libc::c_int;
             } else {
                 Curl_infof(
                     data,
-                    b"ALPN, unrecognized protocol %s\0" as *const u8
-                        as *const libc::c_char,
+                    b"ALPN, unrecognized protocol %s\0" as *const u8 as *const libc::c_char,
                     protocol,
                 );
             }
@@ -1217,8 +1146,7 @@ unsafe extern "C" fn bearssl_connect_step3(
         } else {
             Curl_infof(
                 data,
-                b"ALPN, server did not agree to a protocol\0" as *const u8
-                    as *const libc::c_char,
+                b"ALPN, server did not agree to a protocol\0" as *const u8 as *const libc::c_char,
             );
         }
     }
@@ -1226,33 +1154,27 @@ unsafe extern "C" fn bearssl_connect_step3(
     let flag1: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
         == (*conn).http_proxy.proxytype as libc::c_uint
         && ssl_connection_complete as libc::c_int as libc::c_uint
-            != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
-                {
-                    0 as libc::c_int
-                } else {
-                    1 as libc::c_int
-                }) as usize]
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
+            {
+                0 as libc::c_int
+            } else {
+                1 as libc::c_int
+            }) as usize]
                 .state as libc::c_uint
-                {
-                    ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                } else {
-                    ((*data).set.ssl.primary).sessionid() as libc::c_int
-                } != 0;
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
+    } != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let flag1: bool = ((*data).set.ssl.primary).sessionid() as libc::c_int != 0;
-    if flag1
-    {
+    if flag1 {
         let mut incache: bool = false;
         let mut oldsession: *mut libc::c_void = 0 as *mut libc::c_void;
-        let mut session: *mut br_ssl_session_parameters = 0
-            as *mut br_ssl_session_parameters;
-        session = Curl_cmalloc
-            .expect(
-                "non-null function pointer",
-            )(::std::mem::size_of::<br_ssl_session_parameters>() as libc::c_ulong)
-            as *mut br_ssl_session_parameters;
+        let mut session: *mut br_ssl_session_parameters = 0 as *mut br_ssl_session_parameters;
+        session = Curl_cmalloc.expect("non-null function pointer")(::std::mem::size_of::<
+            br_ssl_session_parameters,
+        >() as libc::c_ulong) as *mut br_ssl_session_parameters;
         if session.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
@@ -1262,22 +1184,20 @@ unsafe extern "C" fn bearssl_connect_step3(
         let flag1: bool = CURLPROXY_HTTPS as libc::c_int as libc::c_uint
             == (*conn).http_proxy.proxytype as libc::c_uint
             && ssl_connection_complete as libc::c_int as libc::c_uint
-                != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
-                    {
-                        0 as libc::c_int
-                    } else {
-                        1 as libc::c_int
-                    }) as usize]
+                != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
                     .state as libc::c_uint;
         #[cfg(CURL_DISABLE_PROXY)]
         let flag1: bool = false;
         incache = !Curl_ssl_getsessionid(
             data,
             conn,
-            if flag1
-            {
+            if flag1 {
                 1 as libc::c_int
             } else {
                 0 as libc::c_int
@@ -1293,22 +1213,20 @@ unsafe extern "C" fn bearssl_connect_step3(
         let flag2: bool = CURLPROXY_HTTPS as libc::c_int as libc::c_uint
             == (*conn).http_proxy.proxytype as libc::c_uint
             && ssl_connection_complete as libc::c_int as libc::c_uint
-                != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
-                    {
-                        0 as libc::c_int
-                    } else {
-                        1 as libc::c_int
-                    }) as usize]
+                != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
                     .state as libc::c_uint;
         #[cfg(CURL_DISABLE_PROXY)]
         let flag2: bool = false;
         ret = Curl_ssl_addsessionid(
             data,
             conn,
-            if flag2
-            {
+            if flag2 {
                 1 as libc::c_int
             } else {
                 0 as libc::c_int
@@ -1335,19 +1253,13 @@ unsafe extern "C" fn bearssl_send(
     mut err: *mut CURLcode,
 ) -> ssize_t {
     let mut conn: *mut connectdata = (*data).conn;
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut app: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
     let mut applen: size_t = 0;
     loop {
-        *err = bearssl_run_until(
-            data,
-            conn,
-            sockindex,
-            0x8 as libc::c_int as libc::c_uint,
-        );
+        *err = bearssl_run_until(data, conn, sockindex, 0x8 as libc::c_int as libc::c_uint);
         if *err as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint {
             return -(1 as libc::c_int) as ssize_t;
         }
@@ -1355,8 +1267,7 @@ unsafe extern "C" fn bearssl_send(
         if app.is_null() {
             Curl_failf(
                 data,
-                b"SSL: connection closed during write\0" as *const u8
-                    as *const libc::c_char,
+                b"SSL: connection closed during write\0" as *const u8 as *const libc::c_char,
             );
             *err = CURLE_SEND_ERROR;
             return -(1 as libc::c_int) as ssize_t;
@@ -1373,7 +1284,7 @@ unsafe extern "C" fn bearssl_send(
         br_ssl_engine_sendapp_ack(&mut (*backend).bear_ctx.eng, applen);
         br_ssl_engine_flush(&mut (*backend).bear_ctx.eng, 0 as libc::c_int);
         (*backend).pending_write = applen;
-    };
+    }
 }
 
 unsafe extern "C" fn bearssl_recv(
@@ -1384,9 +1295,8 @@ unsafe extern "C" fn bearssl_recv(
     mut err: *mut CURLcode,
 ) -> ssize_t {
     let mut conn: *mut connectdata = (*data).conn;
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut app: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
     let mut applen: size_t = 0;
@@ -1414,21 +1324,16 @@ unsafe extern "C" fn bearssl_connect_common(
     mut done: *mut bool,
 ) -> CURLcode {
     let mut ret: CURLcode = CURLE_OK;
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
     let mut timeout_ms: timediff_t = 0;
     let mut what: libc::c_int = 0;
-    if ssl_connection_complete as libc::c_int as libc::c_uint
-        == (*connssl).state as libc::c_uint
-    {
+    if ssl_connection_complete as libc::c_int as libc::c_uint == (*connssl).state as libc::c_uint {
         *done = 1 as libc::c_int != 0;
         return CURLE_OK;
     }
-    if ssl_connect_1 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
-    {
+    if ssl_connect_1 as libc::c_int as libc::c_uint == (*connssl).connecting_state as libc::c_uint {
         ret = bearssl_connect_step1(data, conn, sockindex);
         if ret as u64 != 0 {
             return ret;
@@ -1454,15 +1359,15 @@ unsafe extern "C" fn bearssl_connect_common(
             || ssl_connect_2_writing as libc::c_int as libc::c_uint
                 == (*connssl).connecting_state as libc::c_uint
         {
-            let mut writefd: curl_socket_t = if ssl_connect_2_writing as libc::c_int
-                as libc::c_uint == (*connssl).connecting_state as libc::c_uint
+            let mut writefd: curl_socket_t = if ssl_connect_2_writing as libc::c_int as libc::c_uint
+                == (*connssl).connecting_state as libc::c_uint
             {
                 sockfd
             } else {
                 -(1 as libc::c_int)
             };
-            let mut readfd: curl_socket_t = if ssl_connect_2_reading as libc::c_int
-                as libc::c_uint == (*connssl).connecting_state as libc::c_uint
+            let mut readfd: curl_socket_t = if ssl_connect_2_reading as libc::c_int as libc::c_uint
+                == (*connssl).connecting_state as libc::c_uint
             {
                 sockfd
             } else {
@@ -1481,8 +1386,7 @@ unsafe extern "C" fn bearssl_connect_common(
             if what < 0 as libc::c_int {
                 Curl_failf(
                     data,
-                    b"select/poll on SSL socket, errno: %d\0" as *const u8
-                        as *const libc::c_char,
+                    b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const libc::c_char,
                     *__errno_location(),
                 );
                 return CURLE_SSL_CONNECT_ERROR;
@@ -1494,8 +1398,7 @@ unsafe extern "C" fn bearssl_connect_common(
                     } else {
                         Curl_failf(
                             data,
-                            b"SSL connection timeout\0" as *const u8
-                                as *const libc::c_char,
+                            b"SSL connection timeout\0" as *const u8 as *const libc::c_char,
                         );
                         return CURLE_OPERATION_TIMEDOUT;
                     }
@@ -1515,9 +1418,7 @@ unsafe extern "C" fn bearssl_connect_common(
             return ret;
         }
     }
-    if ssl_connect_3 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
-    {
+    if ssl_connect_3 as libc::c_int as libc::c_uint == (*connssl).connecting_state as libc::c_uint {
         ret = bearssl_connect_step3(data, conn, sockindex);
         if ret as u64 != 0 {
             return ret;
@@ -1557,24 +1458,24 @@ unsafe extern "C" fn bearssl_connect_common(
     return CURLE_OK;
 }
 
-unsafe extern "C" fn bearssl_version(
-    mut buffer: *mut libc::c_char,
-    mut size: size_t,
-) -> size_t {
-    return curl_msnprintf(buffer, size, b"BearSSL\0" as *const u8 as *const libc::c_char)
-        as size_t;
+unsafe extern "C" fn bearssl_version(mut buffer: *mut libc::c_char, mut size: size_t) -> size_t {
+    return curl_msnprintf(
+        buffer,
+        size,
+        b"BearSSL\0" as *const u8 as *const libc::c_char,
+    ) as size_t;
 }
 
 unsafe extern "C" fn bearssl_data_pending(
     mut conn: *const connectdata,
     mut connindex: libc::c_int,
 ) -> bool {
-    let mut connssl: *const ssl_connect_data = &*((*conn).ssl)
-        .as_ptr()
-        .offset(connindex as isize) as *const ssl_connect_data;
+    let mut connssl: *const ssl_connect_data =
+        &*((*conn).ssl).as_ptr().offset(connindex as isize) as *const ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     return br_ssl_engine_current_state(&mut (*backend).bear_ctx.eng)
-        & 0x10 as libc::c_int as libc::c_uint != 0;
+        & 0x10 as libc::c_int as libc::c_uint
+        != 0;
 }
 
 unsafe extern "C" fn bearssl_random(
@@ -1598,9 +1499,7 @@ unsafe extern "C" fn bearssl_random(
             0 as libc::c_int as size_t,
         );
         seeder = br_prng_seeder_system(0 as *mut *const libc::c_char);
-        if seeder.is_none()
-            || seeder.expect("non-null function pointer")(&mut ctx.vtable) == 0
-        {
+        if seeder.is_none() || seeder.expect("non-null function pointer")(&mut ctx.vtable) == 0 {
             return CURLE_FAILED_INIT;
         }
         seeded = 1 as libc::c_int != 0;
@@ -1616,13 +1515,7 @@ unsafe extern "C" fn bearssl_connect(
 ) -> CURLcode {
     let mut ret: CURLcode = CURLE_OK;
     let mut done: bool = 0 as libc::c_int != 0;
-    ret = bearssl_connect_common(
-        data,
-        conn,
-        sockindex,
-        0 as libc::c_int != 0,
-        &mut done,
-    );
+    ret = bearssl_connect_common(data, conn, sockindex, 0 as libc::c_int != 0, &mut done);
     if ret as u64 != 0 {
         return ret;
     }
@@ -1651,9 +1544,8 @@ unsafe extern "C" fn bearssl_close(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut i: size_t = 0;
     if (*backend).active {
@@ -1662,14 +1554,12 @@ unsafe extern "C" fn bearssl_close(
     }
     i = 0 as libc::c_int as size_t;
     while i < (*backend).anchors_len {
-        Curl_cfree
-            .expect(
-                "non-null function pointer",
-            )((*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+        Curl_cfree.expect("non-null function pointer")(
+            (*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void,
+        );
         i = i.wrapping_add(1);
     }
-    Curl_cfree
-        .expect("non-null function pointer")((*backend).anchors as *mut libc::c_void);
+    Curl_cfree.expect("non-null function pointer")((*backend).anchors as *mut libc::c_void);
 }
 
 unsafe extern "C" fn bearssl_session_free(mut ptr: *mut libc::c_void) {
@@ -1706,17 +1596,14 @@ pub static mut Curl_ssl_bearssl: Curl_ssl = unsafe {
                 init
             },
             supports: ((1 as libc::c_int) << 6 as libc::c_int) as libc::c_uint,
-            sizeof_ssl_backend_data: ::std::mem::size_of::<ssl_backend_data>()
-                as libc::c_ulong,
+            sizeof_ssl_backend_data: ::std::mem::size_of::<ssl_backend_data>() as libc::c_ulong,
             init: Some(Curl_none_init as unsafe extern "C" fn() -> libc::c_int),
             cleanup: Some(Curl_none_cleanup as unsafe extern "C" fn() -> ()),
             version: Some(
-                bearssl_version
-                    as unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t,
+                bearssl_version as unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t,
             ),
             check_cxn: Some(
-                Curl_none_check_cxn
-                    as unsafe extern "C" fn(*mut connectdata) -> libc::c_int,
+                Curl_none_check_cxn as unsafe extern "C" fn(*mut connectdata) -> libc::c_int,
             ),
             shut_down: Some(
                 Curl_none_shutdown
@@ -1732,11 +1619,7 @@ pub static mut Curl_ssl_bearssl: Curl_ssl = unsafe {
             ),
             random: Some(
                 bearssl_random
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *mut libc::c_uchar,
-                        size_t,
-                    ) -> CURLcode,
+                    as unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_uchar, size_t) -> CURLcode,
             ),
             cert_status_request: Some(
                 Curl_none_cert_status_request as unsafe extern "C" fn() -> bool,
@@ -1760,46 +1643,29 @@ pub static mut Curl_ssl_bearssl: Curl_ssl = unsafe {
             ),
             getsock: Some(
                 Curl_ssl_getsock
-                    as unsafe extern "C" fn(
-                        *mut connectdata,
-                        *mut curl_socket_t,
-                    ) -> libc::c_int,
+                    as unsafe extern "C" fn(*mut connectdata, *mut curl_socket_t) -> libc::c_int,
             ),
             get_internals: Some(
                 bearssl_get_internals
-                    as unsafe extern "C" fn(
-                        *mut ssl_connect_data,
-                        CURLINFO,
-                    ) -> *mut libc::c_void,
+                    as unsafe extern "C" fn(*mut ssl_connect_data, CURLINFO) -> *mut libc::c_void,
             ),
             close_one: Some(
                 bearssl_close
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *mut connectdata,
-                        libc::c_int,
-                    ) -> (),
+                    as unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> (),
             ),
-            close_all: Some(
-                Curl_none_close_all as unsafe extern "C" fn(*mut Curl_easy) -> (),
-            ),
+            close_all: Some(Curl_none_close_all as unsafe extern "C" fn(*mut Curl_easy) -> ()),
             session_free: Some(
                 bearssl_session_free as unsafe extern "C" fn(*mut libc::c_void) -> (),
             ),
             set_engine: Some(
                 Curl_none_set_engine
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *const libc::c_char,
-                    ) -> CURLcode,
+                    as unsafe extern "C" fn(*mut Curl_easy, *const libc::c_char) -> CURLcode,
             ),
             set_engine_default: Some(
-                Curl_none_set_engine_default
-                    as unsafe extern "C" fn(*mut Curl_easy) -> CURLcode,
+                Curl_none_set_engine_default as unsafe extern "C" fn(*mut Curl_easy) -> CURLcode,
             ),
             engines_list: Some(
-                Curl_none_engines_list
-                    as unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist,
+                Curl_none_engines_list as unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist,
             ),
             false_start: Some(Curl_none_false_start as unsafe extern "C" fn() -> bool),
             sha256sum: Some(
