@@ -2487,6 +2487,7 @@ extern "C" {
         headers: *mut hyper_headers,
         line: *const libc::c_char,
     ) -> CURLcode;
+    pub fn Curl_hyper_done(_: *mut Curl_easy);
 
     // in http.rs, remove in future
     #[cfg(USE_HYPER)]

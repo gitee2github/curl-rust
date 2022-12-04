@@ -645,9 +645,9 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
             && (*data).state.httpreq as libc::c_uint != HTTPREQ_HEAD as libc::c_int as libc::c_uint
         {
             #[cfg(not(CURLDEBUG))]
-            let new_url: *mut i8 = Curl_cstrdup.expect("non-null function pointer")((*data).state.url);
+            let new_url: *mut libc::c_char= Curl_cstrdup.expect("non-null function pointer")((*data).state.url);
             #[cfg(CURLDEBUG)]
-            let new_url: *mut i8 = curl_dbg_strdup(
+            let new_url: *mut libc::c_char = curl_dbg_strdup(
                 (*data).state.url,
                 640 as libc::c_int,
                 b"http.c\0" as *const u8 as *const libc::c_char,
