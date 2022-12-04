@@ -621,17 +621,17 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
             }
             #[cfg(CURLDEBUG)]
             _ => {
-                curl_dbg_free(
-                    (*data).req.newurl as *mut libc::c_void,
-                    626 as libc::c_int,
-                    b"http.c\0" as *const u8 as *const libc::c_char,
-                );
+        curl_dbg_free(
+            (*data).req.newurl as *mut libc::c_void,
+            626 as libc::c_int,
+            b"http.c\0" as *const u8 as *const libc::c_char,
+        );
                 (*data).req.newurl = 0 as *mut libc::c_char;
                 (*data).req.newurl = curl_dbg_strdup(
-                    (*data).state.url,
-                    627 as libc::c_int,
-                    b"http.c\0" as *const u8 as *const libc::c_char,
-                );
+            (*data).state.url,
+            627 as libc::c_int,
+            b"http.c\0" as *const u8 as *const libc::c_char,
+        );
             }
         }       
         if ((*data).req.newurl).is_null() {
@@ -1414,96 +1414,58 @@ pub unsafe extern "C" fn Curl_buffer_send(
         );
         ptr = (*data).state.ulbuf;
     } else {
-        //===
-        let mut p: *mut libc::c_char = getenv(
-            b"CURL_SMALLREQSEND\0" as *const u8 as *const libc::c_char,
-        );
-        if !p.is_null() {
-            let mut altsize: size_t = strtoul(
-                p,
-                0 as *mut *mut libc::c_char,
-                10 as libc::c_int,
+        #[cfg(CURLDEBUG)]
+        {
+            let mut p: *mut libc::c_char = getenv(
+                b"CURL_SMALLREQSEND\0" as *const u8 as *const libc::c_char,
             );
-            if altsize != 0 {
-                sendsize = if size < altsize { size } else { altsize };
+            if !p.is_null() {
+                let mut altsize: size_t = strtoul(
+                    p,
+                    0 as *mut *mut libc::c_char,
+                    10 as libc::c_int,
+                );
+                if altsize != 0 {
+                    sendsize = if size < altsize { size } else { altsize };
+                } else {
+                    sendsize = size;
+                }
+            } else if (*data).set.max_send_speed != 0
+                    && included_body_bytes > (*data).set.max_send_speed
+                {
+                let mut overflow_0: curl_off_t = included_body_bytes
+                    - (*data).set.max_send_speed;
+                if (overflow_0 as size_t) < size {} else {
+                    __assert_fail(
+                        b"(size_t)overflow < size\0" as *const u8 as *const libc::c_char,
+                        b"http.c\0" as *const u8 as *const libc::c_char,
+                        1326 as libc::c_int as libc::c_uint,
+                        (*::std::mem::transmute::<
+                            &[u8; 94],
+                            &[libc::c_char; 94],
+                        >(
+                            b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
+                        ))
+                            .as_ptr(),
+                    );
+                }
+                sendsize = size.wrapping_sub(overflow_0 as size_t);
             } else {
                 sendsize = size;
             }
-        } else if (*data).set.max_send_speed != 0
-                && included_body_bytes > (*data).set.max_send_speed
+        }
+        #[cfg(not(CURLDEBUG))]
+        {
+            if (*data).set.max_send_speed != 0
+            && included_body_bytes > (*data).set.max_send_speed
             {
             let mut overflow_0: curl_off_t = included_body_bytes
                 - (*data).set.max_send_speed;
-            if (overflow_0 as size_t) < size {} else {
-                __assert_fail(
-                    b"(size_t)overflow < size\0" as *const u8 as *const libc::c_char,
-                    b"http.c\0" as *const u8 as *const libc::c_char,
-                    1326 as libc::c_int as libc::c_uint,
-                    (*::std::mem::transmute::<
-                        &[u8; 94],
-                        &[libc::c_char; 94],
-                    >(
-                        b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
-                    ))
-                        .as_ptr(),
-                );
-            }
             sendsize = size.wrapping_sub(overflow_0 as size_t);
-        } else {
-            sendsize = size;
+            } else {
+                sendsize = size;
+            }
         }
-        // #[cfg(CURLDEBUG)]
-        // {
-        //     let mut p: *mut libc::c_char = getenv(
-        //         b"CURL_SMALLREQSEND\0" as *const u8 as *const libc::c_char,
-        //     );
-        //     if !p.is_null() {
-        //         let mut altsize: size_t = strtoul(
-        //             p,
-        //             0 as *mut *mut libc::c_char,
-        //             10 as libc::c_int,
-        //         );
-        //         if altsize != 0 {
-        //             sendsize = if size < altsize { size } else { altsize };
-        //         } else {
-        //             sendsize = size;
-        //         }
-        //     } else if (*data).set.max_send_speed != 0
-        //             && included_body_bytes > (*data).set.max_send_speed
-        //         {
-        //         let mut overflow_0: curl_off_t = included_body_bytes
-        //             - (*data).set.max_send_speed;
-        //         if (overflow_0 as size_t) < size {} else {
-        //             __assert_fail(
-        //                 b"(size_t)overflow < size\0" as *const u8 as *const libc::c_char,
-        //                 b"http.c\0" as *const u8 as *const libc::c_char,
-        //                 1326 as libc::c_int as libc::c_uint,
-        //                 (*::std::mem::transmute::<
-        //                     &[u8; 94],
-        //                     &[libc::c_char; 94],
-        //                 >(
-        //                     b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
-        //                 ))
-        //                     .as_ptr(),
-        //             );
-        //         }
-        //         sendsize = size.wrapping_sub(overflow_0 as size_t);
-        //     } else {
-        //         sendsize = size;
-        //     }
-        // }
-        // #[cfg(not(CURLDEBUG))]
-        // {
-        //     if (*data).set.max_send_speed != 0
-        //     && included_body_bytes > (*data).set.max_send_speed
-        //     {
-        //     let mut overflow_0: curl_off_t = included_body_bytes
-        //         - (*data).set.max_send_speed;
-        //     sendsize = size.wrapping_sub(overflow_0 as size_t);
-        //     } else {
-        //         sendsize = size;
-        //     }
-        // }
     }
     result = Curl_write(data, sockfd, ptr as *const libc::c_void, sendsize, &mut amount);
     if result as u64 == 0 {
@@ -1643,28 +1605,28 @@ pub unsafe extern "C" fn Curl_http_connect(
     match () {
         #[cfg(not(CURL_DISABLE_PROXY))]
         _ => {
-            result = Curl_proxy_connect(data, 0 as libc::c_int);
-            if result as u64 != 0 {
-                return result;
-            }
-            if ((*conn).bits).proxy_connect_closed() != 0 {
-                return CURLE_OK;
-            }
-            if (*conn).http_proxy.proxytype as libc::c_uint
-                == CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                && !(*conn).bits.proxy_ssl_connected[0 as libc::c_int as usize]
-            {
-                return CURLE_OK;
-            }
-            if Curl_connect_ongoing(conn) {
-                return CURLE_OK;
-            }
-            if ((*data).set).haproxyprotocol() != 0 {
-                result = add_haproxy_protocol_header(data);
-                if result as u64 != 0 {
-                    return result;
-                }
-            }
+    result = Curl_proxy_connect(data, 0 as libc::c_int);
+    if result as u64 != 0 {
+        return result;
+    }
+    if ((*conn).bits).proxy_connect_closed() != 0 {
+        return CURLE_OK;
+    }
+    if (*conn).http_proxy.proxytype as libc::c_uint
+        == CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        && !(*conn).bits.proxy_ssl_connected[0 as libc::c_int as usize]
+    {
+        return CURLE_OK;
+    }
+    if Curl_connect_ongoing(conn) {
+        return CURLE_OK;
+    }
+    if ((*data).set).haproxyprotocol() != 0 {
+        result = add_haproxy_protocol_header(data);
+        if result as u64 != 0 {
+            return result;
+        }
+    }
         }
         #[cfg(CURL_DISABLE_PROXY)]
         _ => { }
@@ -2056,7 +2018,7 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                         optr = 0 as *mut libc::c_char;
                     } else {
                         ptr = ptr.offset(-1);
-                        if *ptr as libc::c_int == ';' as i32 {                           
+                        if *ptr as libc::c_int == ';' as i32 {
                             match (){
                                 #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
                                 _ => {
@@ -2065,11 +2027,11 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                 }
                                 #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
                                 _ => {
-                                    semicolonp = curl_dbg_strdup(
-                                        (*headers).data,
-                                        1857 as libc::c_int,
-                                        b"http.c\0" as *const u8 as *const libc::c_char,
-                                    );
+                            semicolonp = curl_dbg_strdup(
+                                (*headers).data,
+                                1857 as libc::c_int,
+                                b"http.c\0" as *const u8 as *const libc::c_char,
+                            );
                                 }
                             }
                             if semicolonp.is_null() {
@@ -2429,13 +2391,13 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                     b"%s\r\n\0" as *const u8 as *const libc::c_char,
                                                     compare,
                                                 );
-                                                    }
-                                                }
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
                         }
                     }
                     if !semicolonp.is_null() {
@@ -2714,10 +2676,10 @@ pub unsafe extern "C" fn Curl_http_host(
             #[cfg(CURLDEBUG)]
             _ => {
                 (*data).state.first_host = curl_dbg_strdup(
-                    (*conn).host.name,
-                    2086 as libc::c_int,
-                    b"http.c\0" as *const u8 as *const libc::c_char,
-                );
+            (*conn).host.name,
+            2086 as libc::c_int,
+            b"http.c\0" as *const u8 as *const libc::c_char,
+        );
             }
         }
         if ((*data).state.first_host).is_null() {
@@ -4816,7 +4778,7 @@ pub unsafe extern "C" fn Curl_http_header(
             & ((1 as libc::c_int) << 0 as libc::c_int) as libc::c_uint != 0;
     #[cfg(CURL_DISABLE_HSTS)]
     let flag5: bool = false;
-    let flag6: bool = if cfg!(not(CURL_DISABLE_ALTSVC)) {
+    let flag6: bool = if cfg!(all(not(CURL_DISABLE_ALTSVC), not(CURLDEBUG))) {
         !((*data).asi).is_null()
         && curl_strnequal(
             b"Alt-Svc:\0" as *const u8 as *const libc::c_char,
@@ -4826,7 +4788,18 @@ pub unsafe extern "C" fn Curl_http_header(
         && ((*(*conn).handler).flags & ((1 as libc::c_int) << 0 as libc::c_int) as libc::c_uint
             != 0
             || 0 as libc::c_int != 0)
-    } else {
+    } else if cfg!(all(not(CURL_DISABLE_ALTSVC), CURLDEBUG)){
+        !((*data).asi).is_null()
+        && curl_strnequal(
+            b"Alt-Svc:\0" as *const u8 as *const libc::c_char,
+            headp,
+            strlen(b"Alt-Svc:\0" as *const u8 as *const libc::c_char),
+        ) != 0
+        && ((*(*conn).handler).flags
+            & ((1 as libc::c_int) << 0 as libc::c_int) as libc::c_uint != 0
+            || !(getenv(b"CURL_ALTSVC_HTTP\0" as *const u8 as *const libc::c_char))
+                .is_null())
+    }else {
         false
     };
     if (*k).http_bodyless() == 0
@@ -5272,10 +5245,10 @@ pub unsafe extern "C" fn Curl_http_header(
                     #[cfg(CURLDEBUG)]
                     _ => {
                         (*data).req.newurl = curl_dbg_strdup(
-                            (*data).req.location,
-                            3653 as libc::c_int,
-                            b"http.c\0" as *const u8 as *const libc::c_char,
-                        );
+                    (*data).req.location,
+                    3653 as libc::c_int,
+                    b"http.c\0" as *const u8 as *const libc::c_char,
+                );
                     }
                 }                
                 if ((*data).req.newurl).is_null() {
@@ -5311,17 +5284,17 @@ pub unsafe extern "C" fn Curl_http_header(
                 }
                 else {
                     #[cfg(DEBUGBUILD)]
-                    Curl_infof(
-                        data,
-                        b"Parsed STS header fine (%zu entries)\0" as *const u8
-                            as *const libc::c_char,
-                        (*(*data).hsts).list.size,
-                    );
-                }
-            }
-            #[cfg(CURL_DISABLE_HSTS)]
-            _ => { }
+            Curl_infof(
+                data,
+                b"Parsed STS header fine (%zu entries)\0" as *const u8
+                    as *const libc::c_char,
+                (*(*data).hsts).list.size,
+            );
         }
+    }
+    #[cfg(CURL_DISABLE_HSTS)]
+            _ => { }
+}
     } else if flag6
         {
         let mut id: alpnid = (if (*conn).httpversion as libc::c_int == 20 as libc::c_int {
@@ -5704,8 +5677,11 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                     );
                     return CURLE_HTTP_RETURNED_ERROR;
                 }
-                (*data).req.deductheadercount =
-                    if 100 as libc::c_int <= (*k).httpcode && 199 as libc::c_int >= (*k).httpcode {
+                (*data)
+                    .req
+                    .deductheadercount = if 100 as libc::c_int <= (*k).httpcode
+                    && 199 as libc::c_int >= (*k).httpcode
+                {
                     (*data).req.headerbytecount
                 } else {
                     0 as libc::c_int as libc::c_long
@@ -5758,10 +5734,10 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                                             #[cfg(CURLDEBUG)]
                                             _ => {
                                                 (*data).req.newurl = curl_dbg_strdup(
-                                                    (*data).state.url,
-                                                    4085 as libc::c_int,
-                                                    b"http.c\0" as *const u8 as *const libc::c_char,
-                                                );
+                                            (*data).state.url,
+                                            4085 as libc::c_int,
+                                            b"http.c\0" as *const u8 as *const libc::c_char,
+                                        );
                                             }
                                         }                                        
                                         Curl_done_sending(data, k);
