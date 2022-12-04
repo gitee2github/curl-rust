@@ -2504,43 +2504,6 @@ extern "C" {
         req: *mut dynbuf,
     ) -> CURLcode;
 
-    // libssh2
-    pub fn Curl_none_false_start() -> bool;
-    pub fn Curl_ssl_getsock(conn: *mut connectdata, socks: *mut curl_socket_t) -> libc::c_int;
-    pub fn Curl_ssl_init_certinfo(data: *mut Curl_easy, num: libc::c_int) -> CURLcode;
-    pub fn Curl_ssl_push_certinfo_len(
-        data: *mut Curl_easy,
-        certnum: libc::c_int,
-        label: *const libc::c_char,
-        value: *const libc::c_char,
-        valuelen: size_t,
-    ) -> CURLcode;
-    pub fn Curl_ssl_sessionid_lock(data: *mut Curl_easy);
-    pub fn Curl_ssl_sessionid_unlock(data: *mut Curl_easy);
-    pub fn Curl_ssl_getsessionid(
-        data: *mut Curl_easy,
-        conn: *mut connectdata,
-        isProxy: bool,
-        ssl_sessionid: *mut *mut libc::c_void,
-        idsize: *mut size_t,
-        sockindex: libc::c_int,
-    ) -> bool;
-    pub fn Curl_ssl_addsessionid(
-        data: *mut Curl_easy,
-        conn: *mut connectdata,
-        isProxy: bool,
-        ssl_sessionid: *mut libc::c_void,
-        idsize: size_t,
-        sockindex: libc::c_int,
-    ) -> CURLcode;
-    pub fn Curl_ssl_delsessionid(data: *mut Curl_easy, ssl_sessionid: *mut libc::c_void);
-    pub fn Curl_pin_peer_pubkey(
-        data: *mut Curl_easy,
-        pinnedpubkey: *const libc::c_char,
-        pubkey: *const libc::c_uchar,
-        pubkeylen: size_t,
-    ) -> CURLcode;
-
     //debug
     pub fn __assert_fail(
         __assertion: *const libc::c_char,
