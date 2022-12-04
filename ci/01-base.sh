@@ -53,17 +53,17 @@ cd ..
 rm -r temp/
 
 # libcurlu.a 开启debug选项时使用
-mkdir temp
-mv libcurlu.a temp/
-cp ../../rust/target/release/librust_project.a temp/
-cd temp
-ar x libcurlu.a
-ar x librust_project.a
-rm libcurlu.a librust_project.a
-ar r libcurlu.a *.o
-cp libcurlu.a ../
-cd ..
-rm -r temp/
+# mkdir temp
+# mv libcurlu.a temp/
+# cp ../../rust/target/release/librust_project.a temp/
+# cd temp
+# ar x libcurlu.a
+# ar x librust_project.a
+# rm libcurlu.a librust_project.a
+# ar r libcurlu.a *.o
+# cp libcurlu.a ../
+# cd ..
+# rm -r temp/
 
 cd ../../
 make
