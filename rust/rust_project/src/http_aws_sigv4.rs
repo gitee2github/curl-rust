@@ -429,17 +429,22 @@ pub unsafe extern "C" fn Curl_output_aws_sigv4(
                     match current_block {
                         16896850163988546332 => {}
                         _ => {
-                            #[cfg(CURLDEBUG)]
-                            force_timestamp =
-                                getenv(b"CURL_FORCETIME\0" as *const u8 as *const libc::c_char);
-                            #[cfg(CURLDEBUG)]
-                            if !force_timestamp.is_null() {
-                                clock = 0 as libc::c_int as time_t;
-                            } else {
-                                time(&mut clock);
-                            }
-                            #[cfg(not(CURLDEBUG))]
-                            time(&mut clock);
+                            match () {
+                                #[cfg(CURLDEBUG)]
+                                _ => {
+                                    force_timestamp =
+                                    getenv(b"CURL_FORCETIME\0" as *const u8 as *const libc::c_char);
+                                    if !force_timestamp.is_null() {
+                                        clock = 0 as libc::c_int as time_t;
+                                    } else {
+                                        time(&mut clock);
+                                    }
+                                }
+                                #[cfg(not(CURLDEBUG))]
+                                _ => {
+                                    time(&mut clock);
+                                }
+                            }      
                             ret = Curl_gmtime(clock, &mut tm);
                             if !(ret as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint) {
                                 if !(strftime(

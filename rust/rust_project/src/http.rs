@@ -2688,7 +2688,7 @@ pub unsafe extern "C" fn Curl_http_host(
         (*data).state.first_remote_port = (*conn).remote_port;
     }
     #[cfg(not(CURLDEBUG))]
-    Curl_cfree.expect("non-null function pointer")(cookiehost as *mut libc::c_void);
+    Curl_cfree.expect("non-null function pointer")((*data).state.aptr.host as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
     curl_dbg_free(
         (*data).state.aptr.host as *mut libc::c_void,
