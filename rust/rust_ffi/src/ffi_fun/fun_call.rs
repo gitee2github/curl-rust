@@ -2530,4 +2530,15 @@ extern "C" {
         line: libc::c_int,
         source: *const libc::c_char,
     ) -> *mut libc::c_void;
+    pub fn curl_dbg_fopen(
+        file: *const libc::c_char,
+        mode: *const libc::c_char,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> *mut FILE;
+    pub fn curl_dbg_fclose(
+        file: *mut FILE,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> libc::c_int;
 }
