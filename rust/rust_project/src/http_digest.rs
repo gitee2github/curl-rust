@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: http digest
  ******************************************************************************/
@@ -67,7 +67,7 @@
      mut uripath: *const u8,
  ) -> CURLcode {
      unsafe{
-         let mut result: CURLcode = CURLE_OK;
+     let mut result: CURLcode = CURLE_OK;
      let mut path: *mut u8 = 0 as *mut u8;
      let mut tmp: *mut libc::c_char = 0 as *mut libc::c_char;
      let mut response: *mut libc::c_char = 0 as *mut libc::c_char;
@@ -99,7 +99,14 @@
          passwdp = (*data).state.aptr.passwd;
          authp = &mut (*data).state.authhost;
      }
+     #[cfg(not(CURLDEBUG))]
      Curl_cfree.expect("non-null function pointer")(*allocuserpwd as *mut libc::c_void);
+     #[cfg(CURLDEBUG)]
+     curl_dbg_free(
+         *allocuserpwd as *mut libc::c_void,
+         112 as i32,
+         b"http_digest.c\0" as *const u8 as *const libc::c_char,
+     );
      *allocuserpwd = 0 as *mut libc::c_char;
      /* not set means empty */
      if userp.is_null() {
@@ -144,8 +151,17 @@
          }
      }
      if tmp.is_null() {
-         path = Curl_cstrdup.expect("non-null function pointer")(uripath as *mut libc::c_char)
-             as *mut u8;
+         #[cfg(not(CURLDEBUG))]
+         let mut newpath: *mut u8 =
+             Curl_cstrdup.expect("non-null function pointer")(uripath as *mut libc::c_char)
+                 as *mut u8;
+         #[cfg(CURLDEBUG)]
+         let mut newpath: *mut u8 = curl_dbg_strdup(
+             uripath as *mut libc::c_char,
+             154 as i32,
+             b"http_digest.c\0" as *const u8 as *const libc::c_char,
+         ) as *mut u8;
+         path = newpath;
      }
      if path.is_null() {
          return CURLE_OUT_OF_MEMORY;
@@ -160,7 +176,14 @@
          &mut response,
          &mut len,
      );
+     #[cfg(not(CURLDEBUG))]
      Curl_cfree.expect("non-null function pointer")(path as *mut libc::c_void);
+     #[cfg(CURLDEBUG)]
+     curl_dbg_free(
+         path as *mut libc::c_void,
+         161 as i32,
+         b"http_digest.c\0" as *const u8 as *const libc::c_char,
+     );
      if result as u64 != 0 {
          return result;
      }
@@ -173,7 +196,14 @@
          },
          response,
      );
+     #[cfg(not(CURLDEBUG))]
      Curl_cfree.expect("non-null function pointer")(response as *mut libc::c_void);
+     #[cfg(CURLDEBUG)]
+     curl_dbg_free(
+         response as *mut libc::c_void,
+         168 as i32,
+         b"http_digest.c\0" as *const u8 as *const libc::c_char,
+     );
      if (*allocuserpwd).is_null() {
          return CURLE_OUT_OF_MEMORY;
      }
@@ -186,7 +216,7 @@
  #[no_mangle]
  pub extern "C" fn Curl_http_auth_cleanup_digest(mut data: *mut Curl_easy) {
      unsafe{
-         Curl_auth_digest_cleanup(&mut (*data).state.digest);
-         Curl_auth_digest_cleanup(&mut (*data).state.proxydigest);
-     }
+     Curl_auth_digest_cleanup(&mut (*data).state.digest);
+     Curl_auth_digest_cleanup(&mut (*data).state.proxydigest);
+ }
  }
