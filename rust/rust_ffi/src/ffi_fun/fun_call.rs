@@ -2541,4 +2541,12 @@ extern "C" {
         line: libc::c_int,
         source: *const libc::c_char,
     ) -> libc::c_int;
+    pub fn curl_dbg_recv(
+        sockfd: libc::c_int,
+        buf: *mut libc::c_void,
+        len: size_t,
+        flags: libc::c_int,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> ssize_t;
 }

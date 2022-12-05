@@ -213,6 +213,19 @@ unsafe extern "C" fn passwd_callback(
     mut encrypting: libc::c_int,
     mut global_passwd: *mut libc::c_void,
 ) -> libc::c_int {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if 0 as libc::c_int == encrypting {} else {
+        __assert_fail(
+            b"0 == encrypting\0" as *const u8 as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            416 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 46],
+                &[libc::c_char; 46],
+            >(b"int passwd_callback(char *, int, int, void *)\0"))
+                .as_ptr(),
+        );
+    }
     if encrypting == 0 {
         let mut klen: libc::c_int = curlx_uztosi(
             strlen(global_passwd as *mut libc::c_char),
@@ -686,91 +699,91 @@ unsafe extern "C" fn cert_stuff(
             // DONE - 804
             42 => {
                     #[cfg(all(USE_OPENSSL_ENGINE, ENGINE_CTRL_GET_CMD_FROM_NAME))]
-                    if ((*data).state.engine).is_null() {
-                        if is_pkcs11_uri(cert_file) {
-                            if ossl_set_engine(
-                                data,
-                                b"pkcs11\0" as *const u8 as *const libc::c_char,
-                            ) as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint
-                            {
-                                return 0 as libc::c_int;
-                            }
+                if ((*data).state.engine).is_null() {
+                    if is_pkcs11_uri(cert_file) {
+                        if ossl_set_engine(
+                            data,
+                            b"pkcs11\0" as *const u8 as *const libc::c_char,
+                        ) as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint
+                        {
+                            return 0 as libc::c_int;
                         }
                     }
+                }
                     #[cfg(all(USE_OPENSSL_ENGINE, ENGINE_CTRL_GET_CMD_FROM_NAME))]    
-                    if !((*data).state.engine).is_null() {
-                        let mut cmd_name: *const libc::c_char = b"LOAD_CERT_CTRL\0"
-                            as *const u8 as *const libc::c_char;
-                        let mut params: C2RustUnnamed_13 = C2RustUnnamed_13 {
-                            cert_id: 0 as *const libc::c_char,
-                            cert: 0 as *mut X509,
-                        };
-                        params.cert_id = cert_file;
-                        params.cert = 0 as *mut X509;
-                        if ENGINE_ctrl(
-                            (*data).state.engine as *mut ENGINE,
-                            13 as libc::c_int,
-                            0 as libc::c_int as libc::c_long,
-                            cmd_name as *mut libc::c_void,
-                            None,
-                        ) == 0
-                        {
-                            Curl_failf(
-                                data,
-                                b"ssl engine does not support loading certificates\0"
-                                    as *const u8 as *const libc::c_char,
-                            );
-                            return 0 as libc::c_int;
-                        }
-                        if ENGINE_ctrl_cmd(
-                            (*data).state.engine as *mut ENGINE,
-                            cmd_name,
-                            0 as libc::c_int as libc::c_long,
-                            &mut params as *mut C2RustUnnamed_13 as *mut libc::c_void,
-                            None,
-                            1 as libc::c_int,
-                        ) == 0
-                        {
-                            Curl_failf(
-                                data,
-                                b"ssl engine cannot load client cert with id '%s' [%s]\0"
-                                    as *const u8 as *const libc::c_char,
-                                cert_file,
-                                ossl_strerror(
-                                    ERR_get_error(),
-                                    error_buffer.as_mut_ptr(),
-                                    ::std::mem::size_of::<[libc::c_char; 256]>()
-                                        as libc::c_ulong,
-                                ),
-                            );
-                            return 0 as libc::c_int;
-                        }
-                        if (params.cert).is_null() {
-                            Curl_failf(
-                                data,
-                                b"ssl engine didn't initialized the certificate properly.\0"
-                                    as *const u8 as *const libc::c_char,
-                            );
-                            return 0 as libc::c_int;
-                        }
-                        if SSL_CTX_use_certificate(ctx, params.cert) != 1 as libc::c_int {
-                            Curl_failf(
-                                data,
-                                b"unable to set client certificate\0" as *const u8
-                                    as *const libc::c_char,
-                            );
-                            X509_free(params.cert);
-                            return 0 as libc::c_int;
-                        }
-                        X509_free(params.cert);
-                    } else {
+                if !((*data).state.engine).is_null() {
+                    let mut cmd_name: *const libc::c_char = b"LOAD_CERT_CTRL\0"
+                        as *const u8 as *const libc::c_char;
+                    let mut params: openssl_C2RustUnnamed_13 = openssl_C2RustUnnamed_13 {
+                        cert_id: 0 as *const libc::c_char,
+                        cert: 0 as *mut X509,
+                    };
+                    params.cert_id = cert_file;
+                    params.cert = 0 as *mut X509;
+                    if ENGINE_ctrl(
+                        (*data).state.engine as *mut ENGINE,
+                        13 as libc::c_int,
+                        0 as libc::c_int as libc::c_long,
+                        cmd_name as *mut libc::c_void,
+                        None,
+                    ) == 0
+                    {
                         Curl_failf(
                             data,
-                            b"crypto engine not set, can't load certificate\0" as *const u8
-                                as *const libc::c_char,
+                            b"ssl engine does not support loading certificates\0"
+                                as *const u8 as *const libc::c_char,
                         );
                         return 0 as libc::c_int;
                     }
+                    if ENGINE_ctrl_cmd(
+                        (*data).state.engine as *mut ENGINE,
+                        cmd_name,
+                        0 as libc::c_int as libc::c_long,
+                        &mut params as *mut openssl_C2RustUnnamed_13 as *mut libc::c_void,
+                        None,
+                        1 as libc::c_int,
+                    ) == 0
+                    {
+                        Curl_failf(
+                            data,
+                            b"ssl engine cannot load client cert with id '%s' [%s]\0"
+                                as *const u8 as *const libc::c_char,
+                            cert_file,
+                            ossl_strerror(
+                                ERR_get_error(),
+                                error_buffer.as_mut_ptr(),
+                                ::std::mem::size_of::<[libc::c_char; 256]>()
+                                    as libc::c_ulong,
+                            ),
+                        );
+                        return 0 as libc::c_int;
+                    }
+                    if (params.cert).is_null() {
+                        Curl_failf(
+                            data,
+                            b"ssl engine didn't initialized the certificate properly.\0"
+                                as *const u8 as *const libc::c_char,
+                        );
+                        return 0 as libc::c_int;
+                    }
+                    if SSL_CTX_use_certificate(ctx, params.cert) != 1 as libc::c_int {
+                        Curl_failf(
+                            data,
+                            b"unable to set client certificate\0" as *const u8
+                                as *const libc::c_char,
+                        );
+                        X509_free(params.cert);
+                        return 0 as libc::c_int;
+                    }
+                    X509_free(params.cert);
+                } else {
+                    Curl_failf(
+                        data,
+                        b"crypto engine not set, can't load certificate\0" as *const u8
+                            as *const libc::c_char,
+                    );
+                    return 0 as libc::c_int;
+                }
                     #[cfg(any(not(USE_OPENSSL_ENGINE), not(ENGINE_CTRL_GET_CMD_FROM_NAME)))]
                     Curl_failf(
                         data,
@@ -779,7 +792,7 @@ unsafe extern "C" fn cert_stuff(
                     );
                     #[cfg(any(not(USE_OPENSSL_ENGINE), not(ENGINE_CTRL_GET_CMD_FROM_NAME)))]
                     return 0 as libc::c_int;
-                }        
+            }
             43 => {
                 let mut cert_bio: *mut BIO = 0 as *mut BIO;
                 let mut p12: *mut PKCS12 = 0 as *mut PKCS12;
@@ -990,88 +1003,88 @@ unsafe extern "C" fn cert_stuff(
                 match () {
                     #[cfg(USE_OPENSSL_ENGINE)]
                     _ => {
-                        let mut priv_key: *mut EVP_PKEY = 0 as *mut EVP_PKEY;
-                        if ((*data).state.engine).is_null() {
-                            if is_pkcs11_uri(key_file) {
-                                if ossl_set_engine(
-                                    data,
-                                    b"pkcs11\0" as *const u8 as *const libc::c_char,
-                                ) as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint
-                                {
-                                    return 0 as libc::c_int;
-                                }
-                            }
-                        }
-                        if !((*data).state.engine).is_null() {
-                            let mut ui_method: *mut UI_METHOD = UI_create_method(
-                                b"curl user interface\0" as *const u8 as *const libc::c_char
-                                    as *mut libc::c_char,
-                            );
-                            if ui_method.is_null() {
-                                Curl_failf(
-                                    data,
-                                    b"unable do create OpenSSL user-interface method\0"
-                                        as *const u8 as *const libc::c_char,
-                                );
-                                return 0 as libc::c_int;
-                            }
-                            UI_method_set_opener(ui_method, UI_method_get_opener(UI_OpenSSL()));
-                            UI_method_set_closer(ui_method, UI_method_get_closer(UI_OpenSSL()));
-                            UI_method_set_reader(
-                                ui_method,
-                                Some(
-                                    ssl_ui_reader
-                                        as unsafe extern "C" fn(
-                                            *mut UI,
-                                            *mut UI_STRING,
-                                        ) -> libc::c_int,
-                                ),
-                            );
-                            UI_method_set_writer(
-                                ui_method,
-                                Some(
-                                    ssl_ui_writer
-                                        as unsafe extern "C" fn(
-                                            *mut UI,
-                                            *mut UI_STRING,
-                                        ) -> libc::c_int,
-                                ),
-                            );
-                            priv_key = ENGINE_load_private_key(
-                                (*data).state.engine as *mut ENGINE,
-                                key_file,
-                                ui_method,
-                                key_passwd as *mut libc::c_void,
-                            );
-                            UI_destroy_method(ui_method);
-                            if priv_key.is_null() {
-                                Curl_failf(
-                                    data,
-                                    b"failed to load private key from crypto engine\0"
-                                        as *const u8 as *const libc::c_char,
-                                );
-                                return 0 as libc::c_int;
-                            }
-                            if SSL_CTX_use_PrivateKey(ctx, priv_key) != 1 as libc::c_int {
-                                Curl_failf(
-                                    data,
-                                    b"unable to set private key\0" as *const u8
-                                        as *const libc::c_char,
-                                );
-                                EVP_PKEY_free(priv_key);
-                                return 0 as libc::c_int;
-                            }
-                            EVP_PKEY_free(priv_key);
-                        } else {
-                            Curl_failf(
-                                data,
-                                b"crypto engine not set, can't load private key\0" as *const u8
-                                    as *const libc::c_char,
-                            );
+                let mut priv_key: *mut EVP_PKEY = 0 as *mut EVP_PKEY;
+                if ((*data).state.engine).is_null() {
+                    if is_pkcs11_uri(key_file) {
+                        if ossl_set_engine(
+                            data,
+                            b"pkcs11\0" as *const u8 as *const libc::c_char,
+                        ) as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint
+                        {
                             return 0 as libc::c_int;
                         }
-                        current_block_141 = 14358540534591340610;
                     }
+                }
+                if !((*data).state.engine).is_null() {
+                    let mut ui_method: *mut UI_METHOD = UI_create_method(
+                        b"curl user interface\0" as *const u8 as *const libc::c_char
+                            as *mut libc::c_char,
+                    );
+                    if ui_method.is_null() {
+                        Curl_failf(
+                            data,
+                            b"unable do create OpenSSL user-interface method\0"
+                                as *const u8 as *const libc::c_char,
+                        );
+                        return 0 as libc::c_int;
+                    }
+                    UI_method_set_opener(ui_method, UI_method_get_opener(UI_OpenSSL()));
+                    UI_method_set_closer(ui_method, UI_method_get_closer(UI_OpenSSL()));
+                    UI_method_set_reader(
+                        ui_method,
+                        Some(
+                            ssl_ui_reader
+                                as unsafe extern "C" fn(
+                                    *mut UI,
+                                    *mut UI_STRING,
+                                ) -> libc::c_int,
+                        ),
+                    );
+                    UI_method_set_writer(
+                        ui_method,
+                        Some(
+                            ssl_ui_writer
+                                as unsafe extern "C" fn(
+                                    *mut UI,
+                                    *mut UI_STRING,
+                                ) -> libc::c_int,
+                        ),
+                    );
+                    priv_key = ENGINE_load_private_key(
+                        (*data).state.engine as *mut ENGINE,
+                        key_file,
+                        ui_method,
+                        key_passwd as *mut libc::c_void,
+                    );
+                    UI_destroy_method(ui_method);
+                    if priv_key.is_null() {
+                        Curl_failf(
+                            data,
+                            b"failed to load private key from crypto engine\0"
+                                as *const u8 as *const libc::c_char,
+                        );
+                        return 0 as libc::c_int;
+                    }
+                    if SSL_CTX_use_PrivateKey(ctx, priv_key) != 1 as libc::c_int {
+                        Curl_failf(
+                            data,
+                            b"unable to set private key\0" as *const u8
+                                as *const libc::c_char,
+                        );
+                        EVP_PKEY_free(priv_key);
+                        return 0 as libc::c_int;
+                    }
+                    EVP_PKEY_free(priv_key);
+                } else {
+                    Curl_failf(
+                        data,
+                        b"crypto engine not set, can't load private key\0" as *const u8
+                            as *const libc::c_char,
+                    );
+                    return 0 as libc::c_int;
+                }
+                current_block_141 = 14358540534591340610;
+            }
                     #[cfg(not(USE_OPENSSL_ENGINE))]
                     _ => {
                         Curl_failf(
@@ -1335,11 +1348,13 @@ unsafe extern "C" fn ossl_check_cxn(mut conn: *mut connectdata) -> libc::c_int {
     let mut buf: libc::c_char = 0;
     #[cfg(MSG_PEEK)]
     let mut nread: ssize_t = recv(
-                        (*conn).sock[0 as libc::c_int as usize],
-                        &mut buf as *mut libc::c_char as *mut libc::c_void,
-                        1 as libc::c_int as size_t,
-                        MSG_PEEK as libc::c_int,
-                    );
+        (*conn).sock[0 as libc::c_int as usize],
+        &mut buf as *mut libc::c_char as *mut libc::c_void,
+        1 as libc::c_int as size_t,
+        MSG_PEEK as libc::c_int,
+        1268 as libc::c_int,
+        b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+    );
     #[cfg(MSG_PEEK)]
     if nread == 0 as libc::c_int as libc::c_long {
         return 0 as libc::c_int;
@@ -1392,41 +1407,41 @@ unsafe extern "C" fn ossl_set_engine(
     mut engine: *const libc::c_char,
 ) -> CURLcode {
     if cfg!(USE_OPENSSL_ENGINE){
-        let mut e: *mut ENGINE = 0 as *mut ENGINE;
-        e = ENGINE_by_id(engine);
-        if e.is_null() {
-            Curl_failf(
-                data,
-                b"SSL Engine '%s' not found\0" as *const u8 as *const libc::c_char,
-                engine,
-            );
-            return CURLE_SSL_ENGINE_NOTFOUND;
-        }
-        if !((*data).state.engine).is_null() {
-            ENGINE_finish((*data).state.engine as *mut ENGINE);
-            ENGINE_free((*data).state.engine as *mut ENGINE);
-            let ref mut fresh0 = (*data).state.engine;
-            *fresh0 = 0 as *mut libc::c_void;
-        }
-        if ENGINE_init(e) == 0 {
-            let mut buf: [libc::c_char; 256] = [0; 256];
-            ENGINE_free(e);
-            Curl_failf(
-                data,
-                b"Failed to initialise SSL Engine '%s': %s\0" as *const u8
-                    as *const libc::c_char,
-                engine,
-                ossl_strerror(
-                    ERR_get_error(),
-                    buf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 256]>() as libc::c_ulong,
-                ),
-            );
-            return CURLE_SSL_ENGINE_INITFAILED;
-        }
-        let ref mut fresh1 = (*data).state.engine;
-        *fresh1 = e as *mut libc::c_void;
-        return CURLE_OK;
+    let mut e: *mut ENGINE = 0 as *mut ENGINE;
+    e = ENGINE_by_id(engine);
+    if e.is_null() {
+        Curl_failf(
+            data,
+            b"SSL Engine '%s' not found\0" as *const u8 as *const libc::c_char,
+            engine,
+        );
+        return CURLE_SSL_ENGINE_NOTFOUND;
+    }
+    if !((*data).state.engine).is_null() {
+        ENGINE_finish((*data).state.engine as *mut ENGINE);
+        ENGINE_free((*data).state.engine as *mut ENGINE);
+        let ref mut fresh0 = (*data).state.engine;
+        *fresh0 = 0 as *mut libc::c_void;
+    }
+    if ENGINE_init(e) == 0 {
+        let mut buf: [libc::c_char; 256] = [0; 256];
+        ENGINE_free(e);
+        Curl_failf(
+            data,
+            b"Failed to initialise SSL Engine '%s': %s\0" as *const u8
+                as *const libc::c_char,
+            engine,
+            ossl_strerror(
+                ERR_get_error(),
+                buf.as_mut_ptr(),
+                ::std::mem::size_of::<[libc::c_char; 256]>() as libc::c_ulong,
+            ),
+        );
+        return CURLE_SSL_ENGINE_INITFAILED;
+    }
+    let ref mut fresh1 = (*data).state.engine;
+    *fresh1 = e as *mut libc::c_void;
+    return CURLE_OK;
     }else{
         Curl_infof(
             data,
@@ -1437,45 +1452,45 @@ unsafe extern "C" fn ossl_set_engine(
 }
 unsafe extern "C" fn ossl_set_engine_default(mut data: *mut Curl_easy) -> CURLcode {
     if cfg!(USE_OPENSSL_ENGINE){
-        if !((*data).state.engine).is_null() {
-            if ENGINE_set_default(
-                (*data).state.engine as *mut ENGINE,
-                0xffff as libc::c_int as libc::c_uint,
-            ) > 0 as libc::c_int
-            {
-                Curl_infof(
-                    data,
-                    b"set default crypto engine '%s'\0" as *const u8 as *const libc::c_char,
-                    ENGINE_get_id((*data).state.engine as *const ENGINE),
-                );
-            } else {
-                Curl_failf(
-                    data,
-                    b"set default crypto engine '%s' failed\0" as *const u8
-                        as *const libc::c_char,
-                    ENGINE_get_id((*data).state.engine as *const ENGINE),
-                );
-                return CURLE_SSL_ENGINE_SETFAILED;
-            }
+    if !((*data).state.engine).is_null() {
+        if ENGINE_set_default(
+            (*data).state.engine as *mut ENGINE,
+            0xffff as libc::c_int as libc::c_uint,
+        ) > 0 as libc::c_int
+        {
+            Curl_infof(
+                data,
+                b"set default crypto engine '%s'\0" as *const u8 as *const libc::c_char,
+                ENGINE_get_id((*data).state.engine as *const ENGINE),
+            );
+        } else {
+            Curl_failf(
+                data,
+                b"set default crypto engine '%s' failed\0" as *const u8
+                    as *const libc::c_char,
+                ENGINE_get_id((*data).state.engine as *const ENGINE),
+            );
+            return CURLE_SSL_ENGINE_SETFAILED;
         }
+    }
     }
     return CURLE_OK;
 }
 unsafe extern "C" fn ossl_engines_list(mut data: *mut Curl_easy) -> *mut curl_slist {
     let mut list: *mut curl_slist = 0 as *mut curl_slist;
     if cfg!(USE_OPENSSL_ENGINE){
-        let mut beg: *mut curl_slist = 0 as *mut curl_slist;
-        let mut e: *mut ENGINE = 0 as *mut ENGINE;
-        e = ENGINE_get_first();
-        while !e.is_null() {
-            beg = curl_slist_append(list, ENGINE_get_id(e));
-            if beg.is_null() {
-                curl_slist_free_all(list);
-                return 0 as *mut curl_slist;
-            }
-            list = beg;
-            e = ENGINE_get_next(e);
+    let mut beg: *mut curl_slist = 0 as *mut curl_slist;
+    let mut e: *mut ENGINE = 0 as *mut ENGINE;
+    e = ENGINE_get_first();
+    while !e.is_null() {
+        beg = curl_slist_append(list, ENGINE_get_id(e));
+        if beg.is_null() {
+            curl_slist_free_all(list);
+            return 0 as *mut curl_slist;
         }
+        list = beg;
+        e = ENGINE_get_next(e);
+    }
     }
     return list;
 }
@@ -1627,32 +1642,32 @@ unsafe extern "C" fn ossl_shutdown(
         }
         if ((*data).set).verbose() != 0 {
             if cfg!(HAVE_SSL_GET_SHUTDOWN){
-                match SSL_get_shutdown((*backend).handle) {
-                    1 => {
-                        Curl_infof(
-                            data,
-                            b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN\0" as *const u8
-                                as *const libc::c_char,
-                        );
-                    }
-                    2 => {
-                        Curl_infof(
-                            data,
-                            b"SSL_get_shutdown() returned SSL_RECEIVED_SHUTDOWN\0"
-                                as *const u8 as *const libc::c_char,
-                        );
-                    }
-                    3 => {
-                        Curl_infof(
-                            data,
-                            b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN|SSL_RECEIVED__SHUTDOWN\0"
-                                as *const u8 as *const libc::c_char,
-                        );
-                    }
-                    _ => {}
+            match SSL_get_shutdown((*backend).handle) {
+                1 => {
+                    Curl_infof(
+                        data,
+                        b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN\0" as *const u8
+                            as *const libc::c_char,
+                    );
                 }
-            }  
+                2 => {
+                    Curl_infof(
+                        data,
+                        b"SSL_get_shutdown() returned SSL_RECEIVED_SHUTDOWN\0"
+                            as *const u8 as *const libc::c_char,
+                    );
+                }
+                3 => {
+                    Curl_infof(
+                        data,
+                        b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN|SSL_RECEIVED__SHUTDOWN\0"
+                            as *const u8 as *const libc::c_char,
+                    );
+                }
+                _ => {}
+            }
         }
+            }  
         SSL_free((*backend).handle);
         let ref mut fresh6 = (*backend).handle;
         *fresh6 = 0 as *mut SSL;
@@ -1830,9 +1845,9 @@ unsafe extern "C" fn verifyhost(
                     7 => {
                         #[cfg(ENABLE_IPV6)]
                         let ENABLE_IPV6_a = memcmp(
-                                            altptr as *const libc::c_void,
-                                            &mut addr as *mut in6_addr as *const libc::c_void,
-                                            altlen,
+                                altptr as *const libc::c_void,
+                                &mut addr as *mut in6_addr as *const libc::c_void,
+                                altlen,
                                             ) == 0;
                         #[cfg(not(ENABLE_IPV6))]
                         let ENABLE_IPV6_a = memcmp(
@@ -2510,22 +2525,22 @@ unsafe extern "C" fn set_ssl_version_min_max(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_version_max = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        (*conn).proxy_ssl_config.version_max
-                                    } else {
-                                        (*conn).ssl_config.version_max
-                                    };
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*conn).proxy_ssl_config.version_max
+    } else {
+        (*conn).ssl_config.version_max
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version_max = (*conn).ssl_config.version_max;
 
@@ -2611,21 +2626,21 @@ unsafe extern "C" fn ossl_new_session_cb(
     } != 0;
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -3208,6 +3223,24 @@ unsafe extern "C" fn ossl_connect_step1(
     let mut error_buffer: [libc::c_char; 256] = [0; 256];
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut imported_native_ca: bool = 0 as libc::c_int != 0;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ssl_connect_1 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+    {} else {
+        __assert_fail(
+            b"ssl_connect_1 == connssl->connecting_state\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            2628 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 75],
+                &[libc::c_char; 75],
+            >(
+                b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     result = ossl_seed(data);
     if result as u64 != 0 {
         return result;
@@ -3237,6 +3270,21 @@ unsafe extern "C" fn ossl_connect_step1(
             );
             return CURLE_SSL_CONNECT_ERROR;
         }
+    }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ((*backend).ctx).is_null() {} else {
+        __assert_fail(
+            b"!backend->ctx\0" as *const u8 as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            2665 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 75],
+                &[libc::c_char; 75],
+            >(
+                b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
     }
     let ref mut fresh8 = (*backend).ctx;
     *fresh8 = SSL_CTX_new(req_method);
@@ -3363,38 +3411,38 @@ unsafe extern "C" fn ossl_connect_step1(
         if cfg!(USE_HTTP2){
             #[cfg(not(CURL_DISABLE_PROXY))]
             let CURL_DISABLE_PROXY_flag_1 =  (!(CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
                                                 .state as libc::c_uint) || ((*conn).bits).tunnel_proxy() == 0);
             #[cfg(CURL_DISABLE_PROXY)]
             let CURL_DISABLE_PROXY_flag_1 = true;                         
             if (*data).state.httpwant as libc::c_int >= CURL_HTTP_VERSION_2_0 as libc::c_int
             && CURL_DISABLE_PROXY_flag_1
-            {
-                let fresh10 = cur;
-                cur = cur + 1;
-                protocols[fresh10 as usize] = 2 as libc::c_int as libc::c_uchar;
-                memcpy(
-                    &mut *protocols.as_mut_ptr().offset(cur as isize) as *mut libc::c_uchar
-                        as *mut libc::c_void,
-                    b"h2\0" as *const u8 as *const libc::c_char as *const libc::c_void,
-                    2 as libc::c_int as libc::c_ulong,
-                );
-                cur += 2 as libc::c_int;
-                Curl_infof(
-                    data,
-                    b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
-                    b"h2\0" as *const u8 as *const libc::c_char,
-                );
-            }
+        {
+            let fresh10 = cur;
+            cur = cur + 1;
+            protocols[fresh10 as usize] = 2 as libc::c_int as libc::c_uchar;
+            memcpy(
+                &mut *protocols.as_mut_ptr().offset(cur as isize) as *mut libc::c_uchar
+                    as *mut libc::c_void,
+                b"h2\0" as *const u8 as *const libc::c_char as *const libc::c_void,
+                2 as libc::c_int as libc::c_ulong,
+            );
+            cur += 2 as libc::c_int;
+            Curl_infof(
+                data,
+                b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
+                b"h2\0" as *const u8 as *const libc::c_char,
+            );
+        }
         }
         let fresh11 = cur;
         cur = cur + 1;
@@ -3428,79 +3476,79 @@ unsafe extern "C" fn ossl_connect_step1(
     if !ssl_cert.is_null() || !ssl_cert_blob.is_null() || !ssl_cert_type.is_null() {
         #[cfg(not(CURL_DISABLE_PROXY))]
         let cert_stuff_flag = cert_stuff(
-                                data,
-                                (*backend).ctx,
-                                ssl_cert,
-                                ssl_cert_blob,
-                                ssl_cert_type,
-                                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.key
-                                } else {
-                                    (*data).set.ssl.key
-                                }),
-                                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.key_blob
-                                } else {
-                                    (*data).set.ssl.key_blob
-                                }),
-                                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.key_type
-                                } else {
-                                    (*data).set.ssl.key_type
-                                }),
-                                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.key_passwd
-                                } else {
-                                    (*data).set.ssl.key_passwd
-                                }),
+                data,
+                (*backend).ctx,
+                ssl_cert,
+                ssl_cert_blob,
+                ssl_cert_type,
+                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key
+                } else {
+                    (*data).set.ssl.key
+                }),
+                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key_blob
+                } else {
+                    (*data).set.ssl.key_blob
+                }),
+                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key_type
+                } else {
+                    (*data).set.ssl.key_type
+                }),
+                (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key_passwd
+                } else {
+                    (*data).set.ssl.key_passwd
+                }),
                             );
         #[cfg(CURL_DISABLE_PROXY)]
         let cert_stuff_flag = cert_stuff(
@@ -3526,22 +3574,22 @@ unsafe extern "C" fn ossl_connect_step1(
    
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_cipher_list = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        (*conn).proxy_ssl_config.cipher_list
-                                    } else {
-                                        (*conn).ssl_config.cipher_list
-                                    };
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*conn).proxy_ssl_config.cipher_list
+    } else {
+        (*conn).ssl_config.cipher_list
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_cipher_list = (*conn).ssl_config.cipher_list;
     ciphers = SSL_CONN_CONFIG_cipher_list;
@@ -3747,7 +3795,7 @@ unsafe extern "C" fn ossl_connect_step1(
                         as *const libc::c_char,
                 );
                 return CURLE_SSL_CIPHER;
-            }
+        }
         }
         #[cfg(CURL_DISABLE_PROXY)]
         if ((*conn).ssl_config.cipher_list).is_null() {
@@ -4170,7 +4218,7 @@ unsafe extern "C" fn ossl_connect_step1(
             2 as libc::c_int,
             hostname,
             &mut addr as *mut in_addr as *mut libc::c_void,
-        ) && sni as libc::c_int != 0
+            ) && sni as libc::c_int != 0
     {
         let mut nlen: size_t = strlen(hostname);
         if nlen as libc::c_long >= (*data).set.buffer_size {
@@ -4313,7 +4361,66 @@ unsafe extern "C" fn ossl_connect_step1(
         );
     }
     Curl_ssl_sessionid_unlock(data);
-    if SSL_set_fd((*backend).handle, sockfd) == 0 {
+    if ((*conn).proxy_ssl[sockindex as usize]).use_0() != 0 {
+        let bio: *mut BIO = BIO_new(BIO_f_ssl());
+        let mut handle: *mut SSL = (*(*conn).proxy_ssl[sockindex as usize].backend)
+            .handle;
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if ssl_connection_complete as libc::c_int as libc::c_uint
+            == (*conn).proxy_ssl[sockindex as usize].state as libc::c_uint
+        {} else {
+            __assert_fail(
+                b"ssl_connection_complete == conn->proxy_ssl[sockindex].state\0"
+                    as *const u8 as *const libc::c_char,
+                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                3264 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 75],
+                    &[libc::c_char; 75],
+                >(
+                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                    .as_ptr(),
+            );
+        }
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if !handle.is_null() {} else {
+            __assert_fail(
+                b"handle != ((void*)0)\0" as *const u8 as *const libc::c_char,
+                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                3265 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 75],
+                    &[libc::c_char; 75],
+                >(
+                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                    .as_ptr(),
+            );
+        }
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if !bio.is_null() {} else {
+            __assert_fail(
+                b"bio != ((void*)0)\0" as *const u8 as *const libc::c_char,
+                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                3266 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 75],
+                    &[libc::c_char; 75],
+                >(
+                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                    .as_ptr(),
+            );
+        }
+        BIO_ctrl(
+            bio,
+            109 as libc::c_int,
+            0 as libc::c_int as libc::c_long,
+            handle as *mut libc::c_char as *mut libc::c_void,
+        );
+        SSL_set_bio((*backend).handle, bio, bio);
+    } else if SSL_set_fd((*backend).handle, sockfd) == 0 {
         Curl_failf(
             data,
             b"SSL: SSL_set_fd failed: %s\0" as *const u8 as *const libc::c_char,
@@ -4342,6 +4449,28 @@ unsafe extern "C" fn ossl_connect_step2(
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ssl_connect_2 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+        || ssl_connect_2_reading as libc::c_int as libc::c_uint
+            == (*connssl).connecting_state as libc::c_uint
+        || ssl_connect_2_writing as libc::c_int as libc::c_uint
+            == (*connssl).connecting_state as libc::c_uint
+    {} else {
+        __assert_fail(
+            b"ssl_connect_2 == connssl->connecting_state || ssl_connect_2_reading == connssl->connecting_state || ssl_connect_2_writing == connssl->connecting_state\0"
+                as *const u8 as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            3292 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 75],
+                &[libc::c_char; 75],
+            >(
+                b"CURLcode ossl_connect_step2(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     ERR_clear_error();
     err = SSL_connect((*backend).handle);
     // TODO
@@ -4390,23 +4519,23 @@ unsafe extern "C" fn ossl_connect_step2(
                 if lerr != 0 as libc::c_int as libc::c_long {
                     #[cfg(not(CURL_DISABLE_PROXY))]
                     if true {
-                        *if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                            == (*conn).http_proxy.proxytype as libc::c_uint
-                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                != (*conn)
-                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                        == -(1 as libc::c_int)
-                                    {
-                                        0 as libc::c_int
-                                    } else {
-                                        1 as libc::c_int
-                                    }) as usize]
-                                    .state as libc::c_uint
-                        {
-                            &mut (*data).set.proxy_ssl.certverifyresult
-                        } else {
-                            &mut (*data).set.ssl.certverifyresult
-                        } = lerr;
+                    *if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                        == (*conn).http_proxy.proxytype as libc::c_uint
+                        && ssl_connection_complete as libc::c_int as libc::c_uint
+                            != (*conn)
+                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                    == -(1 as libc::c_int)
+                                {
+                                    0 as libc::c_int
+                                } else {
+                                    1 as libc::c_int
+                                }) as usize]
+                                .state as libc::c_uint
+                    {
+                        &mut (*data).set.proxy_ssl.certverifyresult
+                    } else {
+                        &mut (*data).set.ssl.certverifyresult
+                    } = lerr;
                     }
                     #[cfg(CURL_DISABLE_PROXY)]
                     if true {
@@ -4842,13 +4971,46 @@ unsafe extern "C" fn get_cert_chain(
             ) as libc::c_int;
         
         if cfg!(all(HAVE_X509_GET0_SIGNATURE, HAVE_X509_GET0_EXTENSIONS)){
-            let mut sigalg: *const X509_ALGOR = 0 as *const X509_ALGOR;
-            let mut xpubkey: *mut X509_PUBKEY = 0 as *mut X509_PUBKEY;
-            let mut pubkeyoid: *mut ASN1_OBJECT = 0 as *mut ASN1_OBJECT;
-            X509_get0_signature(&mut psig, &mut sigalg, x);
-            if !sigalg.is_null() {
-                i2a_ASN1_OBJECT(mem, (*sigalg).algorithm);
-                let mut info_len_3: libc::c_long = BIO_ctrl(
+        let mut sigalg: *const X509_ALGOR = 0 as *const X509_ALGOR;
+        let mut xpubkey: *mut X509_PUBKEY = 0 as *mut X509_PUBKEY;
+        let mut pubkeyoid: *mut ASN1_OBJECT = 0 as *mut ASN1_OBJECT;
+        X509_get0_signature(&mut psig, &mut sigalg, x);
+        if !sigalg.is_null() {
+            i2a_ASN1_OBJECT(mem, (*sigalg).algorithm);
+            let mut info_len_3: libc::c_long = BIO_ctrl(
+                mem,
+                3 as libc::c_int,
+                0 as libc::c_int as libc::c_long,
+                &mut ptr as *mut *mut libc::c_char as *mut libc::c_char
+                    as *mut libc::c_void,
+            );
+            Curl_ssl_push_certinfo_len(
+                data,
+                i,
+                b"Signature Algorithm\0" as *const u8 as *const libc::c_char,
+                ptr,
+                info_len_3 as size_t,
+            );
+            1 as libc::c_int
+                != BIO_ctrl(
+                    mem,
+                    1 as libc::c_int,
+                    0 as libc::c_int as libc::c_long,
+                    0 as *mut libc::c_void,
+                ) as libc::c_int;
+        }
+        xpubkey = X509_get_X509_PUBKEY(x);
+        if !xpubkey.is_null() {
+            X509_PUBKEY_get0_param(
+                &mut pubkeyoid,
+                0 as *mut *const libc::c_uchar,
+                0 as *mut libc::c_int,
+                0 as *mut *mut X509_ALGOR,
+                xpubkey,
+            );
+            if !pubkeyoid.is_null() {
+                i2a_ASN1_OBJECT(mem, pubkeyoid);
+                let mut info_len_4: libc::c_long = BIO_ctrl(
                     mem,
                     3 as libc::c_int,
                     0 as libc::c_int as libc::c_long,
@@ -4858,9 +5020,9 @@ unsafe extern "C" fn get_cert_chain(
                 Curl_ssl_push_certinfo_len(
                     data,
                     i,
-                    b"Signature Algorithm\0" as *const u8 as *const libc::c_char,
+                    b"Public Key Algorithm\0" as *const u8 as *const libc::c_char,
                     ptr,
-                    info_len_3 as size_t,
+                    info_len_4 as size_t,
                 );
                 1 as libc::c_int
                     != BIO_ctrl(
@@ -4870,41 +5032,8 @@ unsafe extern "C" fn get_cert_chain(
                         0 as *mut libc::c_void,
                     ) as libc::c_int;
             }
-            xpubkey = X509_get_X509_PUBKEY(x);
-            if !xpubkey.is_null() {
-                X509_PUBKEY_get0_param(
-                    &mut pubkeyoid,
-                    0 as *mut *const libc::c_uchar,
-                    0 as *mut libc::c_int,
-                    0 as *mut *mut X509_ALGOR,
-                    xpubkey,
-                );
-                if !pubkeyoid.is_null() {
-                    i2a_ASN1_OBJECT(mem, pubkeyoid);
-                    let mut info_len_4: libc::c_long = BIO_ctrl(
-                        mem,
-                        3 as libc::c_int,
-                        0 as libc::c_int as libc::c_long,
-                        &mut ptr as *mut *mut libc::c_char as *mut libc::c_char
-                            as *mut libc::c_void,
-                    );
-                    Curl_ssl_push_certinfo_len(
-                        data,
-                        i,
-                        b"Public Key Algorithm\0" as *const u8 as *const libc::c_char,
-                        ptr,
-                        info_len_4 as size_t,
-                    );
-                    1 as libc::c_int
-                        != BIO_ctrl(
-                            mem,
-                            1 as libc::c_int,
-                            0 as libc::c_int as libc::c_long,
-                            0 as *mut libc::c_void,
-                        ) as libc::c_int;
-                }
-            }
-            X509V3_ext(data, i, X509_get0_extensions(x));
+        }
+        X509V3_ext(data, i, X509_get0_extensions(x));
         }else{
             // before OpenSSL 1.0.2
         }
@@ -4962,7 +5091,7 @@ unsafe extern "C" fn get_cert_chain(
             match () {
                 #[cfg(HAVE_OPAQUE_EVP_PKEY)]
                 _ => {
-                    pktype = EVP_PKEY_id(pubkey);
+            pktype = EVP_PKEY_id(pubkey);
                 }
                 #[cfg(not(HAVE_OPAQUE_EVP_PKEY))]
                 _ => {
@@ -4981,52 +5110,52 @@ unsafe extern "C" fn get_cert_chain(
                     // #[cfg(not(HAVE_OPAQUE_EVP_PKEY))]
                     #[cfg(HAVE_OPAQUE_RSA_DSA_DH)]
                     if true {
-                        let mut n: *const BIGNUM = 0 as *const BIGNUM;
-                        let mut e: *const BIGNUM = 0 as *const BIGNUM;
-                        RSA_get0_key(rsa, &mut n, &mut e, 0 as *mut *const BIGNUM);
-                        BIO_printf(
+                    let mut n: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut e: *const BIGNUM = 0 as *const BIGNUM;
+                    RSA_get0_key(rsa, &mut n, &mut e, 0 as *mut *const BIGNUM);
+                    BIO_printf(
+                        mem,
+                        b"%d\0" as *const u8 as *const libc::c_char,
+                        BN_num_bits(n),
+                    );
+                    let mut info_len_7: libc::c_long = BIO_ctrl(
+                        mem,
+                        3 as libc::c_int,
+                        0 as libc::c_int as libc::c_long,
+                        &mut ptr as *mut *mut libc::c_char as *mut libc::c_char
+                            as *mut libc::c_void,
+                    );
+                    Curl_ssl_push_certinfo_len(
+                        data,
+                        i,
+                        b"RSA Public Key\0" as *const u8 as *const libc::c_char,
+                        ptr,
+                        info_len_7 as size_t,
+                    );
+                    1 as libc::c_int
+                        != BIO_ctrl(
                             mem,
-                            b"%d\0" as *const u8 as *const libc::c_char,
-                            BN_num_bits(n),
-                        );
-                        let mut info_len_7: libc::c_long = BIO_ctrl(
-                            mem,
-                            3 as libc::c_int,
+                            1 as libc::c_int,
                             0 as libc::c_int as libc::c_long,
-                            &mut ptr as *mut *mut libc::c_char as *mut libc::c_char
-                                as *mut libc::c_void,
-                        );
-                        Curl_ssl_push_certinfo_len(
-                            data,
-                            i,
-                            b"RSA Public Key\0" as *const u8 as *const libc::c_char,
-                            ptr,
-                            info_len_7 as size_t,
-                        );
-                        1 as libc::c_int
-                            != BIO_ctrl(
-                                mem,
-                                1 as libc::c_int,
-                                0 as libc::c_int as libc::c_long,
-                                0 as *mut libc::c_void,
-                            ) as libc::c_int;
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"rsa\0" as *const u8 as *const libc::c_char,
-                            b"n\0" as *const u8 as *const libc::c_char,
-                            n,
-                        );
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"rsa\0" as *const u8 as *const libc::c_char,
-                            b"e\0" as *const u8 as *const libc::c_char,
-                            e,
-                        );
-                    }
+                            0 as *mut libc::c_void,
+                        ) as libc::c_int;
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"rsa\0" as *const u8 as *const libc::c_char,
+                        b"n\0" as *const u8 as *const libc::c_char,
+                        n,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"rsa\0" as *const u8 as *const libc::c_char,
+                        b"e\0" as *const u8 as *const libc::c_char,
+                        e,
+                    );
+                }
                     #[cfg(not(HAVE_OPAQUE_RSA_DSA_DH))]
                     if true {
                         // TODO - 3678
@@ -5040,45 +5169,45 @@ unsafe extern "C" fn get_cert_chain(
                             // #[cfg(not(HAVE_OPAQUE_EVP_PKEY))]
                             #[cfg(HAVE_OPAQUE_RSA_DSA_DH)]
                             if true {
-                                let mut p: *const BIGNUM = 0 as *const BIGNUM;
-                                let mut q: *const BIGNUM = 0 as *const BIGNUM;
-                                let mut g: *const BIGNUM = 0 as *const BIGNUM;
-                                let mut pub_key: *const BIGNUM = 0 as *const BIGNUM;
-                                DSA_get0_pqg(dsa, &mut p, &mut q, &mut g);
-                                DSA_get0_key(dsa, &mut pub_key, 0 as *mut *const BIGNUM);
-                                pubkey_show(
-                                    data,
-                                    mem,
-                                    i,
-                                    b"dsa\0" as *const u8 as *const libc::c_char,
-                                    b"p\0" as *const u8 as *const libc::c_char,
-                                    p,
-                                );
-                                pubkey_show(
-                                    data,
-                                    mem,
-                                    i,
-                                    b"dsa\0" as *const u8 as *const libc::c_char,
-                                    b"q\0" as *const u8 as *const libc::c_char,
-                                    q,
-                                );
-                                pubkey_show(
-                                    data,
-                                    mem,
-                                    i,
-                                    b"dsa\0" as *const u8 as *const libc::c_char,
-                                    b"g\0" as *const u8 as *const libc::c_char,
-                                    g,
-                                );
-                                pubkey_show(
-                                    data,
-                                    mem,
-                                    i,
-                                    b"dsa\0" as *const u8 as *const libc::c_char,
-                                    b"pub_key\0" as *const u8 as *const libc::c_char,
-                                    pub_key,
-                                );
-                            }
+                    let mut p: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut q: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut g: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut pub_key: *const BIGNUM = 0 as *const BIGNUM;
+                    DSA_get0_pqg(dsa, &mut p, &mut q, &mut g);
+                    DSA_get0_key(dsa, &mut pub_key, 0 as *mut *const BIGNUM);
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dsa\0" as *const u8 as *const libc::c_char,
+                        b"p\0" as *const u8 as *const libc::c_char,
+                        p,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dsa\0" as *const u8 as *const libc::c_char,
+                        b"q\0" as *const u8 as *const libc::c_char,
+                        q,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dsa\0" as *const u8 as *const libc::c_char,
+                        b"g\0" as *const u8 as *const libc::c_char,
+                        g,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dsa\0" as *const u8 as *const libc::c_char,
+                        b"pub_key\0" as *const u8 as *const libc::c_char,
+                        pub_key,
+                    );
+                }
                             #[cfg(not(HAVE_OPAQUE_RSA_DSA_DH))]
                             if true {
                                 // cfg!(not(HAVE_OPAQUE_RSA_DSA_DH))
@@ -5092,45 +5221,45 @@ unsafe extern "C" fn get_cert_chain(
                     // #[cfg(not(HAVE_OPAQUE_EVP_PKEY))]
                     #[cfg(HAVE_OPAQUE_RSA_DSA_DH)]
                     if true {
-                        let mut p_0: *const BIGNUM = 0 as *const BIGNUM;
-                        let mut q_0: *const BIGNUM = 0 as *const BIGNUM;
-                        let mut g_0: *const BIGNUM = 0 as *const BIGNUM;
-                        let mut pub_key_0: *const BIGNUM = 0 as *const BIGNUM;
-                        DH_get0_pqg(dh, &mut p_0, &mut q_0, &mut g_0);
-                        DH_get0_key(dh, &mut pub_key_0, 0 as *mut *const BIGNUM);
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"dh\0" as *const u8 as *const libc::c_char,
-                            b"p\0" as *const u8 as *const libc::c_char,
-                            p_0,
-                        );
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"dh\0" as *const u8 as *const libc::c_char,
-                            b"q\0" as *const u8 as *const libc::c_char,
-                            q_0,
-                        );
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"dh\0" as *const u8 as *const libc::c_char,
-                            b"g\0" as *const u8 as *const libc::c_char,
-                            g_0,
-                        );
-                        pubkey_show(
-                            data,
-                            mem,
-                            i,
-                            b"dh\0" as *const u8 as *const libc::c_char,
-                            b"pub_key\0" as *const u8 as *const libc::c_char,
-                            pub_key_0,
-                        );
-                    }
+                    let mut p_0: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut q_0: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut g_0: *const BIGNUM = 0 as *const BIGNUM;
+                    let mut pub_key_0: *const BIGNUM = 0 as *const BIGNUM;
+                    DH_get0_pqg(dh, &mut p_0, &mut q_0, &mut g_0);
+                    DH_get0_key(dh, &mut pub_key_0, 0 as *mut *const BIGNUM);
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dh\0" as *const u8 as *const libc::c_char,
+                        b"p\0" as *const u8 as *const libc::c_char,
+                        p_0,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dh\0" as *const u8 as *const libc::c_char,
+                        b"q\0" as *const u8 as *const libc::c_char,
+                        q_0,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dh\0" as *const u8 as *const libc::c_char,
+                        b"g\0" as *const u8 as *const libc::c_char,
+                        g_0,
+                    );
+                    pubkey_show(
+                        data,
+                        mem,
+                        i,
+                        b"dh\0" as *const u8 as *const libc::c_char,
+                        b"pub_key\0" as *const u8 as *const libc::c_char,
+                        pub_key_0,
+                    );
+                }
                     // TODO
                     #[cfg(not(HAVE_OPAQUE_EVP_PKEY))]
                     if true{
@@ -5218,8 +5347,22 @@ unsafe extern "C" fn pkp_pin_peer_pubkey(
     }
     len1 = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert), 0 as *mut *mut libc::c_uchar);
     if !(len1 < 1 as libc::c_int) {
-        temp = Curl_cmalloc.expect("non-null function pointer")(len1 as size_t)
-            as *mut libc::c_uchar;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                temp = Curl_cmalloc.expect("non-null function pointer")(len1 as size_t)
+                as *mut libc::c_uchar;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                temp = curl_dbg_malloc(
+                    len1 as size_t,
+                    3798 as libc::c_int,
+                    b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut libc::c_uchar;
+            }
+        }
+        
         buff1 = temp;
         if !buff1.is_null() {
             len2 = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert), &mut temp);
@@ -5231,7 +5374,15 @@ unsafe extern "C" fn pkp_pin_peer_pubkey(
         }
     }
     if !buff1.is_null() {
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(buff1 as *mut libc::c_void);
+
+	    #[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            buff1 as *mut libc::c_void,
+            3820 as libc::c_int,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+        );
     }
     return result;
 }
@@ -5275,21 +5426,21 @@ unsafe extern "C" fn servercert(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_IS_PROXY_void = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                    != (*conn)
-                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                            == -(1 as libc::c_int)
-                                        {
-                                            0 as libc::c_int
-                                        } else {
-                                            1 as libc::c_int
-                                        }) as usize]
-                                        .state as libc::c_uint
-                            {
-                                b"Proxy\0" as *const u8 as *const libc::c_char
-                            } else {
-                                b"Server\0" as *const u8 as *const libc::c_char
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            b"Proxy\0" as *const u8 as *const libc::c_char
+        } else {
+            b"Server\0" as *const u8 as *const libc::c_char
                             };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_IS_PROXY_void = if 0 as libc::c_int != 0 {
@@ -5318,66 +5469,66 @@ unsafe extern "C" fn servercert(
     );
     // DONE - 3869
     if cfg!(not(CURL_DISABLE_VERBOSE_STRINGS)){
-        let mut len: libc::c_long = 0;
-        ASN1_TIME_print(mem, X509_get0_notBefore((*backend).server_cert));
-        len = BIO_ctrl(
-            mem,
-            3 as libc::c_int,
-            0 as libc::c_int as libc::c_long,
-            &mut ptr as *mut *const libc::c_char as *mut *mut libc::c_char
-                as *mut libc::c_char as *mut libc::c_void,
-        );
-        Curl_infof(
-            data,
-            b" start date: %.*s\0" as *const u8 as *const libc::c_char,
-            len as libc::c_int,
-            ptr,
-        );
-        BIO_ctrl(
-            mem,
-            1 as libc::c_int,
-            0 as libc::c_int as libc::c_long,
-            0 as *mut libc::c_void,
-        );
-        ASN1_TIME_print(mem, X509_get0_notAfter((*backend).server_cert));
-        len = BIO_ctrl(
-            mem,
-            3 as libc::c_int,
-            0 as libc::c_int as libc::c_long,
-            &mut ptr as *mut *const libc::c_char as *mut *mut libc::c_char
-                as *mut libc::c_char as *mut libc::c_void,
-        );
-        Curl_infof(
-            data,
-            b" expire date: %.*s\0" as *const u8 as *const libc::c_char,
-            len as libc::c_int,
-            ptr,
-        );
-        BIO_ctrl(
-            mem,
-            1 as libc::c_int,
-            0 as libc::c_int as libc::c_long,
-            0 as *mut libc::c_void,
-        );
-        BIO_free(mem);
+    let mut len: libc::c_long = 0;
+    ASN1_TIME_print(mem, X509_get0_notBefore((*backend).server_cert));
+    len = BIO_ctrl(
+        mem,
+        3 as libc::c_int,
+        0 as libc::c_int as libc::c_long,
+        &mut ptr as *mut *const libc::c_char as *mut *mut libc::c_char
+            as *mut libc::c_char as *mut libc::c_void,
+    );
+    Curl_infof(
+        data,
+        b" start date: %.*s\0" as *const u8 as *const libc::c_char,
+        len as libc::c_int,
+        ptr,
+    );
+    BIO_ctrl(
+        mem,
+        1 as libc::c_int,
+        0 as libc::c_int as libc::c_long,
+        0 as *mut libc::c_void,
+    );
+    ASN1_TIME_print(mem, X509_get0_notAfter((*backend).server_cert));
+    len = BIO_ctrl(
+        mem,
+        3 as libc::c_int,
+        0 as libc::c_int as libc::c_long,
+        &mut ptr as *mut *const libc::c_char as *mut *mut libc::c_char
+            as *mut libc::c_char as *mut libc::c_void,
+    );
+    Curl_infof(
+        data,
+        b" expire date: %.*s\0" as *const u8 as *const libc::c_char,
+        len as libc::c_int,
+        ptr,
+    );
+    BIO_ctrl(
+        mem,
+        1 as libc::c_int,
+        0 as libc::c_int as libc::c_long,
+        0 as *mut libc::c_void,
+    );
+    BIO_free(mem);
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifyhost = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
-                                    } else {
-                                        ((*conn).ssl_config).verifyhost() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
+    } else {
+        ((*conn).ssl_config).verifyhost() as libc::c_int
                                     } != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_verifyhost = ((*conn).ssl_config).verifyhost() != 0;
@@ -5413,42 +5564,42 @@ unsafe extern "C" fn servercert(
         );
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_CONN_CONFIG_issuercert = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            (*conn).proxy_ssl_config.issuercert
-                                        } else {
-                                            (*conn).ssl_config.issuercert
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            (*conn).proxy_ssl_config.issuercert
+        } else {
+            (*conn).ssl_config.issuercert
                                         };
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_CONN_CONFIG_issuercert = (*conn).ssl_config.issuercert;
 
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_CONN_CONFIG_issuercert_blob = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                    != (*conn)
-                                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                            == -(1 as libc::c_int)
-                                                        {
-                                                            0 as libc::c_int
-                                                        } else {
-                                                            1 as libc::c_int
-                                                        }) as usize]
-                                                        .state as libc::c_uint
-                                            {
-                                                (*conn).proxy_ssl_config.issuercert_blob
-                                            } else {
-                                                (*conn).ssl_config.issuercert_blob
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                (*conn).proxy_ssl_config.issuercert_blob
+            } else {
+                (*conn).ssl_config.issuercert_blob
                                             };
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_CONN_CONFIG_issuercert_blob = (*conn).ssl_config.issuercert_blob;
@@ -5551,7 +5702,31 @@ unsafe extern "C" fn servercert(
         lerr = SSL_get_verify_result((*backend).handle);
         #[cfg(not(CURL_DISABLE_PROXY))]
         if true{
-            *if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        *if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            &mut (*data).set.proxy_ssl.certverifyresult
+        } else {
+            &mut (*data).set.ssl.certverifyresult
+        } = lerr;
+        }
+        #[cfg(CURL_DISABLE_PROXY)]
+        if true {
+            (*data).set.ssl.certverifyresult = lerr;
+        }
+        if lerr != 0 as libc::c_int as libc::c_long {
+            #[cfg(not(CURL_DISABLE_PROXY))]
+            let SSL_CONN_CONFIG_verifypeer = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
                 == (*conn).http_proxy.proxytype as libc::c_uint
                 && ssl_connection_complete as libc::c_int as libc::c_uint
                     != (*conn)
@@ -5564,33 +5739,9 @@ unsafe extern "C" fn servercert(
                         }) as usize]
                         .state as libc::c_uint
             {
-                &mut (*data).set.proxy_ssl.certverifyresult
+                ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
             } else {
-                &mut (*data).set.ssl.certverifyresult
-            } = lerr;
-        }
-        #[cfg(CURL_DISABLE_PROXY)]
-        if true {
-            (*data).set.ssl.certverifyresult = lerr;
-        }
-        if lerr != 0 as libc::c_int as libc::c_long {
-            #[cfg(not(CURL_DISABLE_PROXY))]
-            let SSL_CONN_CONFIG_verifypeer = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                    != (*conn)
-                                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                            == -(1 as libc::c_int)
-                                                        {
-                                                            0 as libc::c_int
-                                                        } else {
-                                                            1 as libc::c_int
-                                                        }) as usize]
-                                                        .state as libc::c_uint
-                                            {
-                                                ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
-                                            } else {
-                                                ((*conn).ssl_config).verifypeer() as libc::c_int
+                ((*conn).ssl_config).verifypeer() as libc::c_int
                                             } != 0 ;
             #[cfg(CURL_DISABLE_PROXY)]
             let SSL_CONN_CONFIG_verifypeer = ((*conn).ssl_config).verifystatus() != 0;
@@ -5624,21 +5775,21 @@ unsafe extern "C" fn servercert(
     // DONE - 3986
     #[cfg(all(not(OPENSSL_NO_TLSEXT), not(OPENSSL_NO_OCSP), not(CURL_DISABLE_PROXY)))]
     let SSL_CONN_CONFIG_verifystatus = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
-                                        } else {
-                                            ((*conn).ssl_config).verifystatus() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
+    } else {
+        ((*conn).ssl_config).verifystatus() as libc::c_int
                                         } != 0;
     #[cfg(all(not(OPENSSL_NO_TLSEXT), not(OPENSSL_NO_OCSP), CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifystatus = ((*conn).ssl_config).verifystatus() != 0;
@@ -5657,22 +5808,22 @@ unsafe extern "C" fn servercert(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_PINNED_PUB_KEY_void = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                    != (*conn)
-                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                            == -(1 as libc::c_int)
-                                        {
-                                            0 as libc::c_int
-                                        } else {
-                                            1 as libc::c_int
-                                        }) as usize]
-                                        .state as libc::c_uint
-                            {
-                                (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as libc::c_int as usize]
-                            } else {
-                                (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize]
-                            };
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as libc::c_int as usize]
+    } else {
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize]
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_PINNED_PUB_KEY_void = (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize];
     ptr = SSL_PINNED_PUB_KEY_void;
@@ -5702,47 +5853,64 @@ unsafe extern "C" fn ossl_connect_step3(
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
-    
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ssl_connect_3 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+    {} else {
+        __assert_fail(
+            b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            4022 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 75],
+                &[libc::c_char; 75],
+            >(
+                b"CURLcode ossl_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let servercert_value_result =  servercert(
-                                        data,
-                                        conn,
-                                        connssl,
-                                        (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
-                                        } else {
-                                            ((*conn).ssl_config).verifypeer() as libc::c_int
-                                        }) != 0
-                                            || (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                    != (*conn)
-                                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                            == -(1 as libc::c_int)
-                                                        {
-                                                            0 as libc::c_int
-                                                        } else {
-                                                            1 as libc::c_int
-                                                        }) as usize]
-                                                        .state as libc::c_uint
-                                            {
-                                                ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
-                                            } else {
-                                                ((*conn).ssl_config).verifyhost() as libc::c_int
-                                            }) != 0,
-                                    );
+        data,
+        conn,
+        connssl,
+        (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+        } else {
+            ((*conn).ssl_config).verifypeer() as libc::c_int
+        }) != 0
+            || (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
+            } else {
+                ((*conn).ssl_config).verifyhost() as libc::c_int
+            }) != 0,
+    );
     #[cfg(CURL_DISABLE_PROXY)]
     let servercert_value_result =  servercert(
                                         data,
@@ -5928,6 +6096,19 @@ unsafe extern "C" fn ossl_connect(
     );
     if result as u64 != 0 {
         return result;
+    }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {} else {
+        __assert_fail(
+            b"done\0" as *const u8 as *const libc::c_char,
+            b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+            4170 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 69],
+                &[libc::c_char; 69],
+            >(b"CURLcode ossl_connect(struct Curl_easy *, struct connectdata *, int)\0"))
+                .as_ptr(),
+        );
     }
     return CURLE_OK;
 }
@@ -6116,7 +6297,15 @@ unsafe extern "C" fn ossl_recv(
             0 => {}
             6 => {
                 if num == 0 as libc::c_int {
+                    #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
                     Curl_conncontrol(conn, 1 as libc::c_int);
+
+                    #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
+                    Curl_conncontrol(
+                        conn,
+                        1 as libc::c_int,
+                        b"TLS close_notify\0" as *const u8 as *const libc::c_char,
+                    );
                 }
             }
             2 | 3 => {
@@ -6159,13 +6348,44 @@ unsafe extern "C" fn ossl_recv(
                     );
                     *curlcode = CURLE_RECV_ERROR;
                     return -(1 as libc::c_int) as ssize_t;
-                    // TODO debug相关的条件编译，应该不加
+                
+                #[cfg(DEBUGBUILD)]
+                {
+                    if err == 5 as libc::c_int {
+                        let mut sockerr_0: libc::c_int = *__errno_location();
+                        if sockerr_0 != 0 {
+                            Curl_strerror(
+                                sockerr_0,
+                                error_buffer.as_mut_ptr(),
+                                ::std::mem::size_of::<[libc::c_char; 256]>() as libc::c_ulong,
+                            );
+                        } else {
+                            curl_msnprintf(
+                                error_buffer.as_mut_ptr(),
+                                ::std::mem::size_of::<[libc::c_char; 256]>()
+                                    as libc::c_ulong,
+                                b"Connection closed abruptly\0" as *const u8
+                                    as *const libc::c_char,
+                            );
+                        }
+                        Curl_failf(
+                            data,
+                            b"OpenSSL SSL_read: %s, errno %d (Fatal because this is a curl debug build)\0"
+                                as *const u8 as *const libc::c_char,
+                            error_buffer.as_mut_ptr(),
+                            sockerr_0,
+                        );
+                        *curlcode = CURLE_RECV_ERROR;
+                        return -(1 as libc::c_int) as ssize_t;
+                }
+            }
                 }
             }
         }
     }
     return nread;
 }
+
 #[cfg(USE_OPENSSL)]
 unsafe extern "C" fn ossl_version(
     mut buffer: *mut libc::c_char,
@@ -6211,40 +6431,41 @@ unsafe extern "C" fn ossl_version(
     //     */
     // }
     //else{
-        let mut sub: [libc::c_char; 3] = [0; 3];
-        let mut ssleay_value: libc::c_ulong = 0;
+    let mut sub: [libc::c_char; 3] = [0; 3];
+    let mut ssleay_value: libc::c_ulong = 0;
         sub[2 as libc::c_int as usize] = '\0' as i32 as libc::c_char;
         sub[1 as libc::c_int as usize] = '\0' as i32 as libc::c_char;
-        ssleay_value = OpenSSL_version_num();
-        if ssleay_value < 0x906000 as libc::c_int as libc::c_ulong {
-            ssleay_value = 0x1010106f as libc::c_long as libc::c_ulong;
+    ssleay_value = OpenSSL_version_num();
+    if ssleay_value < 0x906000 as libc::c_int as libc::c_ulong {
+        ssleay_value = 0x1010106f as libc::c_long as libc::c_ulong;
             sub[0 as libc::c_int as usize] = '\0' as i32 as libc::c_char;
-        } else if ssleay_value & 0xff0 as libc::c_int as libc::c_ulong != 0 {
-            let mut minor_ver: libc::c_int = (ssleay_value >> 4 as libc::c_int
-                & 0xff as libc::c_int as libc::c_ulong) as libc::c_int;
-            if minor_ver > 26 as libc::c_int {
-                sub[1 as libc::c_int
-                    as usize] = ((minor_ver - 1 as libc::c_int) % 26 as libc::c_int
-                    + 'a' as i32 + 1 as libc::c_int) as libc::c_char;
-                sub[0 as libc::c_int as usize] = 'z' as i32 as libc::c_char;
-            } else {
-                sub[0 as libc::c_int
-                    as usize] = (minor_ver + 'a' as i32 - 1 as libc::c_int) as libc::c_char;
-            }
+    } else if ssleay_value & 0xff0 as libc::c_int as libc::c_ulong != 0 {
+        let mut minor_ver: libc::c_int = (ssleay_value >> 4 as libc::c_int
+            & 0xff as libc::c_int as libc::c_ulong) as libc::c_int;
+        if minor_ver > 26 as libc::c_int {
+            sub[1 as libc::c_int
+                as usize] = ((minor_ver - 1 as libc::c_int) % 26 as libc::c_int
+                + 'a' as i32 + 1 as libc::c_int) as libc::c_char;
+            sub[0 as libc::c_int as usize] = 'z' as i32 as libc::c_char;
         } else {
-            sub[0 as libc::c_int as usize] = '\0' as i32 as libc::c_char;
+            sub[0 as libc::c_int
+                as usize] = (minor_ver + 'a' as i32 - 1 as libc::c_int) as libc::c_char;
         }
+    } else {
+            sub[0 as libc::c_int as usize] = '\0' as i32 as libc::c_char;
+    }
         #[cfg(not(OPENSSL_FIPS))]
-        return curl_msnprintf(
-            buffer,
-            size,
-            b"%s/%lx.%lx.%lx%s\0" as *const u8 as *const libc::c_char,
-            b"OpenSSL\0" as *const u8 as *const libc::c_char,
-            ssleay_value >> 28 as libc::c_int & 0xf as libc::c_int as libc::c_ulong,
-            ssleay_value >> 20 as libc::c_int & 0xff as libc::c_int as libc::c_ulong,
-            ssleay_value >> 12 as libc::c_int & 0xff as libc::c_int as libc::c_ulong,
-            sub.as_mut_ptr(),
-        ) as size_t;  
+    return curl_msnprintf(
+        buffer,
+        size,
+        b"%s/%lx.%lx.%lx%s\0" as *const u8 as *const libc::c_char,
+        b"OpenSSL\0" as *const u8 as *const libc::c_char,
+        ssleay_value >> 28 as libc::c_int & 0xf as libc::c_int as libc::c_ulong,
+        ssleay_value >> 20 as libc::c_int & 0xff as libc::c_int as libc::c_ulong,
+        ssleay_value >> 12 as libc::c_int & 0xff as libc::c_int as libc::c_ulong,
+        sub.as_mut_ptr(),
+    ) as size_t;
+
         #[cfg(OPENSSL_FIPS)]
         return curl_msnprintf(
             buffer,
@@ -6303,7 +6524,7 @@ unsafe extern "C" fn ossl_sha256sum(
 unsafe extern "C" fn ossl_cert_status_request() -> bool {
     // TODO - 4475
     if cfg!(all(not(OPENSSL_NO_TLSEXT), not(OPENSSL_NO_OCSP))){
-        return 1 as libc::c_int != 0;
+    return 1 as libc::c_int != 0;
     }else{
         return 0 as libc::c_int != 0;
     }
@@ -6337,21 +6558,21 @@ unsafe extern "C" fn ossl_associate_connection(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         } != 0 ;
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid() != 0;
@@ -6419,21 +6640,21 @@ unsafe extern "C" fn ossl_disassociate_connection(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         } != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid() != 0;
