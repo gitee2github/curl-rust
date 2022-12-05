@@ -16,13 +16,55 @@ use ::libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
-
-unsafe extern "C" fn blobdup(mut dest: *mut *mut curl_blob, mut src: *mut curl_blob) -> CURLcode {
+unsafe extern "C" fn blobdup(
+    mut dest: *mut *mut curl_blob,
+    mut src: *mut curl_blob,
+) -> CURLcode {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if !dest.is_null() {} else {
+        __assert_fail(
+            b"dest\0" as *const u8 as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            97 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 58],
+                &[libc::c_char; 58],
+            >(b"CURLcode blobdup(struct curl_blob **, struct curl_blob *)\0"))
+                .as_ptr(),
+        );
+    }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if (*dest).is_null() {} else {
+        __assert_fail(
+            b"!*dest\0" as *const u8 as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            98 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 58],
+                &[libc::c_char; 58],
+            >(b"CURLcode blobdup(struct curl_blob **, struct curl_blob *)\0"))
+                .as_ptr(),
+        );
+    }
     if !src.is_null() {
         let mut d: *mut curl_blob = 0 as *mut curl_blob;
-        d = Curl_cmalloc.expect("non-null function pointer")(
-            (::std::mem::size_of::<curl_blob>() as libc::c_ulong).wrapping_add((*src).len),
-        ) as *mut curl_blob;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                d = Curl_cmalloc.expect("non-null function pointer")(
+                    (::std::mem::size_of::<curl_blob>() as libc::c_ulong).wrapping_add((*src).len),
+                ) as *mut curl_blob;
+            }            
+            #[cfg(CURLDEBUG)]
+            _ => {
+                d = curl_dbg_malloc(
+                    (::std::mem::size_of::<curl_blob>() as libc::c_ulong)
+                        .wrapping_add((*src).len),
+                    102 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut curl_blob;
+            }           
+        }        
         if d.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
@@ -108,8 +150,20 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         return 0 as libc::c_int != 0;
     }
     if !((*source).CApath).is_null() {
-        let ref mut fresh1 = (*dest).CApath;
-        *fresh1 = Curl_cstrdup.expect("non-null function pointer")((*source).CApath);
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).CApath = Curl_cstrdup.expect("non-null function pointer")((*source).CApath);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).CApath = curl_dbg_strdup(
+                    (*source).CApath,
+                    179 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }        
         if ((*dest).CApath).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -118,8 +172,19 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh2 = 0 as *mut libc::c_char;
     }
     if !((*source).CAfile).is_null() {
-        let ref mut fresh3 = (*dest).CAfile;
-        *fresh3 = Curl_cstrdup.expect("non-null function pointer")((*source).CAfile);
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).CAfile = Curl_cstrdup.expect("non-null function pointer")((*source).CAfile);
+            }
+            _ => {
+                (*dest).CAfile = curl_dbg_strdup(
+                    (*source).CAfile,
+                    180 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }        
         if ((*dest).CAfile).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -128,8 +193,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh4 = 0 as *mut libc::c_char;
     }
     if !((*source).issuercert).is_null() {
-        let ref mut fresh5 = (*dest).issuercert;
-        *fresh5 = Curl_cstrdup.expect("non-null function pointer")((*source).issuercert);
+
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).issuercert = Curl_cstrdup.expect("non-null function pointer")((*source).issuercert);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).issuercert = curl_dbg_strdup(
+                    (*source).issuercert,
+                    181 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).issuercert).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -138,8 +217,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh6 = 0 as *mut libc::c_char;
     }
     if !((*source).clientcert).is_null() {
-        let ref mut fresh7 = (*dest).clientcert;
-        *fresh7 = Curl_cstrdup.expect("non-null function pointer")((*source).clientcert);
+
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).clientcert = Curl_cstrdup.expect("non-null function pointer")((*source).clientcert);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).clientcert = curl_dbg_strdup(
+                    (*source).clientcert,
+                    182 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).clientcert).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -148,8 +241,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh8 = 0 as *mut libc::c_char;
     }
     if !((*source).random_file).is_null() {
-        let ref mut fresh9 = (*dest).random_file;
-        *fresh9 = Curl_cstrdup.expect("non-null function pointer")((*source).random_file);
+
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).random_file = Curl_cstrdup.expect("non-null function pointer")((*source).random_file);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).random_file = curl_dbg_strdup(
+                    (*source).random_file,
+                    183 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).random_file).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -158,8 +265,21 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh10 = 0 as *mut libc::c_char;
     }
     if !((*source).egdsocket).is_null() {
-        let ref mut fresh11 = (*dest).egdsocket;
-        *fresh11 = Curl_cstrdup.expect("non-null function pointer")((*source).egdsocket);
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).egdsocket = Curl_cstrdup.expect("non-null function pointer")((*source).egdsocket);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).egdsocket = curl_dbg_strdup(
+                    (*source).egdsocket,
+                    184 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).egdsocket).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -168,8 +288,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh12 = 0 as *mut libc::c_char;
     }
     if !((*source).cipher_list).is_null() {
-        let ref mut fresh13 = (*dest).cipher_list;
-        *fresh13 = Curl_cstrdup.expect("non-null function pointer")((*source).cipher_list);
+
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).cipher_list = Curl_cstrdup.expect("non-null function pointer")((*source).cipher_list);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).cipher_list = curl_dbg_strdup(
+                    (*source).cipher_list,
+                    185 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).cipher_list).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -178,8 +312,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh14 = 0 as *mut libc::c_char;
     }
     if !((*source).cipher_list13).is_null() {
-        let ref mut fresh15 = (*dest).cipher_list13;
-        *fresh15 = Curl_cstrdup.expect("non-null function pointer")((*source).cipher_list13);
+
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).cipher_list13 = Curl_cstrdup.expect("non-null function pointer")((*source).cipher_list13);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).cipher_list13 = curl_dbg_strdup(
+                    (*source).cipher_list13,
+                    186 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).cipher_list13).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -188,8 +336,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh16 = 0 as *mut libc::c_char;
     }
     if !((*source).pinned_key).is_null() {
-        let ref mut fresh17 = (*dest).pinned_key;
-        *fresh17 = Curl_cstrdup.expect("non-null function pointer")((*source).pinned_key);
+        
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).pinned_key = Curl_cstrdup.expect("non-null function pointer")((*source).pinned_key);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).pinned_key = curl_dbg_strdup(
+                    (*source).pinned_key,
+                    187 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).pinned_key).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -198,8 +360,22 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
         *fresh18 = 0 as *mut libc::c_char;
     }
     if !((*source).curves).is_null() {
-        let ref mut fresh19 = (*dest).curves;
-        *fresh19 = Curl_cstrdup.expect("non-null function pointer")((*source).curves);
+    
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                (*dest).curves = Curl_cstrdup.expect("non-null function pointer")((*source).curves);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                (*dest).curves = curl_dbg_strdup(
+                    (*source).curves,
+                    188 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if ((*dest).curves).is_null() {
             return 0 as libc::c_int != 0;
         }
@@ -210,44 +386,130 @@ pub unsafe extern "C" fn Curl_clone_primary_ssl_config(
     return 1 as libc::c_int != 0;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_free_primary_ssl_config(mut sslc: *mut ssl_primary_config) {
+pub unsafe extern "C" fn Curl_free_primary_ssl_config(
+    mut sslc: *mut ssl_primary_config,
+) {
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).CApath as *mut libc::c_void);
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).CApath as *mut libc::c_void,
+        195 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh21 = (*sslc).CApath;
     *fresh21 = 0 as *mut libc::c_char;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).CAfile as *mut libc::c_void);
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).CAfile as *mut libc::c_void,
+        196 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh22 = (*sslc).CAfile;
     *fresh22 = 0 as *mut libc::c_char;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).issuercert as *mut libc::c_void);
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).issuercert as *mut libc::c_void,
+        197 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh23 = (*sslc).issuercert;
     *fresh23 = 0 as *mut libc::c_char;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).clientcert as *mut libc::c_void);
+    #[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).clientcert as *mut libc::c_void,
+        198 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh24 = (*sslc).clientcert;
     *fresh24 = 0 as *mut libc::c_char;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).random_file as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).random_file as *mut libc::c_void,
+        199 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh25 = (*sslc).random_file;
     *fresh25 = 0 as *mut libc::c_char;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*sslc).egdsocket as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).egdsocket as *mut libc::c_void,
+        200 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh26 = (*sslc).egdsocket;
     *fresh26 = 0 as *mut libc::c_char;
-    Curl_cfree.expect("non-null function pointer")((*sslc).cipher_list as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).cipher_list as *mut libc::c_void,
+        201 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh27 = (*sslc).cipher_list;
     *fresh27 = 0 as *mut libc::c_char;
-    Curl_cfree.expect("non-null function pointer")((*sslc).cipher_list13 as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).cipher_list13 as *mut libc::c_void,
+        202 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh28 = (*sslc).cipher_list13;
     *fresh28 = 0 as *mut libc::c_char;
-    Curl_cfree.expect("non-null function pointer")((*sslc).pinned_key as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).pinned_key as *mut libc::c_void,
+        203 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh29 = (*sslc).pinned_key;
     *fresh29 = 0 as *mut libc::c_char;
-    Curl_cfree.expect("non-null function pointer")((*sslc).cert_blob as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).cert_blob as *mut libc::c_void,
+        204 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh30 = (*sslc).cert_blob;
     *fresh30 = 0 as *mut curl_blob;
-    Curl_cfree.expect("non-null function pointer")((*sslc).ca_info_blob as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).ca_info_blob as *mut libc::c_void,
+        205 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh31 = (*sslc).ca_info_blob;
     *fresh31 = 0 as *mut curl_blob;
-    Curl_cfree.expect("non-null function pointer")((*sslc).issuercert_blob as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        (*sslc).issuercert_blob as *mut libc::c_void,
+        206 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh32 = (*sslc).issuercert_blob;
     *fresh32 = 0 as *mut curl_blob;
-    Curl_cfree.expect("non-null function pointer")((*sslc).curves as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        (*sslc).curves as *mut libc::c_void,
+        207 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh33 = (*sslc).curves;
     *fresh33 = 0 as *mut libc::c_char;
 }
@@ -315,6 +577,20 @@ unsafe extern "C" fn ssl_connect_init_proxy(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) -> CURLcode {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if (*conn).bits.proxy_ssl_connected[sockindex as usize] {} else {
+        __assert_fail(
+            b"conn->bits.proxy_ssl_connected[sockindex]\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            290 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 59],
+                &[libc::c_char; 59],
+            >(b"CURLcode ssl_connect_init_proxy(struct connectdata *, int)\0"))
+                .as_ptr(),
+        );
+    }
     if ssl_connection_complete as libc::c_int as libc::c_uint
         == (*conn).ssl[sockindex as usize].state as libc::c_uint
         && ((*conn).proxy_ssl[sockindex as usize]).use_0() == 0
@@ -471,6 +747,39 @@ pub unsafe extern "C" fn Curl_ssl_getsessionid(
     if isProxy as libc::c_int != 0 {
         return 1 as libc::c_int != 0;
     }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
+    }) != 0
+    {} else {
+        __assert_fail(
+            b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
+                as *const u8 as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            424 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 107],
+                &[libc::c_char; 107],
+            >(
+                b"_Bool Curl_ssl_getsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void **, size_t *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let flag: bool = (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
         == (*conn).http_proxy.proxytype as libc::c_uint
@@ -540,6 +849,25 @@ pub unsafe extern "C" fn Curl_ssl_getsessionid(
         }
         i = i.wrapping_add(1);
     }
+    #[cfg(DEBUGBUILD)]
+    Curl_infof(
+        data,
+        b"%s Session ID in cache for %s %s://%s:%d\0" as *const u8
+            as *const libc::c_char,
+        if no_match as libc::c_int != 0 {
+            b"Didn't find\0" as *const u8 as *const libc::c_char
+        } else {
+            b"Found\0" as *const u8 as *const libc::c_char
+        },
+        if isProxy as libc::c_int != 0 {
+            b"proxy\0" as *const u8 as *const libc::c_char
+        } else {
+            b"host\0" as *const u8 as *const libc::c_char
+        },
+        (*(*conn).handler).scheme,
+        name,
+        port,
+    );
     return no_match;
 }
 #[cfg(USE_SSL)]
@@ -552,14 +880,28 @@ pub unsafe extern "C" fn Curl_ssl_kill_session(mut session: *mut Curl_ssl_sessio
         *fresh39 = 0 as *mut libc::c_void;
         (*session).age = 0 as libc::c_int as libc::c_long;
         Curl_free_primary_ssl_config(&mut (*session).ssl_config);
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect("non-null function pointer")((*session).name as *mut libc::c_void);
+        #[cfg(CURLDEBUG)]
+        curl_dbg_free(
+                (*session).name as *mut libc::c_void,
+                486 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
         let ref mut fresh40 = (*session).name;
         *fresh40 = 0 as *mut libc::c_char;
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect(
                 "non-null function pointer",
             )((*session).conn_to_host as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+        curl_dbg_free(
+                (*session).conn_to_host as *mut libc::c_void,
+                487 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
         let ref mut fresh41 = (*session).conn_to_host;
         *fresh41 = 0 as *mut libc::c_char;
     }
@@ -622,16 +964,84 @@ pub unsafe extern "C" fn Curl_ssl_addsessionid(
     store = &mut *((*data).state.session).offset(0 as libc::c_int as isize)
         as *mut Curl_ssl_session;
     oldest_age = (*((*data).state.session).offset(0 as libc::c_int as isize)).age;
-    clone_host = Curl_cstrdup.expect("non-null function pointer")(hostname);
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
+    }) != 0
+    {} else {
+        __assert_fail(
+            b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
+                as *const u8 as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            544 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 107],
+                &[libc::c_char; 107],
+            >(
+                b"CURLcode Curl_ssl_addsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void *, size_t, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            clone_host = Curl_cstrdup.expect("non-null function pointer")(hostname);
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            clone_host = curl_dbg_strdup(
+                hostname,
+                546 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
+        }
+    }
+    
     if clone_host.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
     if ((*conn).bits).conn_to_host() != 0 {
-        clone_conn_to_host = Curl_cstrdup
-            .expect("non-null function pointer")((*conn).conn_to_host.name);
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                clone_conn_to_host = Curl_cstrdup
+                .expect("non-null function pointer")((*conn).conn_to_host.name);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                clone_conn_to_host = curl_dbg_strdup(
+                    (*conn).conn_to_host.name,
+                    551 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+        
         if clone_conn_to_host.is_null() {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree
-                .expect("non-null function pointer")(clone_host as *mut libc::c_void);
+            .expect("non-null function pointer")(clone_host as *mut libc::c_void);
+	      #[cfg(CURLDEBUG)]
+	      curl_dbg_free(
+                clone_host as *mut libc::c_void,
+                553 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
             return CURLE_OUT_OF_MEMORY;
         }
     } else {
@@ -672,9 +1082,23 @@ pub unsafe extern "C" fn Curl_ssl_addsessionid(
     *fresh42 = ssl_sessionid;
     (*store).idsize = idsize;
     (*store).age = *general_age;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*store).name as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        (*store).name as *mut libc::c_void,
+        595 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree
         .expect("non-null function pointer")((*store).conn_to_host as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        (*store).conn_to_host as *mut libc::c_void,
+        596 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     let ref mut fresh43 = (*store).name;
     *fresh43 = clone_host;
     let ref mut fresh44 = (*store).conn_to_host;
@@ -692,13 +1116,41 @@ pub unsafe extern "C" fn Curl_ssl_addsessionid(
         Curl_free_primary_ssl_config(&mut (*store).ssl_config);
         let ref mut fresh46 = (*store).sessionid;
         *fresh46 = 0 as *mut libc::c_void;
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(clone_host as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            clone_host as *mut libc::c_void,
+            607 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect(
                 "non-null function pointer",
             )(clone_conn_to_host as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            clone_conn_to_host as *mut libc::c_void,
+            608 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         return CURLE_OUT_OF_MEMORY;
     }
+    #[cfg(DEBUGBUILD)]
+    Curl_infof(
+        data,
+        b"Added Session ID to cache for %s://%s:%d [%s]\0" as *const u8
+            as *const libc::c_char,
+        (*store).scheme,
+        (*store).name,
+        (*store).remote_port,
+        if isProxy as libc::c_int != 0 {
+            b"PROXY\0" as *const u8 as *const libc::c_char
+        } else {
+            b"server\0" as *const u8 as *const libc::c_char
+        },
+    );
     return CURLE_OK;
 }
 #[cfg(USE_SSL)]
@@ -750,10 +1202,17 @@ pub unsafe extern "C" fn Curl_ssl_close_all(mut data: *mut Curl_easy) {
             Curl_ssl_kill_session(&mut *((*data).state.session).offset(i as isize));
             i = i.wrapping_add(1);
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect(
                 "non-null function pointer",
             )((*data).state.session as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            (*data).state.session as *mut libc::c_void,
+            648 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         let ref mut fresh47 = (*data).state.session;
         *fresh47 = 0 as *mut Curl_ssl_session;
     }
@@ -791,6 +1250,20 @@ pub unsafe extern "C" fn Curl_ssl_close(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if sockindex <= 1 as libc::c_int && sockindex >= -(1 as libc::c_int) {} else {
+        __assert_fail(
+            b"(sockindex <= 1) && (sockindex >= -1)\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            675 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 67],
+                &[libc::c_char; 67],
+            >(b"void Curl_ssl_close(struct Curl_easy *, struct connectdata *, int)\0"))
+                .as_ptr(),
+        );
+    }
     ((*Curl_ssl).close_one).expect("non-null function pointer")(data, conn, sockindex);
     (*conn).ssl[sockindex as usize].state = ssl_connection_none;
 }
@@ -865,11 +1338,26 @@ pub unsafe extern "C" fn Curl_ssl_initsessions(
     if !((*data).state.session).is_null() {
         return CURLE_OK;
     }
-    session = Curl_ccalloc
-        .expect(
-            "non-null function pointer",
-        )(amount, ::std::mem::size_of::<Curl_ssl_session>() as libc::c_ulong)
-        as *mut Curl_ssl_session;
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            session = Curl_ccalloc
+            .expect(
+                "non-null function pointer",
+            )(amount, ::std::mem::size_of::<Curl_ssl_session>() as libc::c_ulong)
+            as *mut Curl_ssl_session;
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            session = curl_dbg_calloc(
+                amount,
+                ::std::mem::size_of::<Curl_ssl_session>() as libc::c_ulong,
+                727 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            ) as *mut Curl_ssl_session;
+        }
+    }
+    
     if session.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
@@ -917,8 +1405,15 @@ pub unsafe extern "C" fn Curl_ssl_free_certinfo(mut data: *mut Curl_easy) {
             *fresh52 = 0 as *mut curl_slist;
             i += 1;
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect("non-null function pointer")((*ci).certinfo as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            (*ci).certinfo as *mut libc::c_void,
+            780 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         let ref mut fresh53 = (*ci).certinfo;
         *fresh53 = 0 as *mut *mut curl_slist;
         (*ci).num_of_certs = 0 as libc::c_int;
@@ -933,11 +1428,26 @@ pub unsafe extern "C" fn Curl_ssl_init_certinfo(
     let mut ci: *mut curl_certinfo = &mut (*data).info.certs;
     let mut table: *mut *mut curl_slist = 0 as *mut *mut curl_slist;
     Curl_ssl_free_certinfo(data);
-    table = Curl_ccalloc
-        .expect(
-            "non-null function pointer",
-        )(num as size_t, ::std::mem::size_of::<*mut curl_slist>() as libc::c_ulong)
-        as *mut *mut curl_slist;
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            table = Curl_ccalloc
+            .expect(
+                "non-null function pointer",
+            )(num as size_t, ::std::mem::size_of::<*mut curl_slist>() as libc::c_ulong)
+            as *mut *mut curl_slist;
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            table = curl_dbg_calloc(
+                num as size_t,
+                ::std::mem::size_of::<*mut curl_slist>() as libc::c_ulong,
+                795 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            ) as *mut *mut curl_slist;
+        }
+    }
+    
     if table.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
@@ -964,8 +1474,22 @@ pub unsafe extern "C" fn Curl_ssl_push_certinfo_len(
         .wrapping_add(1 as libc::c_int as libc::c_ulong)
         .wrapping_add(valuelen)
         .wrapping_add(1 as libc::c_int as libc::c_ulong);
-    output = Curl_cmalloc.expect("non-null function pointer")(outlen)
-        as *mut libc::c_char;
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            output = Curl_cmalloc.expect("non-null function pointer")(outlen)
+            as *mut libc::c_char;
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            output = curl_dbg_malloc(
+                outlen,
+                821 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            ) as *mut libc::c_char;
+        }
+    }
+    
     if output.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
@@ -985,7 +1509,15 @@ pub unsafe extern "C" fn Curl_ssl_push_certinfo_len(
         ) = 0 as libc::c_int as libc::c_char;
     nl = Curl_slist_append_nodup(*((*ci).certinfo).offset(certnum as isize), output);
     if nl.is_null() {
-        Curl_cfree.expect("non-null function pointer")(output as *mut libc::c_void);
+    #[cfg(not(CURLDEBUG))]
+    Curl_cfree.expect("non-null function pointer")(output as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+            output as *mut libc::c_void,
+            836 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         curl_slist_free_all(*((*ci).certinfo).offset(certnum as isize));
         result = CURLE_OUT_OF_MEMORY;
     }
@@ -1057,12 +1589,26 @@ unsafe extern "C" fn pubkey_pem_to_der(
         return CURLE_BAD_CONTENT_ENCODING;
     }
     pem_len = end_pos.offset_from(pem) as libc::c_long as size_t;
-    stripped_pem = Curl_cmalloc
-        .expect(
-            "non-null function pointer",
-        )(
-        pem_len.wrapping_sub(pem_count).wrapping_add(1 as libc::c_int as libc::c_ulong),
-    ) as *mut libc::c_char;
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            stripped_pem = Curl_cmalloc
+            .expect(
+                "non-null function pointer",
+            )(
+            pem_len.wrapping_sub(pem_count).wrapping_add(1 as libc::c_int as libc::c_ulong),
+        ) as *mut libc::c_char;
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            stripped_pem = curl_dbg_malloc(
+                pem_len.wrapping_sub(pem_count).wrapping_add(1 as libc::c_int as libc::c_ulong),
+                900 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            ) as *mut libc::c_char;
+        }
+    }
+    
     if stripped_pem.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
@@ -1078,7 +1624,15 @@ unsafe extern "C" fn pubkey_pem_to_der(
     }
     *stripped_pem.offset(stripped_pem_count as isize) = '\0' as i32 as libc::c_char;
     result = Curl_base64_decode(stripped_pem, der, der_len);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(stripped_pem as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        stripped_pem as *mut libc::c_void,
+        919 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     stripped_pem = 0 as *mut libc::c_char;
     return result;
 }
@@ -1117,9 +1671,23 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
         if ((*Curl_ssl).sha256sum).is_none() {
             return result;
         }
-        sha256sumdigest = Curl_cmalloc
-            .expect("non-null function pointer")(32 as libc::c_int as size_t)
-            as *mut libc::c_uchar;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                sha256sumdigest = Curl_cmalloc
+                .expect("non-null function pointer")(32 as libc::c_int as size_t)
+                as *mut libc::c_uchar;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                sha256sumdigest = curl_dbg_malloc(
+                    32 as libc::c_int as size_t,
+                    955 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut libc::c_uchar;
+            }
+        }
+        
         if sha256sumdigest.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
@@ -1137,8 +1705,15 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
             &mut encoded,
             &mut encodedlen,
         );
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree
             .expect("non-null function pointer")(sha256sumdigest as *mut libc::c_void);
+	    #[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            sha256sumdigest as *mut libc::c_void,
+            967 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         sha256sumdigest = 0 as *mut libc::c_uchar;
         if encode as u64 != 0 {
             return encode;
@@ -1150,10 +1725,32 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
         );
         pinkeylen = (strlen(pinnedpubkey))
             .wrapping_add(1 as libc::c_int as libc::c_ulong);
-        pinkeycopy = Curl_cmalloc.expect("non-null function pointer")(pinkeylen)
-            as *mut libc::c_char;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                pinkeycopy = Curl_cmalloc.expect("non-null function pointer")(pinkeylen)
+                as *mut libc::c_char;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                pinkeycopy = curl_dbg_malloc(
+                    pinkeylen,
+                    976 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut libc::c_char;
+            }
+        }
+        
         if pinkeycopy.is_null() {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(encoded as *mut libc::c_void);
+
+    	#[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+                encoded as *mut libc::c_void,
+                978 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
             encoded = 0 as *mut libc::c_char;
             return CURLE_OUT_OF_MEMORY;
         }
@@ -1194,13 +1791,44 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
                 }
             }
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(encoded as *mut libc::c_void);
+
+	    #[cfg(CURLDEBUG)]
+    	curl_dbg_free(
+            encoded as *mut libc::c_void,
+            1009 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         encoded = 0 as *mut libc::c_char;
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(pinkeycopy as *mut libc::c_void);
+
+    	#[cfg(CURLDEBUG)]
+	    curl_dbg_free(
+            pinkeycopy as *mut libc::c_void,
+            1010 as libc::c_int,
+            b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+        );
         pinkeycopy = 0 as *mut libc::c_char;
         return result;
     }
-    fp = fopen(pinnedpubkey, b"rb\0" as *const u8 as *const libc::c_char);
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            fp = fopen(pinnedpubkey, b"rb\0" as *const u8 as *const libc::c_char);
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            fp = curl_dbg_fopen(
+                pinnedpubkey,
+                b"rb\0" as *const u8 as *const libc::c_char,
+                1014 as libc::c_int,
+                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+            );
+        }
+    }
+
     if fp.is_null() {
         return result;
     }
@@ -1216,11 +1844,25 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
             {
                 size = curlx_sotouz(filesize);
                 if !(pubkeylen > size) {
-                    buf = Curl_cmalloc
-                        .expect(
-                            "non-null function pointer",
-                        )(size.wrapping_add(1 as libc::c_int as libc::c_ulong))
-                        as *mut libc::c_uchar;
+                    match () {
+                        #[cfg(not(CURLDEBUG))]
+                        _ => {
+                            buf = Curl_cmalloc
+                            .expect(
+                                "non-null function pointer",
+                            )(size.wrapping_add(1 as libc::c_int as libc::c_ulong))
+                            as *mut libc::c_uchar;
+                        }
+                        #[cfg(CURLDEBUG)]
+                        _ => {
+                            buf = curl_dbg_malloc(
+                                size.wrapping_add(1 as libc::c_int as libc::c_ulong),
+                                1044 as libc::c_int,
+                                b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                            ) as *mut libc::c_uchar;
+                        }
+                    }
+                    
                     if !buf.is_null() {
                         if !(fread(
                             buf as *mut libc::c_void,
@@ -1263,11 +1905,34 @@ pub unsafe extern "C" fn Curl_pin_peer_pubkey(
             }
         }
     }
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(buf as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        buf as *mut libc::c_void,
+        1077 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     buf = 0 as *mut libc::c_uchar;
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(pem_ptr as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        pem_ptr as *mut libc::c_void,
+        1078 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     pem_ptr = 0 as *mut libc::c_uchar;
+    #[cfg(not(CURLDEBUG))]
     fclose(fp);
+	#[cfg(CURLDEBUG)]
+    curl_dbg_fclose(
+        fp,
+        1079 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     return result;
 }
 #[cfg(USE_SSL)]
@@ -1716,15 +2381,30 @@ unsafe extern "C" fn multissl_setup(mut backend: *const Curl_ssl) -> libc::c_int
             if Curl_strcasecompare(env, (*available_backends[i as usize]).info.name) != 0
             {
                 Curl_ssl = available_backends[i as usize];
+                #[cfg(not(CURLDEBUG))]
                 Curl_cfree
                     .expect("non-null function pointer")(env_tmp as *mut libc::c_void);
+	            #[cfg(CURLDEBUG)]
+	            curl_dbg_free(
+                    env_tmp as *mut libc::c_void,
+                    1406 as libc::c_int,
+                    b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+                );
                 return 0 as libc::c_int;
             }
             i += 1;
         }
     }
     Curl_ssl = available_backends[0 as libc::c_int as usize];
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(env_tmp as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+	curl_dbg_free(
+        env_tmp as *mut libc::c_void,
+        1414 as libc::c_int,
+        b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+    );
     return 0 as libc::c_int;
 }
 #[cfg(USE_SSL)]
@@ -1749,7 +2429,7 @@ pub unsafe extern "C" fn curl_global_sslset(
             if cfg!(CURL_WITH_MULTI_SSL) {
                 CURLSSLSET_TOO_LATE as libc::c_int
             } else {
-                CURLSSLSET_UNKNOWN_BACKEND as libc::c_int
+            CURLSSLSET_UNKNOWN_BACKEND as libc::c_int
             }
         }) as CURLsslset;
     }
