@@ -8,7 +8,7 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: about keylog
  ******************************************************************************/
@@ -24,7 +24,22 @@ pub unsafe extern "C" fn Curl_tls_keylog_open() {
     if keylog_file_fp.is_null() {
         keylog_file_name = curl_getenv(b"SSLKEYLOGFILE\0" as *const u8 as *const libc::c_char);
         if !keylog_file_name.is_null() {
-            keylog_file_fp = fopen(keylog_file_name, b"a\0" as *const u8 as *const libc::c_char);
+            match () {
+                #[cfg(not(CURLDEBUG))]
+                _ => {
+                    keylog_file_fp =
+                        fopen(keylog_file_name, b"a\0" as *const u8 as *const libc::c_char);
+                }
+                #[cfg(CURLDEBUG)]
+                _ => {
+                    keylog_file_fp = curl_dbg_fopen(
+                        keylog_file_name,
+                        b"a\0" as *const u8 as *const libc::c_char,
+                        53 as libc::c_int,
+                        b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
+                    );
+                }
+            }
             if !keylog_file_fp.is_null() {
                 #[cfg(WIN32)]
                 let flag: bool = setvbuf(
@@ -41,11 +56,25 @@ pub unsafe extern "C" fn Curl_tls_keylog_open() {
                     4096 as libc::c_int as size_t,
                 ) != 0;
                 if flag {
+                    #[cfg(not(CURLDEBUG))]
                     fclose(keylog_file_fp);
+                    #[cfg(CURLDEBUG)]
+                    curl_dbg_fclose(
+                        keylog_file_fp,
+                        61 as libc::c_int,
+                        b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
+                    );
                     keylog_file_fp = 0 as *mut FILE;
                 }
             }
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(keylog_file_name as *mut libc::c_void);
+            #[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                keylog_file_name as *mut libc::c_void,
+                65 as libc::c_int,
+                b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
+            );
             keylog_file_name = 0 as *mut libc::c_char;
         }
     }
@@ -53,7 +82,14 @@ pub unsafe extern "C" fn Curl_tls_keylog_open() {
 #[no_mangle]
 pub unsafe extern "C" fn Curl_tls_keylog_close() {
     if !keylog_file_fp.is_null() {
+        #[cfg(not(CURLDEBUG))]
         fclose(keylog_file_fp);
+        #[cfg(CURLDEBUG)]
+        curl_dbg_fclose(
+            keylog_file_fp,
+            74 as libc::c_int,
+            b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
+        );
         keylog_file_fp = 0 as *mut FILE;
     }
 }
@@ -166,12 +202,11 @@ mod tests {
 
     #[test]
     fn test_keylog() {
-        unsafe{
+        unsafe {
             Curl_tls_keylog_open();
             Curl_tls_keylog_write_line(b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char);
             assert_eq!(Curl_tls_keylog_enabled(), true);
             Curl_tls_keylog_close();
-        }       
+        }
     }
-
 }
