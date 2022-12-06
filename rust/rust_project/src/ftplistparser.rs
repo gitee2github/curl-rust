@@ -12,188 +12,203 @@
  * Create: 2022-10-31
  * Description: ftplistparser
  ******************************************************************************/
-use ::libc;
-use rust_ffi::src::ffi_alias::type_alias::*;
-use rust_ffi::src::ffi_fun::fun_call::*;
-use rust_ffi::src::ffi_struct::struct_define::*;
-// use crate::src::ftp::*;
-
-// TODO
-// 有2个enum，2个union，1个struct在ftplistparser.c中定义的，要保留在这个文件中
-
-#[no_mangle]
-pub unsafe extern "C" fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data {
-    return Curl_ccalloc.expect("non-null function pointer")(
-        1 as libc::c_int as size_t,
-        ::std::mem::size_of::<ftp_parselist_data>() as libc::c_ulong,
-    ) as *mut ftp_parselist_data;
-}
-#[no_mangle]
-pub unsafe extern "C" fn Curl_ftp_parselist_data_free(mut parserp: *mut *mut ftp_parselist_data) {
-    let mut parser: *mut ftp_parselist_data = *parserp;
-    if !parser.is_null() {
-        Curl_fileinfo_cleanup((*parser).file_data);
-    }
-    Curl_cfree.expect("non-null function pointer")(parser as *mut libc::c_void);
-    *parserp = 0 as *mut ftp_parselist_data;
-}
-#[no_mangle]
-pub unsafe extern "C" fn Curl_ftp_parselist_geterror(
-    mut pl_data: *mut ftp_parselist_data,
-) -> CURLcode {
-    return (*pl_data).error;
-}
-unsafe extern "C" fn ftp_pl_get_permission(mut str: *const libc::c_char) -> libc::c_int {
-    let mut permissions: libc::c_int = 0 as libc::c_int;
-    if *str.offset(0 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
-        permissions |= (1 as libc::c_int) << 8 as libc::c_int;
-    } else if *str.offset(0 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(1 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
-        permissions |= (1 as libc::c_int) << 7 as libc::c_int;
-    } else if *str.offset(1 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(2 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
-        permissions |= (1 as libc::c_int) << 6 as libc::c_int;
-    } else if *str.offset(2 as libc::c_int as isize) as libc::c_int == 's' as i32 {
-        permissions |= (1 as libc::c_int) << 6 as libc::c_int;
-        permissions |= (1 as libc::c_int) << 11 as libc::c_int;
-    } else if *str.offset(2 as libc::c_int as isize) as libc::c_int == 'S' as i32 {
-        permissions |= (1 as libc::c_int) << 11 as libc::c_int;
-    } else if *str.offset(2 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(3 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
-        permissions |= (1 as libc::c_int) << 5 as libc::c_int;
-    } else if *str.offset(3 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(4 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
-        permissions |= (1 as libc::c_int) << 4 as libc::c_int;
-    } else if *str.offset(4 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(5 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
-        permissions |= (1 as libc::c_int) << 3 as libc::c_int;
-    } else if *str.offset(5 as libc::c_int as isize) as libc::c_int == 's' as i32 {
-        permissions |= (1 as libc::c_int) << 3 as libc::c_int;
-        permissions |= (1 as libc::c_int) << 10 as libc::c_int;
-    } else if *str.offset(5 as libc::c_int as isize) as libc::c_int == 'S' as i32 {
-        permissions |= (1 as libc::c_int) << 10 as libc::c_int;
-    } else if *str.offset(5 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(6 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
-        permissions |= (1 as libc::c_int) << 2 as libc::c_int;
-    } else if *str.offset(6 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(7 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
-        permissions |= (1 as libc::c_int) << 1 as libc::c_int;
-    } else if *str.offset(7 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    if *str.offset(8 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
-        permissions |= 1 as libc::c_int;
-    } else if *str.offset(8 as libc::c_int as isize) as libc::c_int == 't' as i32 {
-        permissions |= 1 as libc::c_int;
-        permissions |= (1 as libc::c_int) << 9 as libc::c_int;
-    } else if *str.offset(8 as libc::c_int as isize) as libc::c_int == 'T' as i32 {
-        permissions |= (1 as libc::c_int) << 9 as libc::c_int;
-    } else if *str.offset(8 as libc::c_int as isize) as libc::c_int != '-' as i32 {
-        permissions |= 0x1000000 as libc::c_int;
-    }
-    return permissions;
-}
-unsafe extern "C" fn ftp_pl_insert_finfo(
-    mut data: *mut Curl_easy,
-    mut infop: *mut fileinfo,
-) -> CURLcode {
-    let mut compare: curl_fnmatch_callback = None;
-    let mut wc: *mut WildcardData = &mut (*data).wildcard;
-    let mut ftpwc: *mut ftp_wc = (*wc).protdata as *mut ftp_wc;
-    let mut llist: *mut Curl_llist = &mut (*wc).filelist;
-    let mut parser: *mut ftp_parselist_data = (*ftpwc).parser;
-    let mut add: bool = 1 as libc::c_int != 0;
-    let mut finfo: *mut curl_fileinfo = &mut (*infop).info;
-    let mut str: *mut libc::c_char = (*finfo).b_data;
-    let ref mut fresh0 = (*finfo).filename;
-    *fresh0 = str.offset((*parser).offsets.filename as isize);
-    let ref mut fresh1 = (*finfo).strings.group;
-    *fresh1 = if (*parser).offsets.group != 0 {
-        str.offset((*parser).offsets.group as isize)
-    } else {
-        0 as *mut libc::c_char
-    };
-    let ref mut fresh2 = (*finfo).strings.perm;
-    *fresh2 = if (*parser).offsets.perm != 0 {
-        str.offset((*parser).offsets.perm as isize)
-    } else {
-        0 as *mut libc::c_char
-    };
-    let ref mut fresh3 = (*finfo).strings.target;
-    *fresh3 = if (*parser).offsets.symlink_target != 0 {
-        str.offset((*parser).offsets.symlink_target as isize)
-    } else {
-        0 as *mut libc::c_char
-    };
-    let ref mut fresh4 = (*finfo).strings.time;
-    *fresh4 = str.offset((*parser).offsets.time as isize);
-    let ref mut fresh5 = (*finfo).strings.user;
-    *fresh5 = if (*parser).offsets.user != 0 {
-        str.offset((*parser).offsets.user as isize)
-    } else {
-        0 as *mut libc::c_char
-    };
-    compare = (*data).set.fnmatch;
-    if compare.is_none() {
-        compare = Some(
-            Curl_fnmatch
-                as unsafe extern "C" fn(
-                    *mut libc::c_void,
-                    *const libc::c_char,
-                    *const libc::c_char,
-                ) -> libc::c_int,
-        );
-    }
-    Curl_set_in_callback(data, 1 as libc::c_int != 0);
-    if compare.expect("non-null function pointer")(
-        (*data).set.fnmatch_data,
-        (*wc).pattern,
-        (*finfo).filename,
-    ) == 0 as libc::c_int
-    {
-        if (*finfo).filetype as libc::c_uint == CURLFILETYPE_SYMLINK as libc::c_int as libc::c_uint
-            && !((*finfo).strings.target).is_null()
-            && !(strstr(
-                (*finfo).strings.target,
-                b" -> \0" as *const u8 as *const libc::c_char,
-            ))
-            .is_null()
-        {
-            add = 0 as libc::c_int != 0;
-        }
-    } else {
-        add = 0 as libc::c_int != 0;
-    }
-    Curl_set_in_callback(data, 0 as libc::c_int != 0);
-    if add {
-        Curl_llist_insert_next(
-            llist,
-            (*llist).tail,
-            finfo as *const libc::c_void,
-            &mut (*infop).list,
-        );
-    } else {
-        Curl_fileinfo_cleanup(infop);
-    }
-    let ref mut fresh6 = (*(*ftpwc).parser).file_data;
-    *fresh6 = 0 as *mut fileinfo;
-    return CURLE_OK;
-}
-// TODO 这个函数太长了，需要手动改写
+ use ::libc;
+ use rust_ffi::src::ffi_alias::type_alias::*;
+ use rust_ffi::src::ffi_fun::fun_call::*;
+ use rust_ffi::src::ffi_struct::struct_define::*;
+ // use crate::src::ftp::*;
+ 
+ // TODO
+ // 有2个enum，2个union，1个struct在ftplistparser.c中定义的，要保留在这个文件中
+ 
+ #[no_mangle]
+ pub unsafe extern "C" fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data {
+     #[cfg(not(CURLDEBUG))]
+     return Curl_ccalloc.expect("non-null function pointer")(
+         1 as libc::c_int as size_t,
+         ::std::mem::size_of::<ftp_parselist_data>() as libc::c_ulong,
+     ) as *mut ftp_parselist_data;
+     #[cfg(CURLDEBUG)]
+     return curl_dbg_calloc(
+         1 as libc::c_int as size_t,
+         ::std::mem::size_of::<ftp_parselist_data>() as libc::c_ulong,
+         184 as libc::c_int,
+         b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
+     ) as *mut ftp_parselist_data;
+ }
+ #[no_mangle]
+ pub unsafe extern "C" fn Curl_ftp_parselist_data_free(mut parserp: *mut *mut ftp_parselist_data) {
+     let mut parser: *mut ftp_parselist_data = *parserp;
+     if !parser.is_null() {
+         Curl_fileinfo_cleanup((*parser).file_data);
+     }
+     #[cfg(not(CURLDEBUG))]
+     Curl_cfree.expect("non-null function pointer")(parser as *mut libc::c_void);
+ 
+     #[cfg(CURLDEBUG)]
+     curl_dbg_free(
+         parser as *mut libc::c_void,
+         193 as libc::c_int,
+         b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
+     );
+     *parserp = 0 as *mut ftp_parselist_data;
+ }
+ #[no_mangle]
+ pub unsafe extern "C" fn Curl_ftp_parselist_geterror(
+     mut pl_data: *mut ftp_parselist_data,
+ ) -> CURLcode {
+     return (*pl_data).error;
+ }
+ unsafe extern "C" fn ftp_pl_get_permission(mut str: *const libc::c_char) -> libc::c_int {
+     let mut permissions: libc::c_int = 0 as libc::c_int;
+     if *str.offset(0 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
+         permissions |= (1 as libc::c_int) << 8 as libc::c_int;
+     } else if *str.offset(0 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(1 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
+         permissions |= (1 as libc::c_int) << 7 as libc::c_int;
+     } else if *str.offset(1 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(2 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
+         permissions |= (1 as libc::c_int) << 6 as libc::c_int;
+     } else if *str.offset(2 as libc::c_int as isize) as libc::c_int == 's' as i32 {
+         permissions |= (1 as libc::c_int) << 6 as libc::c_int;
+         permissions |= (1 as libc::c_int) << 11 as libc::c_int;
+     } else if *str.offset(2 as libc::c_int as isize) as libc::c_int == 'S' as i32 {
+         permissions |= (1 as libc::c_int) << 11 as libc::c_int;
+     } else if *str.offset(2 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(3 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
+         permissions |= (1 as libc::c_int) << 5 as libc::c_int;
+     } else if *str.offset(3 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(4 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
+         permissions |= (1 as libc::c_int) << 4 as libc::c_int;
+     } else if *str.offset(4 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(5 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
+         permissions |= (1 as libc::c_int) << 3 as libc::c_int;
+     } else if *str.offset(5 as libc::c_int as isize) as libc::c_int == 's' as i32 {
+         permissions |= (1 as libc::c_int) << 3 as libc::c_int;
+         permissions |= (1 as libc::c_int) << 10 as libc::c_int;
+     } else if *str.offset(5 as libc::c_int as isize) as libc::c_int == 'S' as i32 {
+         permissions |= (1 as libc::c_int) << 10 as libc::c_int;
+     } else if *str.offset(5 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(6 as libc::c_int as isize) as libc::c_int == 'r' as i32 {
+         permissions |= (1 as libc::c_int) << 2 as libc::c_int;
+     } else if *str.offset(6 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(7 as libc::c_int as isize) as libc::c_int == 'w' as i32 {
+         permissions |= (1 as libc::c_int) << 1 as libc::c_int;
+     } else if *str.offset(7 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     if *str.offset(8 as libc::c_int as isize) as libc::c_int == 'x' as i32 {
+         permissions |= 1 as libc::c_int;
+     } else if *str.offset(8 as libc::c_int as isize) as libc::c_int == 't' as i32 {
+         permissions |= 1 as libc::c_int;
+         permissions |= (1 as libc::c_int) << 9 as libc::c_int;
+     } else if *str.offset(8 as libc::c_int as isize) as libc::c_int == 'T' as i32 {
+         permissions |= (1 as libc::c_int) << 9 as libc::c_int;
+     } else if *str.offset(8 as libc::c_int as isize) as libc::c_int != '-' as i32 {
+         permissions |= 0x1000000 as libc::c_int;
+     }
+     return permissions;
+ }
+ unsafe extern "C" fn ftp_pl_insert_finfo(
+     mut data: *mut Curl_easy,
+     mut infop: *mut fileinfo,
+ ) -> CURLcode {
+     let mut compare: curl_fnmatch_callback = None;
+     let mut wc: *mut WildcardData = &mut (*data).wildcard;
+     let mut ftpwc: *mut ftp_wc = (*wc).protdata as *mut ftp_wc;
+     let mut llist: *mut Curl_llist = &mut (*wc).filelist;
+     let mut parser: *mut ftp_parselist_data = (*ftpwc).parser;
+     let mut add: bool = 1 as libc::c_int != 0;
+     let mut finfo: *mut curl_fileinfo = &mut (*infop).info;
+     let mut str: *mut libc::c_char = (*finfo).b_data;
+     let ref mut fresh0 = (*finfo).filename;
+     *fresh0 = str.offset((*parser).offsets.filename as isize);
+     let ref mut fresh1 = (*finfo).strings.group;
+     *fresh1 = if (*parser).offsets.group != 0 {
+         str.offset((*parser).offsets.group as isize)
+     } else {
+         0 as *mut libc::c_char
+     };
+     let ref mut fresh2 = (*finfo).strings.perm;
+     *fresh2 = if (*parser).offsets.perm != 0 {
+         str.offset((*parser).offsets.perm as isize)
+     } else {
+         0 as *mut libc::c_char
+     };
+     let ref mut fresh3 = (*finfo).strings.target;
+     *fresh3 = if (*parser).offsets.symlink_target != 0 {
+         str.offset((*parser).offsets.symlink_target as isize)
+     } else {
+         0 as *mut libc::c_char
+     };
+     let ref mut fresh4 = (*finfo).strings.time;
+     *fresh4 = str.offset((*parser).offsets.time as isize);
+     let ref mut fresh5 = (*finfo).strings.user;
+     *fresh5 = if (*parser).offsets.user != 0 {
+         str.offset((*parser).offsets.user as isize)
+     } else {
+         0 as *mut libc::c_char
+     };
+     compare = (*data).set.fnmatch;
+     if compare.is_none() {
+         compare = Some(
+             Curl_fnmatch
+                 as unsafe extern "C" fn(
+                     *mut libc::c_void,
+                     *const libc::c_char,
+                     *const libc::c_char,
+                 ) -> libc::c_int,
+         );
+     }
+     Curl_set_in_callback(data, 1 as libc::c_int != 0);
+     if compare.expect("non-null function pointer")(
+         (*data).set.fnmatch_data,
+         (*wc).pattern,
+         (*finfo).filename,
+     ) == 0 as libc::c_int
+     {
+         if (*finfo).filetype as libc::c_uint == CURLFILETYPE_SYMLINK as libc::c_int as libc::c_uint
+             && !((*finfo).strings.target).is_null()
+             && !(strstr(
+                 (*finfo).strings.target,
+                 b" -> \0" as *const u8 as *const libc::c_char,
+             ))
+                 .is_null()
+         {
+             add = 0 as libc::c_int != 0;
+         }
+     } else {
+         add = 0 as libc::c_int != 0;
+     }
+     Curl_set_in_callback(data, 0 as libc::c_int != 0);
+     if add {
+         Curl_llist_insert_next(
+             llist,
+             (*llist).tail,
+             finfo as *const libc::c_void,
+             &mut (*infop).list,
+         );
+     } else {
+         Curl_fileinfo_cleanup(infop);
+     }
+     let ref mut fresh6 = (*(*ftpwc).parser).file_data;
+     *fresh6 = 0 as *mut fileinfo;
+     return CURLE_OK;
+ }
 #[no_mangle]
 pub unsafe extern "C" fn Curl_ftp_parselist(
     mut buffer: *mut libc::c_char,
@@ -240,10 +255,23 @@ pub unsafe extern "C" fn Curl_ftp_parselist(
                     // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
                     break 'fail;
                 }
-                let ref mut fresh8 = (*(*parser).file_data).info.b_data;
-                *fresh8 = Curl_cmalloc
-                    .expect("non-null function pointer")(160 as libc::c_int as size_t)
-                    as *mut libc::c_char;
+                match () {
+                    #[cfg(not(CURLDEBUG))]
+                    _ => {
+                        (*(*parser).file_data).info.b_data = Curl_cmalloc
+                        .expect("non-null function pointer")(160 as libc::c_int as size_t)
+                        as *mut libc::c_char;
+                    }
+                    #[cfg(CURLDEBUG)]
+                    _ => {
+                        (*(*parser).file_data).info.b_data = curl_dbg_malloc(
+                            160 as libc::c_int as size_t,
+                            364 as libc::c_int,
+                            b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
+                        ) as *mut libc::c_char;
+                    }
+                }
+   
                 if ((*(*parser).file_data).info.b_data).is_null() {
                     (*parser).error = CURLE_OUT_OF_MEMORY;
                     // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
@@ -262,12 +290,20 @@ pub unsafe extern "C" fn Curl_ftp_parselist(
             if (*finfo).b_used
                 >= ((*finfo).b_size).wrapping_sub(1 as libc::c_int as libc::c_ulong)
             {
+                #[cfg(not(CURLDEBUG))]
                 let mut tmp: *mut libc::c_char = Curl_crealloc
                     .expect(
                         "non-null function pointer",
                     )(
                     (*finfo).b_data as *mut libc::c_void,
                     ((*finfo).b_size).wrapping_add(160 as libc::c_int as libc::c_ulong),
+                ) as *mut libc::c_char;
+                #[cfg(CURLDEBUG)]
+                let mut tmp: *mut libc::c_char = curl_dbg_realloc(
+                    (*finfo).b_data as *mut libc::c_void,
+                    ((*finfo).b_size).wrapping_add(160 as libc::c_int as libc::c_ulong),
+                    381 as libc::c_int,
+                    b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
                 ) as *mut libc::c_char;
                 if !tmp.is_null() {
                     let ref mut fresh11 = (*finfo).b_size;

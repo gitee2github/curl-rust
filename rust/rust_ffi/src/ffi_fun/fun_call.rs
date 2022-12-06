@@ -2556,12 +2556,18 @@
          line: libc::c_int,
          source: *const libc::c_char,
      ) -> ssize_t;
-     pub fn curl_dbg_accept(
+    pub fn curl_dbg_accept(
          s: curl_socket_t,
          a: *mut libc::c_void,
          alen: *mut libc::c_void,
          line: libc::c_int,
          source: *const libc::c_char,
      ) -> curl_socket_t;
+    pub fn curl_dbg_realloc(
+        ptr: *mut libc::c_void,
+        size: size_t,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> *mut libc::c_void;
  }
  
