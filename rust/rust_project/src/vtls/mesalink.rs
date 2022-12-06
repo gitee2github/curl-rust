@@ -585,13 +585,37 @@ extern "C" fn mesalink_connect_step1(
             /* Check if the hostname is 127.0.0.1 or [::1];
              * otherwise reject because MesaLink always wants a valid DNS Name
              * specified in RFC 5280 Section 7.2 */
+            // fixed me - 这里的判断条件需要添加宏定义，对应 c 文件的 242 行
             // done - CURLDEBUG不加 238
-            Curl_failf(
-                data,
-                b"ERROR: MesaLink does not accept an IP address as a hostname\n\0" as *const u8
-                    as *const i8,
-            );
-            return CURLE_SSL_CONNECT_ERROR;
+            #[cfg(CURLDEBUG)]
+            {
+                if strncmp(
+                    hostname,
+                    b"127.0.0.1\0" as *const u8 as *const libc::c_char,
+                    9 as libc::c_int as libc::c_ulong,
+                ) == 0 as libc::c_int
+                    || strncmp(
+                        hostname,
+                        b"[::1]\0" as *const u8 as *const libc::c_char,
+                        5 as libc::c_int as libc::c_ulong,
+                    ) == 0 as libc::c_int
+                {
+                    mesalink_SSL_set_tlsext_host_name(
+                        (*(*connssl).backend).mesalink_handle,
+                        b"localhost\0" as *const u8 as *const libc::c_char,
+                    );
+                }
+            }
+
+            #[cfg(not(CURLDEBUG))]
+            {
+                Curl_failf(
+                    data,
+                    b"ERROR: MesaLink does not accept an IP address as a hostname\n\0" as *const u8
+                        as *const i8,
+                );
+                return CURLE_SSL_CONNECT_ERROR;
+            }
         }
         // todo - 258 选项：MESALINK_HAVE_SESSION
         // #[cfg(MESALINK_HAVE_SESSION)]
@@ -605,7 +629,6 @@ extern "C" fn mesalink_connect_step1(
         return CURLE_OK;
     }
 }
-
 // 内部没有宏
 extern "C" fn mesalink_connect_step2(
     mut data: *mut Curl_easy,
@@ -684,6 +707,23 @@ extern "C" fn mesalink_connect_step3(mut conn: *mut connectdata, mut sockindex: 
         let mut result: CURLcode = CURLE_OK;
         let mut connssl: *mut ssl_connect_data =
             &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
+
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if ssl_connect_3 as libc::c_int as libc::c_uint
+            == (*connssl).connecting_state as libc::c_uint
+        {
+        } else {
+            __assert_fail(
+                b"ssl_connect_3 == connssl->connecting_state\0" as *const u8 as *const libc::c_char,
+                b"vtls/mesalink.c\0" as *const u8 as *const libc::c_char,
+                342 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<&[u8; 59], &[libc::c_char; 59]>(
+                    b"CURLcode mesalink_connect_step3(struct connectdata *, int)\0",
+                ))
+                .as_ptr(),
+            );
+        }
+
         // todo - 344
         // #[cfg(MESALINK_HAVE_SESSION)]
         (*connssl).connecting_state = ssl_connect_done;
@@ -1008,6 +1048,21 @@ extern "C" fn mesalink_connect(
         if result as u64 != 0 {
             return result;
         }
+
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if done {
+        } else {
+            __assert_fail(
+                b"done\0" as *const u8 as *const libc::c_char,
+                b"vtls/mesalink.c\0" as *const u8 as *const libc::c_char,
+                630 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<&[u8; 73], &[libc::c_char; 73]>(
+                    b"CURLcode mesalink_connect(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                .as_ptr(),
+            );
+        }
+
         return CURLE_OK;
     }
 }
