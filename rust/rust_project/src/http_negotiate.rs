@@ -36,21 +36,21 @@ pub unsafe extern "C" fn Curl_input_negotiate(
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {
-                userp = (*conn).http_proxy.user;
-                passwdp = (*conn).http_proxy.passwd;
-                service = if !((*data)
-                    .set
-                    .str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize])
-                    .is_null()
-                {
-                    (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
-                        as *const libc::c_char
-                } else {
-                    b"HTTP\0" as *const u8 as *const libc::c_char
-                };
-                host = (*conn).http_proxy.host.name;
-                neg_ctx = &mut (*conn).proxyneg;
-                state = (*conn).proxy_negotiate_state;
+        userp = (*conn).http_proxy.user;
+        passwdp = (*conn).http_proxy.passwd;
+        service = if !((*data)
+            .set
+            .str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize])
+            .is_null()
+        {
+            (*data).set.str_0[STRING_PROXY_SERVICE_NAME as libc::c_int as usize]
+                as *const libc::c_char
+        } else {
+            b"HTTP\0" as *const u8 as *const libc::c_char
+        };
+        host = (*conn).http_proxy.host.name;
+        neg_ctx = &mut (*conn).proxyneg;
+        state = (*conn).proxy_negotiate_state;
             }
             #[cfg(CURL_DISABLE_PROXY)]
             _ => {
@@ -199,25 +199,47 @@ pub unsafe extern "C" fn Curl_output_negotiate(
             base64,
         );
         if proxy {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )((*data).state.aptr.proxyuserpwd as *mut libc::c_void);
+            .expect(
+                "non-null function pointer",
+            )((*data).state.aptr.proxyuserpwd as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
+                172 as libc::c_int,
+                b"http_negotiate.c\0" as *const u8 as *const libc::c_char,
+            );
             let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
             *fresh0 = 0 as *mut libc::c_char;
             let ref mut fresh1 = (*data).state.aptr.proxyuserpwd;
             *fresh1 = userp;
         } else {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )((*data).state.aptr.userpwd as *mut libc::c_void);
+            .expect(
+                "non-null function pointer",
+            )((*data).state.aptr.userpwd as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                (*data).state.aptr.userpwd as *mut libc::c_void,
+                176 as libc::c_int,
+                b"http_negotiate.c\0" as *const u8 as *const libc::c_char,
+            );
             let ref mut fresh2 = (*data).state.aptr.userpwd;
             *fresh2 = 0 as *mut libc::c_char;
             let ref mut fresh3 = (*data).state.aptr.userpwd;
             *fresh3 = userp;
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(base64 as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            base64 as *mut libc::c_void,
+            180 as libc::c_int,
+            b"http_negotiate.c\0" as *const u8 as *const libc::c_char,
+        );
         if userp.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
