@@ -692,6 +692,10 @@
          stream_id: int32_t,
          window_size: int32_t,
      ) -> libc::c_int;
+    pub fn nghttp2_session_get_stream_local_window_size(
+        session: *mut nghttp2_session,
+        stream_id: int32_t,
+    ) -> int32_t;
      pub fn nghttp2_is_fatal(lib_error_code: libc::c_int) -> libc::c_int;
      pub fn nghttp2_version(least_version: libc::c_int) -> *mut nghttp2_info;
      pub fn Curl_http(data: *mut Curl_easy, done: *mut bool) -> CURLcode;
