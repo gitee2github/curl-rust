@@ -25,7 +25,18 @@ unsafe extern "C" fn gtls_push(
     mut len: size_t,
 ) -> ssize_t {
     let mut sock: curl_socket_t = *(s as *mut curl_socket_t);
+    #[cfg(not(CURLDEBUG))]
     let mut ret: ssize_t = send(sock, buf, len, MSG_NOSIGNAL as libc::c_int);
+
+	#[cfg(CURLDEBUG)]
+    let mut ret: ssize_t = curl_dbg_send(
+        sock,
+        buf,
+        len,
+        MSG_NOSIGNAL as libc::c_int,
+        86 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
     return ret;
 }
 unsafe extern "C" fn gtls_pull(
@@ -34,7 +45,18 @@ unsafe extern "C" fn gtls_pull(
     mut len: size_t,
 ) -> ssize_t {
     let mut sock: curl_socket_t = *(s as *mut curl_socket_t);
+    #[cfg(not(CURLDEBUG))]
     let mut ret: ssize_t = recv(sock, buf, len, 0 as libc::c_int);
+
+	#[cfg(CURLDEBUG)]
+    let mut ret: ssize_t = curl_dbg_recv(
+        sock,
+        buf,
+        len,
+        0 as libc::c_int,
+        93 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
     return ret;
 }
 unsafe extern "C" fn gtls_push_ssl(
@@ -60,7 +82,7 @@ unsafe extern "C" fn gtls_init() -> libc::c_int {
         } else {
             1 as libc::c_int
         };
-        // done debug相关的，不用加
+       
         // #[cfg(GTLSDEBUG)]
         gtls_inited = 1 as libc::c_int != 0;
     }
@@ -129,7 +151,23 @@ unsafe extern "C" fn load_file(mut file: *const libc::c_char) -> gnutls_datum_t 
     };
     let mut filelen: libc::c_long = 0;
     let mut ptr: *mut libc::c_void = 0 as *mut libc::c_void;
-    f = fopen(file, b"rb\0" as *const u8 as *const libc::c_char);
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            f = fopen(file, b"rb\0" as *const u8 as *const libc::c_char);
+
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            f = curl_dbg_fopen(
+                file,
+                b"rb\0" as *const u8 as *const libc::c_char,
+                170 as libc::c_int,
+                b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+            );
+        }
+    }
+   
     if f.is_null() {
         return loaded_file;
     }
@@ -141,24 +179,63 @@ unsafe extern "C" fn load_file(mut file: *const libc::c_char) -> gnutls_datum_t 
         || fseek(f, 0 as libc::c_int as libc::c_long, 0 as libc::c_int)
             != 0 as libc::c_int
         || {
-            ptr = Curl_cmalloc.expect("non-null function pointer")(filelen as size_t);
+            match () {
+                #[cfg(not(CURLDEBUG))]
+                _ => {
+                    ptr = Curl_cmalloc.expect("non-null function pointer")(filelen as size_t);
+    
+                }
+                #[cfg(CURLDEBUG)]
+                _ => {
+                    ptr = curl_dbg_malloc(
+                        filelen as size_t,
+                        176 as libc::c_int,
+                        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+                    );
+                }
+            }
+            
             ptr.is_null()
         })
     {
         if fread(ptr, 1 as libc::c_int as libc::c_ulong, filelen as size_t, f)
             < filelen as size_t
         {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(ptr);
+
+	#[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                ptr,
+                179 as libc::c_int,
+                b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+            );
         } else {
             loaded_file.data = ptr as *mut libc::c_uchar;
             loaded_file.size = filelen as libc::c_uint;
         }
     }
+    #[cfg(not(CURLDEBUG))]
     fclose(f);
+
+	#[cfg(CURLDEBUG)]
+    curl_dbg_fclose(
+        f,
+        186 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
     return loaded_file;
 }
 unsafe extern "C" fn unload_file(mut data: gnutls_datum_t) {
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(data.data as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        data.data as *mut libc::c_void,
+        192 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
 }
 unsafe extern "C" fn handshake(
     mut data: *mut Curl_easy,
@@ -513,21 +590,21 @@ unsafe extern "C" fn gtls_connect_step1(
     *certverifyresult = 0 as libc::c_int as libc::c_long;
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        (*conn).proxy_ssl_config.version
-                                    } else {
-                                        (*conn).ssl_config.version
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*conn).proxy_ssl_config.version
+    } else {
+        (*conn).ssl_config.version
                                     };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version = (*conn).ssl_config.version;
@@ -555,21 +632,21 @@ unsafe extern "C" fn gtls_connect_step1(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_authtype = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.authtype as libc::c_uint
-                                } else {
-                                    (*data).set.ssl.authtype as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*data).set.proxy_ssl.authtype as libc::c_uint
+    } else {
+        (*data).set.ssl.authtype as libc::c_uint
                                 };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_authtype = (*data).set.ssl.authtype as libc::c_uint;
@@ -616,43 +693,43 @@ unsafe extern "C" fn gtls_connect_step1(
         }
         #[cfg(not(CURL_DISABLE_PROXY))]
         if true {
-            rc = gnutls_srp_set_client_credentials(
-                (*backend).srp_client_cred,
-                if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                    == (*conn).http_proxy.proxytype as libc::c_uint
-                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                        != (*conn)
-                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                == -(1 as libc::c_int)
-                            {
-                                0 as libc::c_int
-                            } else {
-                                1 as libc::c_int
-                            }) as usize]
-                            .state as libc::c_uint
-                {
-                    (*data).set.proxy_ssl.username
-                } else {
-                    (*data).set.ssl.username
-                },
-                if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                    == (*conn).http_proxy.proxytype as libc::c_uint
-                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                        != (*conn)
-                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                == -(1 as libc::c_int)
-                            {
-                                0 as libc::c_int
-                            } else {
-                                1 as libc::c_int
-                            }) as usize]
-                            .state as libc::c_uint
-                {
-                    (*data).set.proxy_ssl.password
-                } else {
-                    (*data).set.ssl.password
-                },
-            );
+        rc = gnutls_srp_set_client_credentials(
+            (*backend).srp_client_cred,
+            if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                (*data).set.proxy_ssl.username
+            } else {
+                (*data).set.ssl.username
+            },
+            if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                (*data).set.proxy_ssl.password
+            } else {
+                (*data).set.ssl.password
+            },
+        );
         }   
         #[cfg(CURL_DISABLE_PROXY)]
         if true {
@@ -1080,11 +1157,11 @@ unsafe extern "C" fn gtls_connect_step1(
     init_flags = ((1 as libc::c_int) << 1 as libc::c_int) as libc::c_uint;
     #[cfg(GNUTLS_FORCE_CLIENT_CERT)]
     if true {
-        init_flags |= ((1 as libc::c_int) << 9 as libc::c_int) as libc::c_uint;
+    init_flags |= ((1 as libc::c_int) << 9 as libc::c_int) as libc::c_uint;
     }
     #[cfg(GNUTLS_NO_TICKETS)]
     if true {
-        init_flags |= ((1 as libc::c_int) << 10 as libc::c_int) as libc::c_uint;
+    init_flags |= ((1 as libc::c_int) << 10 as libc::c_int) as libc::c_uint;
     }
     rc = gnutls_init(&mut (*backend).session, init_flags);
     if rc != 0 as libc::c_int {
@@ -1104,12 +1181,12 @@ unsafe extern "C" fn gtls_connect_step1(
             hostname,
             &mut addr as *mut in6_addr as *mut libc::c_void,
         ) &&  0 as libc::c_int
-        == inet_pton(
-            10 as libc::c_int,
-            hostname,
-            &mut addr as *mut in6_addr as *mut libc::c_void,
-        ) && sni as libc::c_int != 0
-       && gnutls_server_name_set(
+            == inet_pton(
+                10 as libc::c_int,
+                hostname,
+                &mut addr as *mut in6_addr as *mut libc::c_void,
+            ) && sni as libc::c_int != 0
+        && gnutls_server_name_set(
             session,
             GNUTLS_NAME_DNS,
             hostname as *const libc::c_void,
@@ -1181,15 +1258,26 @@ unsafe extern "C" fn gtls_connect_step1(
         == CURL_TLSAUTH_SRP as libc::c_int as libc::c_uint
     {
         let mut len: size_t = strlen(prioritylist);
+        #[cfg(not(CURLDEBUG))]
         let mut prioritysrp: *mut libc::c_char = Curl_cmalloc
-            .expect(
-                "non-null function pointer",
-            )(
+        .expect(
+            "non-null function pointer",
+        )(
+        len
+            .wrapping_add(
+                ::std::mem::size_of::<[libc::c_char; 5]>() as libc::c_ulong,
+            )
+            .wrapping_add(1 as libc::c_int as libc::c_ulong),
+    ) as *mut libc::c_char;
+	#[cfg(CURLDEBUG)]
+        let mut prioritysrp: *mut libc::c_char = curl_dbg_malloc(
             len
                 .wrapping_add(
                     ::std::mem::size_of::<[libc::c_char; 5]>() as libc::c_ulong,
                 )
                 .wrapping_add(1 as libc::c_int as libc::c_ulong),
+            591 as libc::c_int,
+            b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
         ) as *mut libc::c_char;
         if prioritysrp.is_null() {
             return CURLE_OUT_OF_MEMORY;
@@ -1200,7 +1288,15 @@ unsafe extern "C" fn gtls_connect_step1(
             b":+SRP\0" as *const u8 as *const libc::c_char,
         );
         rc = gnutls_priority_set_direct(session, prioritysrp, &mut err);
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(prioritysrp as *mut libc::c_void);
+        
+        #[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            prioritysrp as *mut libc::c_void,
+            597 as libc::c_int,
+            b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+        );
         if rc == -(50 as libc::c_int) && !err.is_null() {
             Curl_infof(
                 data,
@@ -1243,16 +1339,16 @@ unsafe extern "C" fn gtls_connect_step1(
         // done - 623
         #[cfg(not(CURL_DISABLE_PROXY))]
         let CURL_DISABLE_PROXY_flag = (!(CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
                                                 .state as libc::c_uint) || ((*conn).bits).tunnel_proxy() == 0);
         #[cfg(CURL_DISABLE_PROXY)]
         let CURL_DISABLE_PROXY_flag = true;
@@ -1291,92 +1387,92 @@ unsafe extern "C" fn gtls_connect_step1(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_clientcert = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                    != (*conn)
-                                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                            == -(1 as libc::c_int)
-                                                        {
-                                                            0 as libc::c_int
-                                                        } else {
-                                                            1 as libc::c_int
-                                                        }) as usize]
-                                                        .state as libc::c_uint
-                                            {
-                                                (*data).set.proxy_ssl.primary.clientcert
-                                            } else {
-                                                (*data).set.ssl.primary.clientcert
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*data).set.proxy_ssl.primary.clientcert
+    } else {
+        (*data).set.ssl.primary.clientcert
                                             };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_clientcert = (*data).set.ssl.primary.clientcert;
 
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_key_passwd = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        (*data).set.proxy_ssl.key_passwd
-                                    } else {
-                                        (*data).set.ssl.key_passwd
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            (*data).set.proxy_ssl.key_passwd
+        } else {
+            (*data).set.ssl.key_passwd
                                     };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_key_passwd = (*data).set.ssl.key_passwd;
 
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_key = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                    != (*conn)
-                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                            == -(1 as libc::c_int)
-                                        {
-                                            0 as libc::c_int
-                                        } else {
-                                            1 as libc::c_int
-                                        }) as usize]
-                                        .state as libc::c_uint
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
                             {
-                                (*data).set.proxy_ssl.key
+                                0 as libc::c_int
                             } else {
-                                (*data).set.ssl.key
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key
+                } else {
+                    (*data).set.ssl.key
                             };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_key = (*data).set.ssl.key;
 
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_cert_type = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
+                        == (*conn).http_proxy.proxytype as libc::c_uint
+                        && ssl_connection_complete as libc::c_int as libc::c_uint
+                            != (*conn)
+                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                    == -(1 as libc::c_int)
                                 {
-                                    (*data).set.proxy_ssl.cert_type
+                                    0 as libc::c_int
                                 } else {
+                                    1 as libc::c_int
+                                }) as usize]
+                                .state as libc::c_uint
+                    {
+                                    (*data).set.proxy_ssl.cert_type
+                    } else {
                                     (*data).set.ssl.cert_type
                                 };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_cert_type = (*data).set.ssl.cert_type;   
 
     if !SSL_SET_OPTION_primary_clientcert.is_null()
-    {
+                                {
         if !SSL_SET_OPTION_key_passwd.is_null()
-        {
+                    {
             let supported_key_encryption_algorithms: libc::c_uint = (GNUTLS_PKCS_PKCS12_3DES
                 as libc::c_int | GNUTLS_PKCS_PKCS12_ARCFOUR as libc::c_int
                 | GNUTLS_PKCS_PKCS12_RC2_40 as libc::c_int
@@ -1412,9 +1508,9 @@ unsafe extern "C" fn gtls_connect_step1(
                 (*backend).cred,
                 SSL_SET_OPTION_primary_clientcert,
                 if !(SSL_SET_OPTION_key).is_null()
-                {
+                            {
                     SSL_SET_OPTION_key
-                } else {
+                            } else {
                     SSL_SET_OPTION_primary_clientcert
                 },
                 do_file_type(
@@ -1547,21 +1643,21 @@ unsafe extern "C" fn gtls_connect_step1(
     gnutls_transport_set_pull_function(session, gnutls_transport_pull);
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifystatus = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
-                                        } else {
-                                            ((*conn).ssl_config).verifystatus() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
+    } else {
+        ((*conn).ssl_config).verifystatus() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]    
     let SSL_CONN_CONFIG_verifystatus = ((*conn).ssl_config).verifystatus();
@@ -1585,21 +1681,21 @@ unsafe extern "C" fn gtls_connect_step1(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                    != (*conn)
-                                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                            == -(1 as libc::c_int)
-                                                        {
-                                                            0 as libc::c_int
-                                                        } else {
-                                                            1 as libc::c_int
-                                                        }) as usize]
-                                                        .state as libc::c_uint
-                                            {
-                                                ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                            } else {
-                                                ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                             };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -1610,21 +1706,21 @@ unsafe extern "C" fn gtls_connect_step1(
         Curl_ssl_sessionid_lock(data);
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_IS_PROXY_void_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    1 as libc::c_int
-                                } else {
-                                    0 as libc::c_int
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                1 as libc::c_int
+            } else {
+                0 as libc::c_int
                                 } != 0;
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_IS_PROXY_void_1 = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int } != 0;
@@ -1673,8 +1769,22 @@ unsafe extern "C" fn pkp_pin_peer_pubkey(
             &mut len1,
         );
         if !(ret != -(51 as libc::c_int) || len1 == 0 as libc::c_int as libc::c_ulong) {
-            buff1 = Curl_cmalloc.expect("non-null function pointer")(len1)
-                as *mut libc::c_uchar;
+            match () {
+                #[cfg(not(CURLDEBUG))]
+                _ => {
+                    buff1 = Curl_cmalloc.expect("non-null function pointer")(len1)
+                    as *mut libc::c_uchar;
+                }
+                #[cfg(CURLDEBUG)]
+                _ => {
+                    buff1 = curl_dbg_malloc(
+                        len1,
+                        785 as libc::c_int,
+                        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+                    ) as *mut libc::c_uchar;
+                }
+            }
+            
             if !buff1.is_null() {
                 len2 = len1;
                 ret = gnutls_pubkey_export(
@@ -1692,7 +1802,15 @@ unsafe extern "C" fn pkp_pin_peer_pubkey(
     if !key.is_null() {
         gnutls_pubkey_deinit(key);
     }
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(buff1 as *mut libc::c_void);
+    
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        buff1 as *mut libc::c_void,
+        804 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
     buff1 = 0 as *mut libc::c_uchar;
     return result;
 }
@@ -1983,21 +2101,21 @@ unsafe extern "C" fn gtls_connect_step3(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifypeer = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
-                                    } else {
-                                        ((*conn).ssl_config).verifypeer() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+    } else {
+        ((*conn).ssl_config).verifypeer() as libc::c_int
                                     };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_verifypeer = ((*conn).ssl_config).verifypeer();
@@ -2017,7 +2135,7 @@ unsafe extern "C" fn gtls_connect_step3(
         *certverifyresult = verify_status as libc::c_long;
         if verify_status & GNUTLS_CERT_INVALID as libc::c_int as libc::c_uint != 0 {
             if SSL_CONN_CONFIG_verifypeer != 0
-            {
+                        {
                 #[cfg(not(CURL_DISABLE_PROXY))]
                 Curl_failf(
                     data,
@@ -2142,21 +2260,21 @@ unsafe extern "C" fn gtls_connect_step3(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifystatus_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
-                                        } else {
-                                            ((*conn).ssl_config).verifystatus() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*conn).proxy_ssl_config).verifystatus() as libc::c_int
+    } else {
+        ((*conn).ssl_config).verifystatus() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_verifystatus_1 = ((*conn).ssl_config).verifystatus();
@@ -2491,40 +2609,40 @@ unsafe extern "C" fn gtls_connect_step3(
     if rc == 0 {
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_HOST_DISPNAME_void = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
                                         (*conn).http_proxy.host.dispname
-                                    } else {
+        } else {
                                         (*conn).host.dispname
                                     };
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_HOST_DISPNAME_void = (*conn).host.dispname;
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_CONN_CONFIG_verifyhost = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
                                             ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
-                                        } else {
+                } else {
                                             ((*conn).ssl_config).verifyhost() as libc::c_int
                                         };
         #[cfg(CURL_DISABLE_PROXY)]
@@ -2559,21 +2677,21 @@ unsafe extern "C" fn gtls_connect_step3(
     certclock = gnutls_x509_crt_get_expiration_time(x509_cert);
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifypeer_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
-                                        } else {
-                                            ((*conn).ssl_config).verifypeer() as libc::c_int
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+        } else {
+            ((*conn).ssl_config).verifypeer() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_verifypeer_1 = ((*conn).ssl_config).verifypeer();
@@ -2666,22 +2784,22 @@ unsafe extern "C" fn gtls_connect_step3(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_PINNED_PUB_KEY_void = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                    != (*conn)
-                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                            == -(1 as libc::c_int)
-                                        {
-                                            0 as libc::c_int
-                                        } else {
-                                            1 as libc::c_int
-                                        }) as usize]
-                                        .state as libc::c_uint
-                            {
-                                (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as libc::c_int as usize]
-                            } else {
-                                (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize]
-                            };
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as libc::c_int as usize]
+    } else {
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize]
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_PINNED_PUB_KEY_void = (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize];
     ptr = SSL_PINNED_PUB_KEY_void;
@@ -2763,10 +2881,10 @@ unsafe extern "C" fn gtls_connect_step3(
             // done - 1254
             #[cfg(USE_HTTP2)]
             let USE_HTTP2_flag = proto.size == 2 as libc::c_int as libc::c_uint
-                                    && memcmp(
-                                        b"h2\0" as *const u8 as *const libc::c_char as *const libc::c_void,
-                                        proto.data as *const libc::c_void,
-                                        2 as libc::c_int as libc::c_ulong,
+                && memcmp(
+                    b"h2\0" as *const u8 as *const libc::c_char as *const libc::c_void,
+                    proto.data as *const libc::c_void,
+                    2 as libc::c_int as libc::c_ulong,
                                     ) == 0 ;
             #[cfg(not(USE_HTTP2))]
             let USE_HTTP2_flag = false;
@@ -2806,21 +2924,21 @@ unsafe extern "C" fn gtls_connect_step3(
     *fresh1 = Some(gtls_send as Curl_send);
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -2828,8 +2946,22 @@ unsafe extern "C" fn gtls_connect_step3(
         let mut connect_sessionid: *mut libc::c_void = 0 as *mut libc::c_void;
         let mut connect_idsize: size_t = 0 as libc::c_int as size_t;
         gnutls_session_get_data(session, 0 as *mut libc::c_void, &mut connect_idsize);
-        connect_sessionid = Curl_cmalloc
-            .expect("non-null function pointer")(connect_idsize);
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                connect_sessionid = Curl_cmalloc
+                .expect("non-null function pointer")(connect_idsize);
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                connect_sessionid = curl_dbg_malloc(
+                    connect_idsize,
+                    1286 as libc::c_int,
+                    b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+                );
+            }
+        }
+       
         if !connect_sessionid.is_null() {
             let mut incache: bool = false;
             let mut ssl_sessionid: *mut libc::c_void = 0 as *mut libc::c_void;
@@ -2837,21 +2969,21 @@ unsafe extern "C" fn gtls_connect_step3(
             Curl_ssl_sessionid_lock(data);
             #[cfg(not(CURL_DISABLE_PROXY))]
             let SSL_IS_PROXY_void_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            1 as libc::c_int
-                                        } else {
-                                            0 as libc::c_int
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    1 as libc::c_int
+                } else {
+                    0 as libc::c_int
                                         } != 0;
             #[cfg(CURL_DISABLE_PROXY)]
             let SSL_IS_PROXY_void_1 = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int }
@@ -2877,7 +3009,15 @@ unsafe extern "C" fn gtls_connect_step3(
             );
             Curl_ssl_sessionid_unlock(data);
             if result as u64 != 0 {
+                #[cfg(not(CURLDEBUG))]
                 Curl_cfree.expect("non-null function pointer")(connect_sessionid);
+
+	#[cfg(CURLDEBUG)]
+                curl_dbg_free(
+                    connect_sessionid,
+                    1312 as libc::c_int,
+                    b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+                );
                 result = CURLE_OUT_OF_MEMORY;
             }
         } else {
@@ -2947,6 +3087,19 @@ unsafe extern "C" fn gtls_connect(
     if result as u64 != 0 {
         return result;
     }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {} else {
+        __assert_fail(
+            b"done\0" as *const u8 as *const libc::c_char,
+            b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+            1384 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 69],
+                &[libc::c_char; 69],
+            >(b"CURLcode gtls_connect(struct Curl_easy *, struct connectdata *, int)\0"))
+                .as_ptr(),
+        );
+    }
     return CURLE_OK;
 }
 unsafe extern "C" fn gtls_data_pending(
@@ -2966,16 +3119,16 @@ unsafe extern "C" fn gtls_data_pending(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     if true{
-        connssl = &*((*conn).proxy_ssl).as_ptr().offset(connindex as isize)
-            as *const ssl_connect_data;
-        backend = (*connssl).backend;
-        if !((*backend).session).is_null()
-            && 0 as libc::c_int as libc::c_ulong
-                != gnutls_record_check_pending((*backend).session)
-        {
-            res = 1 as libc::c_int != 0;
-        }
+    connssl = &*((*conn).proxy_ssl).as_ptr().offset(connindex as isize)
+        as *const ssl_connect_data;
+    backend = (*connssl).backend;
+    if !((*backend).session).is_null()
+        && 0 as libc::c_int as libc::c_ulong
+            != gnutls_record_check_pending((*backend).session)
+    {
+        res = 1 as libc::c_int != 0;
     }
+}
         
     
     return res;
@@ -3210,7 +3363,15 @@ unsafe extern "C" fn gtls_recv(
     return ret;
 }
 unsafe extern "C" fn gtls_session_free(mut ptr: *mut libc::c_void) {
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(ptr);
+
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        ptr,
+        1586 as libc::c_int,
+        b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
+    );
 }
 unsafe extern "C" fn gtls_version(
     mut buffer: *mut libc::c_char,

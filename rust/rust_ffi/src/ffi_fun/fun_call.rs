@@ -2556,6 +2556,14 @@
          line: libc::c_int,
          source: *const libc::c_char,
      ) -> ssize_t;
+    pub fn curl_dbg_send(
+        sockfd: libc::c_int,
+        buf: *const libc::c_void,
+        len: size_t,
+        flags: libc::c_int,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    ) -> ssize_t;
     pub fn curl_dbg_accept(
          s: curl_socket_t,
          a: *mut libc::c_void,
