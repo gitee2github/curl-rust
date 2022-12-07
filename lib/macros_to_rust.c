@@ -1513,3 +1513,15 @@ int get_HAVE_ASSERT_H()
     return 0;
 #endif
 }
+
+int get_THREADING_SUPPORT()
+{
+    #if defined(USE_THREADS_POSIX) || defined(USE_THREADS_WIN32)
+    #define THREADING_SUPPORT
+    #endif
+#ifdef THREADING_SUPPORT
+    return 1;
+#else
+    return 0;
+#endif
+}

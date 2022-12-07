@@ -174,6 +174,8 @@ extern "C" {
 
     //debug
     fn get_HAVE_ASSERT_H() -> i32;
+
+    fn get_THREADING_SUPPORT() -> i32;
 }
 pub fn get_all_cfg() {
     // http2
@@ -337,6 +339,8 @@ pub fn get_all_cfg() {
 
     //debug
     get_HAVE_ASSERT_H_add_cfg();
+
+    get_THREADING_SUPPORT_add_cfg();
 }
 
 // http2
@@ -1021,5 +1025,12 @@ fn get_AVE_KEYLOG_CALLBACK_add_cfg() {
 fn get_HAVE_ASSERT_H_add_cfg() {
     if unsafe { get_HAVE_ASSERT_H() } == 1 {
         println!("cargo:rustc-cfg=HAVE_ASSERT_H");
+    }
+}
+
+
+fn get_THREADING_SUPPORT_add_cfg() {
+    if unsafe { get_THREADING_SUPPORT() } == 1 {
+        println!("cargo:rustc-cfg=THREADING_SUPPORT");
     }
 }

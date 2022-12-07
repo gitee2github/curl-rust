@@ -137,21 +137,21 @@ unsafe extern "C" fn mbedtls_version_from_curl(
         // todo
     }   
     else{
-        match version {
-            4 => {
-                *mbedver = 1 as libc::c_int;
-                return CURLE_OK;
-            }
-            5 => {
-                *mbedver = 2 as libc::c_int;
-                return CURLE_OK;
-            }
-            6 => {
-                *mbedver = 3 as libc::c_int;
-                return CURLE_OK;
-            }
-            7 | _ => {}
+    match version {
+        4 => {
+            *mbedver = 1 as libc::c_int;
+            return CURLE_OK;
         }
+        5 => {
+            *mbedver = 2 as libc::c_int;
+            return CURLE_OK;
+        }
+        6 => {
+            *mbedver = 3 as libc::c_int;
+            return CURLE_OK;
+        }
+        7 | _ => {}
+    }
     }
     return CURLE_SSL_CONNECT_ERROR;
 }
@@ -170,22 +170,22 @@ unsafe extern "C" fn set_ssl_version_min_max(
     let mut mbedtls_ver_max: libc::c_int = 1 as libc::c_int;
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        (*conn).proxy_ssl_config.version
-                                    } else {
-                                        (*conn).ssl_config.version
-                                    };
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*conn).proxy_ssl_config.version
+    } else {
+        (*conn).ssl_config.version
+    };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version = (*conn).ssl_config.version;
     let mut ssl_version: libc::c_long = SSL_CONN_CONFIG_version;
@@ -418,21 +418,21 @@ unsafe extern "C" fn mbed_connect_step1(
     let mut errorbuf: [libc::c_char; 128] = [0; 128];
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*conn).proxy_ssl_config.version
-                                } else {
-                                    (*conn).ssl_config.version
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        (*conn).proxy_ssl_config.version
+    } else {
+        (*conn).ssl_config.version
                                 };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version = (*conn).ssl_config.version;
@@ -449,36 +449,36 @@ unsafe extern "C" fn mbed_connect_step1(
     match () {
         #[cfg(THREADING_SUPPORT)]
         _ => {
-            entropy_init_mutex(&mut ts_entropy);
-            mbedtls_ctr_drbg_init(&mut (*backend).ctr_drbg);
-            ret = mbedtls_ctr_drbg_seed(
-                &mut (*backend).ctr_drbg,
-                Some(
-                    entropy_func_mutex
-                        as unsafe extern "C" fn(
-                            *mut libc::c_void,
-                            *mut libc::c_uchar,
-                            size_t,
-                        ) -> libc::c_int,
-                ),
-                &mut ts_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
-                0 as *const libc::c_uchar,
-                0 as libc::c_int as size_t,
-            );
-            if ret != 0 {
-                mbedtls_strerror(
-                    ret,
-                    errorbuf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
-                );
-                Curl_failf(
-                    data,
-                    b"Failed - mbedTLS: ctr_drbg_init returned (-0x%04X) %s\0" as *const u8
-                        as *const libc::c_char,
-                    -ret,
-                    errorbuf.as_mut_ptr(),
-                );
-            }
+    entropy_init_mutex(&mut ts_entropy);
+    mbedtls_ctr_drbg_init(&mut (*backend).ctr_drbg);
+    ret = mbedtls_ctr_drbg_seed(
+        &mut (*backend).ctr_drbg,
+        Some(
+            entropy_func_mutex
+                as unsafe extern "C" fn(
+                    *mut libc::c_void,
+                    *mut libc::c_uchar,
+                    size_t,
+                ) -> libc::c_int,
+        ),
+        &mut ts_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
+        0 as *const libc::c_uchar,
+        0 as libc::c_int as size_t,
+    );
+    if ret != 0 {
+        mbedtls_strerror(
+            ret,
+            errorbuf.as_mut_ptr(),
+            ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+        );
+        Curl_failf(
+            data,
+            b"Failed - mbedTLS: ctr_drbg_init returned (-0x%04X) %s\0" as *const u8
+                as *const libc::c_char,
+            -ret,
+            errorbuf.as_mut_ptr(),
+        );
+    }
         }
         #[cfg(not(THREADING_SUPPORT))]
         _ => { }
@@ -585,62 +585,62 @@ unsafe extern "C" fn mbed_connect_step1(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_key = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    (*data).set.proxy_ssl.key
-                                } else {
-                                    (*data).set.ssl.key
+                    == (*conn).http_proxy.proxytype as libc::c_uint
+                    && ssl_connection_complete as libc::c_int as libc::c_uint
+                        != (*conn)
+                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                                == -(1 as libc::c_int)
+                            {
+                                0 as libc::c_int
+                            } else {
+                                1 as libc::c_int
+                            }) as usize]
+                            .state as libc::c_uint
+                {
+                    (*data).set.proxy_ssl.key
+                } else {
+                    (*data).set.ssl.key
                                 };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_key = (*data).set.ssl.key;
 
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_key_blob = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                == (*conn).http_proxy.proxytype as libc::c_uint
-                                && ssl_connection_complete as libc::c_int as libc::c_uint
-                                    != (*conn)
-                                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                            == -(1 as libc::c_int)
-                                        {
-                                            0 as libc::c_int
-                                        } else {
-                                            1 as libc::c_int
-                                        }) as usize]
-                                        .state as libc::c_uint
-                            {
-                                (*data).set.proxy_ssl.key_blob
-                            } else {
-                                (*data).set.ssl.key_blob
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            (*data).set.proxy_ssl.key_blob
+        } else {
+            (*data).set.ssl.key_blob
                             };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_key_blob = (*data).set.ssl.key_blob;
     
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_key_passwd = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
                                         (*data).set.proxy_ssl.key_passwd
-                                    } else {
+        } else {
                                         (*data).set.ssl.key_passwd
                                     };
     #[cfg(CURL_DISABLE_PROXY)]
@@ -717,42 +717,42 @@ unsafe extern "C" fn mbed_connect_step1(
                 */
             }    
             else{
-                ret = mbedtls_pk_parse_key(
-                    &mut (*backend).pk,
-                    key_data,
-                    (*ssl_key_blob).len,
-                    passwd as *const libc::c_uchar,
-                    if !passwd.is_null() {
-                        strlen(passwd)
-                    } else {
-                        0 as libc::c_int as libc::c_ulong
-                    },
-                );
+            ret = mbedtls_pk_parse_key(
+                &mut (*backend).pk,
+                key_data,
+                (*ssl_key_blob).len,
+                passwd as *const libc::c_uchar,
+                if !passwd.is_null() {
+                    strlen(passwd)
+                } else {
+                    0 as libc::c_int as libc::c_ulong
+                },
+            );
             }    
             
             if ret != 0 {
-                    mbedtls_strerror(
-                        ret,
-                        errorbuf.as_mut_ptr(),
-                        ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
-                    );
-                    Curl_failf(
-                        data,
-                        b"Error parsing private key - mbedTLS: (-0x%04X) %s\0" as *const u8
-                            as *const libc::c_char,
-                        -ret,
-                        errorbuf.as_mut_ptr(),
-                    );
-                    return CURLE_SSL_CERTPROBLEM;
-                }           
-        }        
+                mbedtls_strerror(
+                    ret,
+                    errorbuf.as_mut_ptr(),
+                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                );
+                Curl_failf(
+                    data,
+                    b"Error parsing private key - mbedTLS: (-0x%04X) %s\0" as *const u8
+                        as *const libc::c_char,
+                    -ret,
+                    errorbuf.as_mut_ptr(),
+                );
+                return CURLE_SSL_CERTPROBLEM;
+            }
+        }
         if ret == 0 as libc::c_int
             && !(mbedtls_pk_can_do(&mut (*backend).pk, MBEDTLS_PK_RSA) != 0
                 || mbedtls_pk_can_do(&mut (*backend).pk, MBEDTLS_PK_ECKEY) != 0)
         {
             ret = -(0x3f00 as libc::c_int);
         }
-    }        
+    }
 
     mbedtls_x509_crl_init(&mut (*backend).crl);
     if !ssl_crlfile.is_null() {
@@ -806,20 +806,20 @@ unsafe extern "C" fn mbed_connect_step1(
     match SSL_CONN_CONFIG_version {
     // 467-done
     // #if MBEDTLS_VERSION_NUMBER < 0x03000000
-    0 | 1 => {
+        0 | 1 => {
         #[cfg(MBEDTLS_VERSION_NUMBER_LT_0X03000000)]
-        mbedtls_ssl_conf_min_version(
-            &mut (*backend).config,
-            3 as libc::c_int,
-            1 as libc::c_int,
-        );
+            mbedtls_ssl_conf_min_version(
+                &mut (*backend).config,
+                3 as libc::c_int,
+                1 as libc::c_int,
+            );
         #[cfg(MBEDTLS_VERSION_NUMBER_LT_0X03000000)]
-        Curl_infof(
-            data,
-            b"mbedTLS: Set min SSL version to TLS 1.0\0" as *const u8
-                as *const libc::c_char,
-        );
-    } 
+            Curl_infof(
+                data,
+                b"mbedTLS: Set min SSL version to TLS 1.0\0" as *const u8
+                    as *const libc::c_char,
+            );
+        }
 // 471        
         4 | 5 | 6 | 7 => {
             let mut result: CURLcode = set_ssl_version_min_max(data, conn, sockindex);
@@ -877,28 +877,28 @@ unsafe extern "C" fn mbed_connect_step1(
     );
     // 499
     #[cfg(MBEDTLS_SSL_RENEGOTIATION)]
-        mbedtls_ssl_conf_renegotiation(&mut (*backend).config, 1 as libc::c_int);
+    mbedtls_ssl_conf_renegotiation(&mut (*backend).config, 1 as libc::c_int);
     // 504
     #[cfg(MBEDTLS_SSL_SESSION_TICKETS)]
-        mbedtls_ssl_conf_session_tickets(&mut (*backend).config, 0 as libc::c_int);
+    mbedtls_ssl_conf_session_tickets(&mut (*backend).config, 0 as libc::c_int);
     
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -908,21 +908,21 @@ unsafe extern "C" fn mbed_connect_step1(
         Curl_ssl_sessionid_lock(data);
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_IS_PROXY_null = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    1 as libc::c_int
-                                } else {
-                                    0 as libc::c_int
+                == (*conn).http_proxy.proxytype as libc::c_uint
+                && ssl_connection_complete as libc::c_int as libc::c_uint
+                    != (*conn)
+                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                            == -(1 as libc::c_int)
+                        {
+                            0 as libc::c_int
+                        } else {
+                            1 as libc::c_int
+                        }) as usize]
+                        .state as libc::c_uint
+            {
+                1 as libc::c_int
+            } else {
+                0 as libc::c_int
                                 } != 0 ;
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_IS_PROXY_null = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int } != 0 ;
@@ -976,43 +976,43 @@ unsafe extern "C" fn mbed_connect_step1(
     }
     // 544-done
     if cfg!(HAS_ALPN){
-        if ((*conn).bits).tls_enable_alpn() != 0 {
-            let mut p: *mut *const libc::c_char = &mut *((*backend).protocols)
-                .as_mut_ptr()
-                .offset(0 as libc::c_int as isize) as *mut *const libc::c_char;
+    if ((*conn).bits).tls_enable_alpn() != 0 {
+        let mut p: *mut *const libc::c_char = &mut *((*backend).protocols)
+            .as_mut_ptr()
+            .offset(0 as libc::c_int as isize) as *mut *const libc::c_char;
             #[cfg(USE_NGHTTP2)]
-            if (*data).state.httpwant as libc::c_int >= CURL_HTTP_VERSION_2_0 as libc::c_int
-            {
-                let fresh0 = p;
-                p = p.offset(1);
-                *fresh0 = b"h2\0" as *const u8 as *const libc::c_char;
-            }
-            let fresh1 = p;
+        if (*data).state.httpwant as libc::c_int >= CURL_HTTP_VERSION_2_0 as libc::c_int
+        {
+            let fresh0 = p;
             p = p.offset(1);
-            *fresh1 = b"http/1.1\0" as *const u8 as *const libc::c_char;
-            *p = 0 as *const libc::c_char;
-            if mbedtls_ssl_conf_alpn_protocols(
-                &mut (*backend).config,
-                &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize),
-            ) != 0
-            {
-                Curl_failf(
-                    data,
-                    b"Failed setting ALPN protocols\0" as *const u8 as *const libc::c_char,
-                );
-                return CURLE_SSL_CONNECT_ERROR;
-            }
-            p = &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize)
-                as *mut *const libc::c_char;
-            while !(*p).is_null() {
-                Curl_infof(
-                    data,
-                    b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
-                    *p,
-                );
-                p = p.offset(1);
-            }
+            *fresh0 = b"h2\0" as *const u8 as *const libc::c_char;
         }
+        let fresh1 = p;
+        p = p.offset(1);
+        *fresh1 = b"http/1.1\0" as *const u8 as *const libc::c_char;
+        *p = 0 as *const libc::c_char;
+        if mbedtls_ssl_conf_alpn_protocols(
+            &mut (*backend).config,
+            &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize),
+        ) != 0
+        {
+            Curl_failf(
+                data,
+                b"Failed setting ALPN protocols\0" as *const u8 as *const libc::c_char,
+            );
+            return CURLE_SSL_CONNECT_ERROR;
+        }
+        p = &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize)
+            as *mut *const libc::c_char;
+        while !(*p).is_null() {
+            Curl_infof(
+                data,
+                b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
+                *p,
+            );
+            p = p.offset(1);
+        }
+    }
     }
     if ((*data).set.ssl.fsslctx).is_some() {
         ret = (Some(((*data).set.ssl.fsslctx).expect("non-null function pointer")))
@@ -1135,21 +1135,21 @@ unsafe extern "C" fn mbed_connect_step2(
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_CONN_CONFIG_verifyhost_1 = (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                        == (*conn).http_proxy.proxytype as libc::c_uint
-                                        && ssl_connection_complete as libc::c_int as libc::c_uint
-                                            != (*conn)
-                                                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                    == -(1 as libc::c_int)
-                                                {
-                                                    0 as libc::c_int
-                                                } else {
-                                                    1 as libc::c_int
-                                                }) as usize]
-                                                .state as libc::c_uint
-                                    {
-                                        ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
-                                    } else {
-                                        ((*conn).ssl_config).verifypeer() as libc::c_int
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+        } else {
+            ((*conn).ssl_config).verifypeer() as libc::c_int
                                     }) != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_verifyhost_1 = ((*conn).ssl_config).verifypeer() as libc::c_int != 0;
@@ -1190,8 +1190,15 @@ unsafe extern "C" fn mbed_connect_step2(
     peercert = mbedtls_ssl_get_peer_cert(&mut (*backend).ssl);
     if !peercert.is_null() && ((*data).set).verbose() as libc::c_int != 0 {
         let bufsize: size_t = 16384 as libc::c_int as size_t;
+        #[cfg(not(CURLDEBUG))]
         let mut buffer: *mut libc::c_char = Curl_cmalloc
-            .expect("non-null function pointer")(bufsize) as *mut libc::c_char;
+        .expect("non-null function pointer")(bufsize) as *mut libc::c_char;
+	#[cfg(CURLDEBUG)]
+        let mut buffer: *mut libc::c_char = curl_dbg_malloc(
+            bufsize,
+            655 as libc::c_int,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+        ) as *mut libc::c_char;
         if buffer.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
@@ -1214,7 +1221,15 @@ unsafe extern "C" fn mbed_connect_step2(
                     as *const libc::c_char,
             );
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(buffer as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            buffer as *mut libc::c_void,
+            665 as libc::c_int,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+        );
     }
     if !pinnedpubkey.is_null() {
         let mut size: libc::c_int = 0;
@@ -1229,44 +1244,83 @@ unsafe extern "C" fn mbed_connect_step2(
             // 暂不支持 MBEDTLS_VERSION_NUMBER >= 0x03000000
         }
         else{
-            if peercert.is_null() || ((*peercert).raw.p).is_null()
-                || (*peercert).raw.len == 0
-            {
-                Curl_failf(
-                    data,
-                    b"Failed due to missing peer certificate\0" as *const u8
-                        as *const libc::c_char,
-                );
-                return CURLE_SSL_PINNEDPUBKEYNOTMATCH;
-            }       
+        if peercert.is_null() || ((*peercert).raw.p).is_null()
+            || (*peercert).raw.len == 0
+        {
+            Curl_failf(
+                data,
+                b"Failed due to missing peer certificate\0" as *const u8
+                    as *const libc::c_char,
+            );
+            return CURLE_SSL_PINNEDPUBKEYNOTMATCH;
         }
-        // ******************************************************************     
-        p = Curl_ccalloc
-            .expect(
-                "non-null function pointer",
-            )(
-            1 as libc::c_int as size_t,
-            ::std::mem::size_of::<mbedtls_x509_crt>() as libc::c_ulong,
-        ) as *mut mbedtls_x509_crt;
+    }
+    // ****************************************************************** 
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                p = Curl_ccalloc
+                .expect(
+                    "non-null function pointer",
+                )(
+                1 as libc::c_int as size_t,
+                ::std::mem::size_of::<mbedtls_x509_crt>() as libc::c_ulong,
+            ) as *mut mbedtls_x509_crt;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                p = curl_dbg_calloc(
+                    1 as libc::c_int as size_t,
+                    ::std::mem::size_of::<mbedtls_x509_crt>() as libc::c_ulong,
+                    684 as libc::c_int,
+                    b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut mbedtls_x509_crt;
+            }
+        }
+       
         if p.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
-        pubkey = Curl_cmalloc
-            .expect(
-                "non-null function pointer",
-            )(
-            (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                > 30 as libc::c_int
-                    + 2 as libc::c_int
-                        * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
-            {
-                38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-            } else {
-                30 as libc::c_int
-                    + 2 as libc::c_int
-                        * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
-            }) as size_t,
-        ) as *mut libc::c_uchar;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                pubkey = Curl_cmalloc
+                .expect(
+                    "non-null function pointer",
+                )(
+                (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                    > 30 as libc::c_int
+                        + 2 as libc::c_int
+                            * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                {
+                    38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                } else {
+                    30 as libc::c_int
+                        + 2 as libc::c_int
+                            * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                }) as size_t,
+            ) as *mut libc::c_uchar;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                pubkey = curl_dbg_malloc(
+                    (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                        > 30 as libc::c_int
+                            + 2 as libc::c_int
+                                * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                    {
+                        38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                    } else {
+                        30 as libc::c_int
+                            + 2 as libc::c_int
+                                * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                    }) as size_t,
+                    689 as libc::c_int,
+                    b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut libc::c_uchar;
+            }
+        }
+        
         if pubkey.is_null() {
             result = CURLE_OUT_OF_MEMORY;
         } else {
@@ -1279,40 +1333,40 @@ unsafe extern "C" fn mbed_connect_step2(
                 // 尚不支持 MBEDTLS_VERSION_NUMBER >= 0x03000000
             }
             else{
-                if mbedtls_x509_crt_parse_der(p, (*peercert).raw.p, (*peercert).raw.len) != 0
-                {
+            if mbedtls_x509_crt_parse_der(p, (*peercert).raw.p, (*peercert).raw.len) != 0
+            {
+                Curl_failf(
+                    data,
+                    b"Failed copying peer certificate\0" as *const u8
+                        as *const libc::c_char,
+                );
+                result = CURLE_SSL_PINNEDPUBKEYNOTMATCH;
+            } else {
+                size = mbedtls_pk_write_pubkey_der(
+                    &mut (*p).pk,
+                    pubkey,
+                    (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                        > 30 as libc::c_int
+                            + 2 as libc::c_int
+                                * ((521 as libc::c_int + 7 as libc::c_int)
+                                    / 8 as libc::c_int)
+                    {
+                        38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                    } else {
+                        30 as libc::c_int
+                            + 2 as libc::c_int
+                                * ((521 as libc::c_int + 7 as libc::c_int)
+                                    / 8 as libc::c_int)
+                    }) as size_t,
+                );
+                }
+                if size <= 0 as libc::c_int {
                     Curl_failf(
                         data,
-                        b"Failed copying peer certificate\0" as *const u8
+                        b"Failed copying public key from peer certificate\0" as *const u8
                             as *const libc::c_char,
                     );
                     result = CURLE_SSL_PINNEDPUBKEYNOTMATCH;
-                } else {
-                    size = mbedtls_pk_write_pubkey_der(
-                        &mut (*p).pk,
-                        pubkey,
-                        (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                            > 30 as libc::c_int
-                                + 2 as libc::c_int
-                                    * ((521 as libc::c_int + 7 as libc::c_int)
-                                        / 8 as libc::c_int)
-                        {
-                            38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                        } else {
-                            30 as libc::c_int
-                                + 2 as libc::c_int
-                                    * ((521 as libc::c_int + 7 as libc::c_int)
-                                        / 8 as libc::c_int)
-                        }) as size_t,
-                    ); 
-                }
-                if size <= 0 as libc::c_int {
-                        Curl_failf(
-                            data,
-                            b"Failed copying public key from peer certificate\0" as *const u8
-                                as *const libc::c_char,
-                        );
-                        result = CURLE_SSL_PINNEDPUBKEYNOTMATCH;
                 } else {
                     result = Curl_pin_peer_pubkey(
                         data,
@@ -1341,59 +1395,75 @@ unsafe extern "C" fn mbed_connect_step2(
             }
         }
         mbedtls_x509_crt_free(p);
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(p as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            p as *mut libc::c_void,
+            732 as libc::c_int,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+        );
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(pubkey as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+        curl_dbg_free(
+            pubkey as *mut libc::c_void,
+            733 as libc::c_int,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+        );
         if result as u64 != 0 {
             return result;
         }
     }
     // 738-763 todo
     if cfg!(HAS_ALPN){
-        if ((*conn).bits).tls_enable_alpn() != 0 {
-            let mut next_protocol: *const libc::c_char = mbedtls_ssl_get_alpn_protocol(
-                &mut (*backend).ssl,
+    if ((*conn).bits).tls_enable_alpn() != 0 {
+        let mut next_protocol: *const libc::c_char = mbedtls_ssl_get_alpn_protocol(
+            &mut (*backend).ssl,
+        );
+        if !next_protocol.is_null() {
+            Curl_infof(
+                data,
+                b"ALPN, server accepted to use %s\0" as *const u8 as *const libc::c_char,
+                next_protocol,
             );
-            if !next_protocol.is_null() {
-                Curl_infof(
-                    data,
-                    b"ALPN, server accepted to use %s\0" as *const u8 as *const libc::c_char,
-                    next_protocol,
-                );
                 #[cfg(USE_NGHTTP2)]
                 let USE_NGHTTP2_flag = true;
                 #[cfg(not(USE_NGHTTP2))]
                 let USE_NGHTTP2_flag = false;
-                if strncmp(
-                    next_protocol,
-                    b"h2\0" as *const u8 as *const libc::c_char,
-                    2 as libc::c_int as libc::c_ulong,
+            if strncmp(
+                next_protocol,
+                b"h2\0" as *const u8 as *const libc::c_char,
+                2 as libc::c_int as libc::c_ulong,
                 ) == 0 && *next_protocol.offset(2 as libc::c_int as isize) == 0 && USE_NGHTTP2_flag
+            {
+                (*conn).negnpn = CURL_HTTP_VERSION_2_0 as libc::c_int;
+            } else if strncmp(
+                    next_protocol,
+                    b"http/1.1\0" as *const u8 as *const libc::c_char,
+                    8 as libc::c_int as libc::c_ulong,
+                ) == 0 && *next_protocol.offset(8 as libc::c_int as isize) == 0
                 {
-                    (*conn).negnpn = CURL_HTTP_VERSION_2_0 as libc::c_int;
-                } else if strncmp(
-                        next_protocol,
-                        b"http/1.1\0" as *const u8 as *const libc::c_char,
-                        8 as libc::c_int as libc::c_ulong,
-                    ) == 0 && *next_protocol.offset(8 as libc::c_int as isize) == 0
-                    {
-                    (*conn).negnpn = CURL_HTTP_VERSION_1_1 as libc::c_int;
-                }
-            } else {
-                Curl_infof(
-                    data,
-                    b"ALPN, server did not agree to a protocol\0" as *const u8
-                        as *const libc::c_char,
-                );
+                (*conn).negnpn = CURL_HTTP_VERSION_1_1 as libc::c_int;
             }
-            Curl_multiuse_state(
+        } else {
+            Curl_infof(
                 data,
-                if (*conn).negnpn == CURL_HTTP_VERSION_2_0 as libc::c_int {
-                    2 as libc::c_int
-                } else {
-                    -(1 as libc::c_int)
-                },
+                b"ALPN, server did not agree to a protocol\0" as *const u8
+                    as *const libc::c_char,
             );
         }
+        Curl_multiuse_state(
+            data,
+            if (*conn).negnpn == CURL_HTTP_VERSION_2_0 as libc::c_int {
+                2 as libc::c_int
+            } else {
+                -(1 as libc::c_int)
+            },
+        );
+    }
     }    
     (*connssl).connecting_state = ssl_connect_3;
     Curl_infof(data, b"SSL connected\0" as *const u8 as *const libc::c_char);
@@ -1411,23 +1481,41 @@ unsafe extern "C" fn mbed_connect_step3(
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ssl_connect_3 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+    {} else {
+        __assert_fail(
+            b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+            780 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 75],
+                &[libc::c_char; 75],
+            >(
+                b"CURLcode mbed_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     #[cfg(not(CURL_DISABLE_PROXY))]
     let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                            == (*conn).http_proxy.proxytype as libc::c_uint
-                                            && ssl_connection_complete as libc::c_int as libc::c_uint
-                                                != (*conn)
-                                                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                        == -(1 as libc::c_int)
-                                                    {
-                                                        0 as libc::c_int
-                                                    } else {
-                                                        1 as libc::c_int
-                                                    }) as usize]
-                                                    .state as libc::c_uint
-                                        {
-                                            ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
-                                        } else {
-                                            ((*data).set.ssl.primary).sessionid() as libc::c_int
+        == (*conn).http_proxy.proxytype as libc::c_uint
+        && ssl_connection_complete as libc::c_int as libc::c_uint
+            != (*conn)
+                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                    == -(1 as libc::c_int)
+                {
+                    0 as libc::c_int
+                } else {
+                    1 as libc::c_int
+                }) as usize]
+                .state as libc::c_uint
+    {
+        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+    } else {
+        ((*data).set.ssl.primary).sessionid() as libc::c_int
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -1439,30 +1527,44 @@ unsafe extern "C" fn mbed_connect_step3(
         let mut old_ssl_sessionid: *mut libc::c_void = 0 as *mut libc::c_void;
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_IS_PROXY_null_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                                    == (*conn).http_proxy.proxytype as libc::c_uint
-                                    && ssl_connection_complete as libc::c_int as libc::c_uint
-                                        != (*conn)
-                                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                                == -(1 as libc::c_int)
-                                            {
-                                                0 as libc::c_int
-                                            } else {
-                                                1 as libc::c_int
-                                            }) as usize]
-                                            .state as libc::c_uint
-                                {
-                                    1 as libc::c_int
-                                } else {
-                                    0 as libc::c_int
-                                } != 0 ;
+            == (*conn).http_proxy.proxytype as libc::c_uint
+            && ssl_connection_complete as libc::c_int as libc::c_uint
+                != (*conn)
+                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
+                        == -(1 as libc::c_int)
+                    {
+                        0 as libc::c_int
+                    } else {
+                        1 as libc::c_int
+                    }) as usize]
+                    .state as libc::c_uint
+        {
+            1 as libc::c_int
+        } else {
+            0 as libc::c_int
+        } != 0 ;
         #[cfg(CURL_DISABLE_PROXY)]
         let SSL_IS_PROXY_null_1 = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int } != 0 ;
         let mut isproxy: bool = SSL_IS_PROXY_null_1;
-        our_ssl_sessionid = Curl_cmalloc
-            .expect(
-                "non-null function pointer",
-            )(::std::mem::size_of::<mbedtls_ssl_session>() as libc::c_ulong)
-            as *mut mbedtls_ssl_session;
+        match () {
+            #[cfg(not(CURLDEBUG))]
+            _ => {
+                our_ssl_sessionid = Curl_cmalloc
+                .expect(
+                    "non-null function pointer",
+                )(::std::mem::size_of::<mbedtls_ssl_session>() as libc::c_ulong)
+                as *mut mbedtls_ssl_session;
+            }
+            #[cfg(CURLDEBUG)]
+            _ => {
+                our_ssl_sessionid = curl_dbg_malloc(
+                    ::std::mem::size_of::<mbedtls_ssl_session>() as libc::c_ulong,
+                    788 as libc::c_int,
+                    b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+                ) as *mut mbedtls_ssl_session;
+            }
+        }
+        
         if our_ssl_sessionid.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
@@ -1472,10 +1574,17 @@ unsafe extern "C" fn mbed_connect_step3(
             if ret != -(0x7f00 as libc::c_int) {
                 mbedtls_ssl_session_free(our_ssl_sessionid);
             }
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )(our_ssl_sessionid as *mut libc::c_void);
+            .expect(
+                "non-null function pointer",
+            )(our_ssl_sessionid as *mut libc::c_void);
+            #[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                our_ssl_sessionid as *mut libc::c_void,
+                798 as libc::c_int,
+                b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+            );
             Curl_failf(
                 data,
                 b"mbedtls_ssl_get_session returned -0x%x\0" as *const u8
@@ -1506,10 +1615,17 @@ unsafe extern "C" fn mbed_connect_step3(
         Curl_ssl_sessionid_unlock(data);
         if retcode as u64 != 0 {
             mbedtls_ssl_session_free(our_ssl_sessionid);
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree
-                .expect(
-                    "non-null function pointer",
-                )(our_ssl_sessionid as *mut libc::c_void);
+            .expect(
+                "non-null function pointer",
+            )(our_ssl_sessionid as *mut libc::c_void);
+	#[cfg(CURLDEBUG)]
+            curl_dbg_free(
+                our_ssl_sessionid as *mut libc::c_void,
+                814 as libc::c_int,
+                b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+            );
             Curl_failf(
                 data,
                 b"failed to store ssl session\0" as *const u8 as *const libc::c_char,
@@ -1612,7 +1728,15 @@ unsafe extern "C" fn mbed_recv(
 // 内部没有宏
 unsafe extern "C" fn mbedtls_session_free(mut ptr: *mut libc::c_void) {
     mbedtls_ssl_session_free(ptr as *mut mbedtls_ssl_session);
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(ptr);
+
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        ptr,
+        904 as libc::c_int,
+        b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+    );
 }
 
 // done
@@ -1622,25 +1746,25 @@ unsafe extern "C" fn mbedtls_version(
 ) -> size_t {
     // 909 - done
     if cfg!(MBEDTLS_VERSION_C){
-        let mut version: libc::c_uint = mbedtls_version_get_number();
-        return curl_msnprintf(
-            buffer,
-            size,
-            b"mbedTLS/%u.%u.%u\0" as *const u8 as *const libc::c_char,
-            version >> 24 as libc::c_int,
-            version >> 16 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
-            version >> 8 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
-        ) as size_t;
-    } 
-    else{
-        return curl_msnprintf(
-            buffer,
-            size,
-            b"mbedTLS/%s\0" as *const u8 as *const libc::c_char,
-            b"2.16.3\0" as *const u8 as *const libc::c_char,
-        ) as size_t;
-    } 
-        
+    let mut version: libc::c_uint = mbedtls_version_get_number();
+    return curl_msnprintf(
+        buffer,
+        size,
+        b"mbedTLS/%u.%u.%u\0" as *const u8 as *const libc::c_char,
+        version >> 24 as libc::c_int,
+        version >> 16 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
+        version >> 8 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
+    ) as size_t;
+}
+else{
+    return curl_msnprintf(
+        buffer,
+        size,
+        b"mbedTLS/%s\0" as *const u8 as *const libc::c_char,
+        b"2.16.3\0" as *const u8 as *const libc::c_char,
+    ) as size_t;
+} 
+    
 }
 
 // done
@@ -1650,101 +1774,120 @@ unsafe extern "C" fn mbedtls_random(
     mut length: size_t,
 ) -> CURLcode {
     if cfg!(MBEDTLS_CTR_DRBG_C){
-        let mut ret: libc::c_int = -(1 as libc::c_int);
-        let mut errorbuf: [libc::c_char; 128] = [0; 128];
-        let mut ctr_entropy: mbedtls_entropy_context = mbedtls_entropy_context {
-            accumulator_started: 0,
-            accumulator: mbedtls_sha512_context {
-                total: [0; 2],
-                state: [0; 8],
-                buffer: [0; 128],
-                is384: 0,
-            },
-            source_count: 0,
-            source: [mbedtls_entropy_source_state {
-                f_source: None,
-                p_source: 0 as *const libc::c_void as *mut libc::c_void,
-                size: 0,
-                threshold: 0,
-                strong: 0,
-            }; 20],
-            havege_data: mbedtls_havege_state {
-                PT1: 0,
-                PT2: 0,
-                offset: [0; 2],
-                pool: [0; 1024],
-                WALK: [0; 8192],
-            },
-            mutex: mbedtls_threading_mutex_t {
-                mutex: pthread_mutex_t {
-                    __data: __pthread_mutex_s {
-                        __lock: 0,
-                        __count: 0,
-                        __owner: 0,
-                        __nusers: 0,
-                        __kind: 0,
-                        __spins: 0,
-                        __elision: 0,
-                        __list: __pthread_list_t {
-                            __prev: 0 as *const __pthread_internal_list
-                                as *mut __pthread_internal_list,
-                            __next: 0 as *const __pthread_internal_list
-                                as *mut __pthread_internal_list,
-                        },
+    let mut ret: libc::c_int = -(1 as libc::c_int);
+    let mut errorbuf: [libc::c_char; 128] = [0; 128];
+    let mut ctr_entropy: mbedtls_entropy_context = mbedtls_entropy_context {
+        accumulator_started: 0,
+        accumulator: mbedtls_sha512_context {
+            total: [0; 2],
+            state: [0; 8],
+            buffer: [0; 128],
+            is384: 0,
+        },
+        source_count: 0,
+        source: [mbedtls_entropy_source_state {
+            f_source: None,
+            p_source: 0 as *const libc::c_void as *mut libc::c_void,
+            size: 0,
+            threshold: 0,
+            strong: 0,
+        }; 20],
+        havege_data: mbedtls_havege_state {
+            PT1: 0,
+            PT2: 0,
+            offset: [0; 2],
+            pool: [0; 1024],
+            WALK: [0; 8192],
+        },
+        mutex: mbedtls_threading_mutex_t {
+            mutex: pthread_mutex_t {
+                __data: __pthread_mutex_s {
+                    __lock: 0,
+                    __count: 0,
+                    __owner: 0,
+                    __nusers: 0,
+                    __kind: 0,
+                    __spins: 0,
+                    __elision: 0,
+                    __list: __pthread_list_t {
+                        __prev: 0 as *const __pthread_internal_list
+                            as *mut __pthread_internal_list,
+                        __next: 0 as *const __pthread_internal_list
+                            as *mut __pthread_internal_list,
                     },
                 },
-                is_valid: 0,
             },
-        };
-        let mut ctr_drbg: mbedtls_ctr_drbg_context = mbedtls_ctr_drbg_context {
-            counter: [0; 16],
-            reseed_counter: 0,
-            prediction_resistance: 0,
-            entropy_len: 0,
-            reseed_interval: 0,
-            aes_ctx: mbedtls_aes_context {
-                nr: 0,
-                rk: 0 as *mut uint32_t,
-                buf: [0; 68],
-            },
-            f_entropy: None,
-            p_entropy: 0 as *mut libc::c_void,
-            mutex: mbedtls_threading_mutex_t {
-                mutex: pthread_mutex_t {
-                    __data: __pthread_mutex_s {
-                        __lock: 0,
-                        __count: 0,
-                        __owner: 0,
-                        __nusers: 0,
-                        __kind: 0,
-                        __spins: 0,
-                        __elision: 0,
-                        __list: __pthread_list_t {
-                            __prev: 0 as *const __pthread_internal_list
-                                as *mut __pthread_internal_list,
-                            __next: 0 as *const __pthread_internal_list
-                                as *mut __pthread_internal_list,
-                        },
+            is_valid: 0,
+        },
+    };
+    let mut ctr_drbg: mbedtls_ctr_drbg_context = mbedtls_ctr_drbg_context {
+        counter: [0; 16],
+        reseed_counter: 0,
+        prediction_resistance: 0,
+        entropy_len: 0,
+        reseed_interval: 0,
+        aes_ctx: mbedtls_aes_context {
+            nr: 0,
+            rk: 0 as *mut uint32_t,
+            buf: [0; 68],
+        },
+        f_entropy: None,
+        p_entropy: 0 as *mut libc::c_void,
+        mutex: mbedtls_threading_mutex_t {
+            mutex: pthread_mutex_t {
+                __data: __pthread_mutex_s {
+                    __lock: 0,
+                    __count: 0,
+                    __owner: 0,
+                    __nusers: 0,
+                    __kind: 0,
+                    __spins: 0,
+                    __elision: 0,
+                    __list: __pthread_list_t {
+                        __prev: 0 as *const __pthread_internal_list
+                            as *mut __pthread_internal_list,
+                        __next: 0 as *const __pthread_internal_list
+                            as *mut __pthread_internal_list,
                     },
                 },
-                is_valid: 0,
             },
-        };
-        mbedtls_entropy_init(&mut ctr_entropy);
-        mbedtls_ctr_drbg_init(&mut ctr_drbg);
-        ret = mbedtls_ctr_drbg_seed(
-            &mut ctr_drbg,
-            Some(
-                mbedtls_entropy_func
-                    as unsafe extern "C" fn(
-                        *mut libc::c_void,
-                        *mut libc::c_uchar,
-                        size_t,
-                    ) -> libc::c_int,
-            ),
-            &mut ctr_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
-            0 as *const libc::c_uchar,
-            0 as libc::c_int as size_t,
+            is_valid: 0,
+        },
+    };
+    mbedtls_entropy_init(&mut ctr_entropy);
+    mbedtls_ctr_drbg_init(&mut ctr_drbg);
+    ret = mbedtls_ctr_drbg_seed(
+        &mut ctr_drbg,
+        Some(
+            mbedtls_entropy_func
+                as unsafe extern "C" fn(
+                    *mut libc::c_void,
+                    *mut libc::c_uchar,
+                    size_t,
+                ) -> libc::c_int,
+        ),
+        &mut ctr_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
+        0 as *const libc::c_uchar,
+        0 as libc::c_int as size_t,
+    );
+    if ret != 0 {
+        mbedtls_strerror(
+            ret,
+            errorbuf.as_mut_ptr(),
+            ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+        );
+        Curl_failf(
+            data,
+            b"Failed - mbedTLS: ctr_drbg_seed returned (-0x%04X) %s\0" as *const u8
+                as *const libc::c_char,
+            -ret,
+            errorbuf.as_mut_ptr(),
+        );
+    } else {
+        ret = mbedtls_ctr_drbg_random(
+            &mut ctr_drbg as *mut mbedtls_ctr_drbg_context as *mut libc::c_void,
+            entropy,
+            length,
         );
         if ret != 0 {
             mbedtls_strerror(
@@ -1754,45 +1897,26 @@ unsafe extern "C" fn mbedtls_random(
             );
             Curl_failf(
                 data,
-                b"Failed - mbedTLS: ctr_drbg_seed returned (-0x%04X) %s\0" as *const u8
+                b"mbedTLS: ctr_drbg_init returned (-0x%04X) %s\0" as *const u8
                     as *const libc::c_char,
                 -ret,
                 errorbuf.as_mut_ptr(),
             );
-        } else {
-            ret = mbedtls_ctr_drbg_random(
-                &mut ctr_drbg as *mut mbedtls_ctr_drbg_context as *mut libc::c_void,
-                entropy,
-                length,
-            );
-            if ret != 0 {
-                mbedtls_strerror(
-                    ret,
-                    errorbuf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
-                );
-                Curl_failf(
-                    data,
-                    b"mbedTLS: ctr_drbg_init returned (-0x%04X) %s\0" as *const u8
-                        as *const libc::c_char,
-                    -ret,
-                    errorbuf.as_mut_ptr(),
-                );
-            }
         }
-        mbedtls_ctr_drbg_free(&mut ctr_drbg);
-        mbedtls_entropy_free(&mut ctr_entropy);
-        return (if ret == 0 as libc::c_int {
-            CURLE_OK as libc::c_int
-        } else {
-            CURLE_FAILED_INIT as libc::c_int
-        }) as CURLcode;
+    }
+    mbedtls_ctr_drbg_free(&mut ctr_drbg);
+    mbedtls_entropy_free(&mut ctr_entropy);
+    return (if ret == 0 as libc::c_int {
+        CURLE_OK as libc::c_int
+    } else {
+        CURLE_FAILED_INIT as libc::c_int
+    }) as CURLcode;
     }else if cfg!(MBEDTLS_HAVEGE_C){
         // todo
         return CURLE_OK as libc::c_int as CURLcode;
     }else{
         return CURLE_NOT_BUILT_IN as libc::c_int as CURLcode;
-    }    
+}
 }
 
 // 内部没有宏
@@ -1965,6 +2089,21 @@ unsafe extern "C" fn mbedtls_connect(
     if retcode as u64 != 0 {
         return retcode;
     }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {} else {
+        __assert_fail(
+            b"done\0" as *const u8 as *const libc::c_char,
+            b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
+            1094 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 72],
+                &[libc::c_char; 72],
+            >(
+                b"CURLcode mbedtls_connect(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
     return CURLE_OK;
 }
 
@@ -2015,7 +2154,7 @@ unsafe extern "C" fn mbedtls_sha256sum(
             // if(mbedtls_sha256_ret(input, inputlen, sha256sum, 0) != 0)
             // 所以对应的版本是     0X03000000 > MBEDTLS_VERSION_NUMBER >= 0X02070000
             if mbedtls_sha256_ret(input, inputlen, sha256sum, 0 as libc::c_int)!= 0 as libc::c_int {
-                return CURLE_BAD_FUNCTION_ARGUMENT;
+        return CURLE_BAD_FUNCTION_ARGUMENT;
             }
         }
     }
