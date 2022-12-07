@@ -246,6 +246,23 @@ extern "C" fn load_cafile(
         let mut n: size_t = 0;
         let mut i: size_t = 0;
         let mut pushed: size_t = 0;
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if (*source).type_0 == 1 as libc::c_int || (*source).type_0 == 2 as libc::c_int
+    {} else {
+        __assert_fail(
+            b"source->type == 1 || source->type == 2\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
+            119 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 80],
+                &[libc::c_char; 80],
+            >(
+                b"CURLcode load_cafile(struct cafile_source *, br_x509_trust_anchor **, size_t *)\0",
+            ))
+                .as_ptr(),
+        );
+    }
         if (*source).type_0 == 1 as i32 {
             fp = fopen((*source).data, b"rb\0" as *const u8 as *const i8);
             if fp.is_null() {
@@ -326,15 +343,31 @@ extern "C" fn load_cafile(
                                     break 'fail;
                                 }
                                 new_anchors_len = (ca.anchors_len).wrapping_add(1 as u64);
-                                new_anchors = Curl_crealloc.expect("non-null function pointer")(
-                                    ca.anchors as *mut libc::c_void,
-                                    new_anchors_len.wrapping_mul(::std::mem::size_of::<
-                                        br_x509_trust_anchor,
-                                    >(
-                                    )
-                                        as u64),
-                                )
-                                    as *mut br_x509_trust_anchor;
+                                match () {
+                                    #[cfg(not(CURLDEBUG))]
+                                    _ => {
+                                        new_anchors = Curl_crealloc.expect("non-null function pointer")(
+                                            ca.anchors as *mut libc::c_void,
+                                            new_anchors_len.wrapping_mul(::std::mem::size_of::<
+                                                br_x509_trust_anchor,
+                                            >(
+                                            )
+                                                as u64),
+                                        )
+                                            as *mut br_x509_trust_anchor;
+                                    }
+                                    #[cfg(CURLDEBUG)]
+                                    _ => {
+                                        new_anchors = realloc(
+                                            ca.anchors as *mut libc::c_void,
+                                            new_anchors_len
+                                                .wrapping_mul(
+                                                    ::std::mem::size_of::<br_x509_trust_anchor>()
+                                                        as libc::c_ulong,
+                                                ),
+                                        ) as *mut br_x509_trust_anchor;
+                                    }
+                                }                                
                                 if new_anchors.is_null() {
                                     ca.err = CURLE_OUT_OF_MEMORY;
                                     break 'fail;
@@ -387,9 +420,18 @@ extern "C" fn load_cafile(
                                         break 'fail;
                                     }
                                 }
-                                (*ta).dn.data =
-                                    Curl_cmalloc.expect("non-null function pointer")(ta_size)
-                                        as *mut u8;
+                                match () {
+                                    #[cfg(not(CURLDEBUG))]
+                                    _ => {
+                                        (*ta).dn.data =
+                                        Curl_cmalloc.expect("non-null function pointer")(ta_size)
+                                            as *mut u8;
+                                    }
+                                    #[cfg(CURLDEBUG)]
+                                    _ => {
+                                        (*ta).dn.data = malloc(ta_size) as *mut libc::c_uchar;
+                                    }
+                                }
                                 if ((*ta).dn.data).is_null() {
                                     ca.err = CURLE_OUT_OF_MEMORY;
                                     break 'fail;
@@ -455,12 +497,22 @@ extern "C" fn load_cafile(
         } else {
             i = 0 as size_t;
             while i < ca.anchors_len {
+                #[cfg(not(CURLDEBUG))]
+
                 Curl_cfree.expect("non-null function pointer")(
                     (*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void,
                 );
+                
+	#[cfg(CURLDEBUG)]
+    free((*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+
                 i = i.wrapping_add(1);
             }
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(ca.anchors as *mut libc::c_void);
+	        #[cfg(CURLDEBUG)]
+            free(ca.anchors as *mut libc::c_void);
+
         }
         return ca.err;
     }
@@ -1072,6 +1124,24 @@ extern "C" fn bearssl_connect_step3(
             &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
         let mut backend: *mut ssl_backend_data = (*connssl).backend;
         let mut ret: CURLcode = CURLE_OK;
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if ssl_connect_3 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+    {} else {
+        __assert_fail(
+            b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
+                as *const libc::c_char,
+            b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
+            584 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 78],
+                &[libc::c_char; 78],
+            >(
+                b"CURLcode bearssl_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );
+    }
         if ((*conn).bits).tls_enable_alpn() != 0 {
             let mut protocol: *const i8 = 0 as *const i8;
             protocol = br_ssl_engine_get_selected_protocol(&mut (*backend).bear_ctx.eng);
@@ -1138,9 +1208,21 @@ extern "C" fn bearssl_connect_step3(
             let mut incache: bool = false;
             let mut oldsession: *mut libc::c_void = 0 as *mut libc::c_void;
             let mut session: *mut br_ssl_session_parameters = 0 as *mut br_ssl_session_parameters;
-            session = Curl_cmalloc.expect("non-null function pointer")(::std::mem::size_of::<
-                br_ssl_session_parameters,
-            >() as u64) as *mut br_ssl_session_parameters;
+            match () {
+                #[cfg(not(CURLDEBUG))]
+                _ => {
+                    session = Curl_cmalloc.expect("non-null function pointer")(::std::mem::size_of::<
+                        br_ssl_session_parameters,
+                    >() as u64) as *mut br_ssl_session_parameters;
+                }
+                #[cfg(CURLDEBUG)]
+                _ => {
+                    session = malloc(
+                        ::std::mem::size_of::<br_ssl_session_parameters>() as libc::c_ulong,
+                    ) as *mut br_ssl_session_parameters;
+                }
+            }
+
             if session.is_null() {
                 return CURLE_OUT_OF_MEMORY;
             }
@@ -1189,7 +1271,11 @@ extern "C" fn bearssl_connect_step3(
             );
             Curl_ssl_sessionid_unlock(data);
             if ret as u64 != 0 {
-                Curl_cfree.expect("non-null function pointer")(session as *mut libc::c_void);
+                #[cfg(not(CURLDEBUG))]
+                Curl_cfree.expect("non-null function pointer")(session as *mut libc::c_void);               
+	             #[cfg(CURLDEBUG)]
+                free(session as *mut libc::c_void);
+
                 return CURLE_OUT_OF_MEMORY;
             }
         }
@@ -1470,6 +1556,21 @@ extern "C" fn bearssl_connect(
         if ret as u64 != 0 {
             return ret;
         }
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if done {} else {
+            __assert_fail(
+                b"done\0" as *const u8 as *const libc::c_char,
+                b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
+                839 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 72],
+                    &[libc::c_char; 72],
+                >(
+                    b"CURLcode bearssl_connect(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                    .as_ptr(),
+            );
+        }
         return CURLE_OK;
     }
 }
@@ -1511,18 +1612,30 @@ extern "C" fn bearssl_close(
         }
         i = 0 as size_t;
         while i < (*backend).anchors_len {
+            #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(
                 (*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void,
             );
+            #[cfg(CURLDEBUG)]
+        free((*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+
             i = i.wrapping_add(1);
         }
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")((*backend).anchors as *mut libc::c_void);
+        #[cfg(CURLDEBUG)]
+    free((*backend).anchors as *mut libc::c_void);
+
     }
 }
 
 extern "C" fn bearssl_session_free(mut ptr: *mut libc::c_void) {
     unsafe {
+        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(ptr);
+        #[cfg(CURLDEBUG)]
+    free(ptr);
+
     }
 }
 
