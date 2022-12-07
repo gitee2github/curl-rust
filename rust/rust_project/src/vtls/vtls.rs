@@ -2049,7 +2049,8 @@
              }
          }
      }
-     }
+     
+
      #[cfg(not(CURLDEBUG))]
      Curl_cfree.expect("non-null function pointer")(buf as *mut libc::c_void);
  
@@ -2079,6 +2080,8 @@
          b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
      );
      return result;
+
+    }
  }
  #[cfg(USE_SSL)]
  #[no_mangle]
