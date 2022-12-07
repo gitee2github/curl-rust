@@ -2570,5 +2570,10 @@
         source: *const libc::c_char,
     ) -> *mut libc::c_void;
     pub fn curl_mfprintf(fd: *mut FILE, format: *const libc::c_char, _: ...) -> libc::c_int;
+    pub fn curl_dbg_mark_sclose(
+        sockfd: curl_socket_t,
+        line: libc::c_int,
+        source: *const libc::c_char,
+    );
  }
  
