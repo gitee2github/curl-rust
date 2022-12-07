@@ -2569,5 +2569,6 @@
         line: libc::c_int,
         source: *const libc::c_char,
     ) -> *mut libc::c_void;
+    pub fn curl_mfprintf(fd: *mut FILE, format: *const libc::c_char, _: ...) -> libc::c_int;
  }
  
