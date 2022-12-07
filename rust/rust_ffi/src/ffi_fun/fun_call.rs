@@ -2583,5 +2583,8 @@
         line: libc::c_int,
         source: *const libc::c_char,
     );
+    pub fn free(__ptr: *mut libc::c_void);
+    pub fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
+    pub fn realloc(_: *mut libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
  }
  
