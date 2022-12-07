@@ -1013,6 +1013,24 @@ extern "C" fn wolfssl_connect_step3(
         let mut connssl: *mut ssl_connect_data =
             &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
         let mut backend: *mut ssl_backend_data = (*connssl).backend;
+        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+        if ssl_connect_3 as libc::c_int as libc::c_uint
+        == (*connssl).connecting_state as libc::c_uint
+        {} else {
+            __assert_fail(
+                b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
+                    as *const libc::c_char,
+                b"vtls/wolfssl.c\0" as *const u8 as *const libc::c_char,
+                730 as libc::c_int as libc::c_uint,
+                (*::std::mem::transmute::<
+                    &[u8; 78],
+                    &[libc::c_char; 78],
+                >(
+                    b"CURLcode wolfssl_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
+                ))
+                    .as_ptr(),
+            );
+        }
         #[cfg(not(CURL_DISABLE_PROXY))]
         let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as u32
             == (*conn).http_proxy.proxytype as u32
@@ -1436,6 +1454,22 @@ extern "C" fn wolfssl_connect(
     result = wolfssl_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
     if result as u64 != 0 {
         return result;
+    }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {} else {
+        unsafe{
+        __assert_fail(
+            b"done\0" as *const u8 as *const libc::c_char,
+            b"vtls/wolfssl.c\0" as *const u8 as *const libc::c_char,
+            1068 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<
+                &[u8; 72],
+                &[libc::c_char; 72],
+            >(
+                b"CURLcode wolfssl_connect(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+                .as_ptr(),
+        );}
     }
     return CURLE_OK;
 }
