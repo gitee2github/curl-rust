@@ -24,14 +24,30 @@ static mut mutex_buf: *mut pthread_mutex_t = 0 as *const pthread_mutex_t
 #[no_mangle]
 pub unsafe extern "C" fn Curl_mbedtlsthreadlock_thread_setup() -> libc::c_int {
     let mut i: libc::c_int = 0;
-    mutex_buf = Curl_ccalloc
-        .expect(
-            "non-null function pointer",
-        )(
-        (2 as libc::c_int as libc::c_ulong)
-            .wrapping_mul(::std::mem::size_of::<pthread_mutex_t>() as libc::c_ulong),
-        1 as libc::c_int as size_t,
-    ) as *mut pthread_mutex_t;
+    match () {
+        #[cfg(not(CURLDEBUG))]
+        _ => {
+            mutex_buf = Curl_ccalloc
+            .expect(
+                "non-null function pointer",
+            )(
+            (2 as libc::c_int as libc::c_ulong)
+                .wrapping_mul(::std::mem::size_of::<pthread_mutex_t>() as libc::c_ulong),
+            1 as libc::c_int as size_t,
+        ) as *mut pthread_mutex_t;
+        }
+        #[cfg(CURLDEBUG)]
+        _ => {
+            mutex_buf = curl_dbg_calloc(
+                (2 as libc::c_int as libc::c_ulong)
+                    .wrapping_mul(::std::mem::size_of::<pthread_mutex_t>() as libc::c_ulong),
+                1 as libc::c_int as size_t,
+                53 as libc::c_int,
+                b"vtls/mbedtls_threadlock.c\0" as *const u8 as *const libc::c_char,
+            ) as *mut pthread_mutex_t;
+        }
+    }
+   
     if mutex_buf.is_null() {
         return 0 as libc::c_int;
     }
@@ -67,7 +83,15 @@ pub unsafe extern "C" fn Curl_mbedtlsthreadlock_thread_cleanup() -> libc::c_int 
         }
         i += 1;
     }
+    #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(mutex_buf as *mut libc::c_void);
+
+	#[cfg(CURLDEBUG)]
+    curl_dbg_free(
+        mutex_buf as *mut libc::c_void,
+        87 as libc::c_int,
+        b"vtls/mbedtls_threadlock.c\0" as *const u8 as *const libc::c_char,
+    );
     mutex_buf = 0 as *mut pthread_mutex_t;
     return 1 as libc::c_int;
 }
@@ -83,6 +107,12 @@ pub unsafe extern "C" fn Curl_mbedtlsthreadlock_lock_function(
 ) -> libc::c_int {
     if n < 2 as libc::c_int {
         if pthread_mutex_lock(&mut *mutex_buf.offset(n as isize)) != 0 {
+            #[cfg(DEBUGBUILD)]
+            curl_mfprintf(
+                stderr,
+                b"Error: mbedtlsthreadlock_lock_function failed\n\0" as *const u8
+                    as *const libc::c_char,
+            );
             return 0 as libc::c_int;
         }
     }
@@ -102,6 +132,12 @@ pub unsafe extern "C" fn Curl_mbedtlsthreadlock_unlock_function(
 ) -> libc::c_int {
     if n < 2 as libc::c_int {
         if pthread_mutex_unlock(&mut *mutex_buf.offset(n as isize)) != 0 {
+            #[cfg(DEBUGBUILD)]
+            curl_mfprintf(
+                stderr,
+                b"Error: mbedtlsthreadlock_unlock_function failed\n\0" as *const u8
+                    as *const libc::c_char,
+            );
             return 0 as libc::c_int;
         }
     }
