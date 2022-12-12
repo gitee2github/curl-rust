@@ -73,27 +73,31 @@ static mut ts_entropy: mbedtls_entropy_context = mbedtls_entropy_context {
     },
 };
 #[cfg(THREADING_SUPPORT)]
-static mut entropy_init_initialized: libc::c_int = 0 as libc::c_int;
+static mut entropy_init_initialized: i32 = 0 as i32;
 #[cfg(THREADING_SUPPORT)]
-unsafe extern "C" fn entropy_init_mutex(mut ctx: *mut mbedtls_entropy_context) {
-    Curl_mbedtlsthreadlock_lock_function(0 as libc::c_int);
-    if entropy_init_initialized == 0 as libc::c_int {
+extern "C" fn entropy_init_mutex(mut ctx: *mut mbedtls_entropy_context) {
+    unsafe{
+    Curl_mbedtlsthreadlock_lock_function(0 as i32);
+    if entropy_init_initialized == 0 as i32 {
         mbedtls_entropy_init(ctx);
-        entropy_init_initialized = 1 as libc::c_int;
+        entropy_init_initialized = 1 as i32;
     }
-    Curl_mbedtlsthreadlock_unlock_function(0 as libc::c_int);
+    Curl_mbedtlsthreadlock_unlock_function(0 as i32);
+}
 }
 #[cfg(THREADING_SUPPORT)]
-unsafe extern "C" fn entropy_func_mutex(
+extern "C" fn entropy_func_mutex(
     mut data: *mut libc::c_void,
-    mut output: *mut libc::c_uchar,
+    mut output: *mut u8,
     mut len: size_t,
-) -> libc::c_int {
-    let mut ret: libc::c_int = 0;
-    Curl_mbedtlsthreadlock_lock_function(1 as libc::c_int);
+) -> i32 {
+    unsafe{
+    let mut ret: i32 = 0;
+    Curl_mbedtlsthreadlock_lock_function(1 as i32);
     ret = mbedtls_entropy_func(data, output, len);
-    Curl_mbedtlsthreadlock_unlock_function(1 as libc::c_int);
+    Curl_mbedtlsthreadlock_unlock_function(1 as i32);
     return ret;
+    }
 }
 // 132 done
 // MBEDTLS_DEBUG 暂不添加
@@ -110,27 +114,28 @@ todo
 // 内部没有宏
 static mut mbedtls_x509_crt_profile_fr: mbedtls_x509_crt_profile = {
     let mut init = mbedtls_x509_crt_profile {
-        allowed_mds: ((1 as libc::c_int)
-            << MBEDTLS_MD_SHA1 as libc::c_int - 1 as libc::c_int
-            | (1 as libc::c_int)
-                << MBEDTLS_MD_RIPEMD160 as libc::c_int - 1 as libc::c_int
-            | (1 as libc::c_int) << MBEDTLS_MD_SHA224 as libc::c_int - 1 as libc::c_int
-            | (1 as libc::c_int) << MBEDTLS_MD_SHA256 as libc::c_int - 1 as libc::c_int
-            | (1 as libc::c_int) << MBEDTLS_MD_SHA384 as libc::c_int - 1 as libc::c_int
-            | (1 as libc::c_int) << MBEDTLS_MD_SHA512 as libc::c_int - 1 as libc::c_int)
+        allowed_mds: ((1 as i32)
+            << MBEDTLS_MD_SHA1 as i32 - 1 as i32
+            | (1 as i32)
+                << MBEDTLS_MD_RIPEMD160 as i32 - 1 as i32
+            | (1 as i32) << MBEDTLS_MD_SHA224 as i32 - 1 as i32
+            | (1 as i32) << MBEDTLS_MD_SHA256 as i32 - 1 as i32
+            | (1 as i32) << MBEDTLS_MD_SHA384 as i32 - 1 as i32
+            | (1 as i32) << MBEDTLS_MD_SHA512 as i32 - 1 as i32)
             as uint32_t,
-        allowed_pks: 0xfffffff as libc::c_int as uint32_t,
-        allowed_curves: 0xfffffff as libc::c_int as uint32_t,
-        rsa_min_bitlen: 1024 as libc::c_int as uint32_t,
+        allowed_pks: 0xfffffff as uint32_t,
+        allowed_curves: 0xfffffff as uint32_t,
+        rsa_min_bitlen: 1024 as uint32_t,
     };
     init
 };
 
 // done
-unsafe extern "C" fn mbedtls_version_from_curl(
-    mut mbedver: *mut libc::c_int,
-    mut version: libc::c_long,
+extern "C" fn mbedtls_version_from_curl(
+    mut mbedver: *mut i32,
+    mut version: i64,
 ) -> CURLcode {
+    unsafe{
     // 189-done
     // #if MBEDTLS_VERSION_NUMBER >= 0x03000000
     if cfg!(MBEDTLS_VERSION_NUMBER_GT_0X03000000){
@@ -139,15 +144,15 @@ unsafe extern "C" fn mbedtls_version_from_curl(
     else{
     match version {
         4 => {
-            *mbedver = 1 as libc::c_int;
+            *mbedver = 1 as i32;
             return CURLE_OK;
         }
         5 => {
-            *mbedver = 2 as libc::c_int;
+            *mbedver = 2 as i32;
             return CURLE_OK;
         }
         6 => {
-            *mbedver = 3 as libc::c_int;
+            *mbedver = 3 as i32;
             return CURLE_OK;
         }
         7 | _ => {}
@@ -155,32 +160,34 @@ unsafe extern "C" fn mbedtls_version_from_curl(
     }
     return CURLE_SSL_CONNECT_ERROR;
 }
+}
 
 // done
-unsafe extern "C" fn set_ssl_version_min_max(
+extern "C" fn set_ssl_version_min_max(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) -> CURLcode {
+    unsafe{
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
-    let mut mbedtls_ver_min: libc::c_int = 1 as libc::c_int;
-    let mut mbedtls_ver_max: libc::c_int = 1 as libc::c_int;
+    let mut mbedtls_ver_min: i32 = 1 as i32;
+    let mut mbedtls_ver_max: i32 = 1 as i32;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).proxy_ssl_config.version
     } else {
@@ -188,18 +195,18 @@ unsafe extern "C" fn set_ssl_version_min_max(
     };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version = (*conn).ssl_config.version;
-    let mut ssl_version: libc::c_long = SSL_CONN_CONFIG_version;
-    let mut ssl_version_max: libc::c_long = SSL_CONN_CONFIG_version;
+    let mut ssl_version: i64 = SSL_CONN_CONFIG_version;
+    let mut ssl_version_max: i64 = SSL_CONN_CONFIG_version;
     let mut result: CURLcode = CURLE_OK;
     match ssl_version {
         0 | 1 => {
-            ssl_version = CURL_SSLVERSION_TLSv1_0 as libc::c_int as libc::c_long;
+            ssl_version = CURL_SSLVERSION_TLSv1_0 as i64;
         }
         _ => {}
     }
     match ssl_version_max {
         0 | 65536 => {
-            ssl_version_max = CURL_SSLVERSION_MAX_TLSv1_2 as libc::c_int as libc::c_long;
+            ssl_version_max = CURL_SSLVERSION_MAX_TLSv1_2 as i64;
         }
         _ => {}
     }
@@ -214,7 +221,7 @@ unsafe extern "C" fn set_ssl_version_min_max(
     }
     result = mbedtls_version_from_curl(
         &mut mbedtls_ver_max,
-        ssl_version_max >> 16 as libc::c_int,
+        ssl_version_max >> 16 as i32,
     );
     if result as u64 != 0 {
         Curl_failf(
@@ -226,40 +233,42 @@ unsafe extern "C" fn set_ssl_version_min_max(
     }
     mbedtls_ssl_conf_min_version(
         &mut (*backend).config,
-        3 as libc::c_int,
+        3 as i32,
         mbedtls_ver_min,
     );
     mbedtls_ssl_conf_max_version(
         &mut (*backend).config,
-        3 as libc::c_int,
+        3 as i32,
         mbedtls_ver_max,
     );
     return result;
 }
+}
 
 // done
-unsafe extern "C" fn mbed_connect_step1(
+extern "C" fn mbed_connect_step1(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) -> CURLcode {
+    unsafe{
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let ssl_cafile: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let ssl_cafile: *const libc::c_char = if CURLPROXY_HTTPS as i32
+        as u32 == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).proxy_ssl_config.CAfile
     } else {
@@ -268,38 +277,38 @@ unsafe extern "C" fn mbed_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let ssl_cafile: *const libc::c_char = (*conn).ssl_config.CAfile;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let verifypeer: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let verifypeer: bool = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
-        ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+        ((*conn).proxy_ssl_config).verifypeer() as i32
     } else {
-        ((*conn).ssl_config).verifypeer() as libc::c_int
+        ((*conn).ssl_config).verifypeer() as i32
     } != 0;
     #[cfg(CURL_DISABLE_PROXY)]
     let verifypeer: bool = ((*conn).ssl_config).verifypeer() != 0;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let ssl_capath: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let ssl_capath: *const libc::c_char = if CURLPROXY_HTTPS as i32
+        as u32 == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).proxy_ssl_config.CApath
     } else {
@@ -308,18 +317,18 @@ unsafe extern "C" fn mbed_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let ssl_capath: *const libc::c_char = (*conn).ssl_config.CApath;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let ssl_cert: *mut libc::c_char = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let ssl_cert: *mut libc::c_char = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*data).set.proxy_ssl.primary.clientcert
     } else {
@@ -328,18 +337,18 @@ unsafe extern "C" fn mbed_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let ssl_cert: *mut libc::c_char = (*data).set.ssl.primary.clientcert;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let mut ssl_cert_blob: *const curl_blob = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let mut ssl_cert_blob: *const curl_blob = if CURLPROXY_HTTPS as i32
+        as u32 == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*data).set.proxy_ssl.primary.cert_blob
     } else {
@@ -348,18 +357,18 @@ unsafe extern "C" fn mbed_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let mut ssl_cert_blob: *const curl_blob = (*data).set.ssl.primary.cert_blob;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let ssl_crlfile: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let ssl_crlfile: *const libc::c_char = if CURLPROXY_HTTPS as i32
+        as u32 == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*data).set.proxy_ssl.CRLfile
     } else {
@@ -368,18 +377,18 @@ unsafe extern "C" fn mbed_connect_step1(
     #[cfg(CURL_DISABLE_PROXY)]
     let ssl_crlfile: *const libc::c_char = (*data).set.ssl.CRLfile;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let hostname: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let hostname: *const libc::c_char = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).http_proxy.host.name
     } else {
@@ -394,41 +403,41 @@ unsafe extern "C" fn mbed_connect_step1(
     #endif
     */
     #[cfg(all(not(CURL_DISABLE_VERBOSE_STRINGS), not(CURL_DISABLE_PROXY)))]
-    let port: libc::c_long = (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let port: i64 = (if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).port
     } else {
         (*conn).remote_port
-    }) as libc::c_long;
+    }) as i64;
     #[cfg(all(not(CURL_DISABLE_VERBOSE_STRINGS), CURL_DISABLE_PROXY))]
-    let port: libc::c_long = (*conn).remote_port as libc::c_long;
+    let port: i64 = (*conn).remote_port as i64;
 
-    let mut ret: libc::c_int = -(1 as libc::c_int);
+    let mut ret: i32 = -(1 as i32);
     let mut errorbuf: [libc::c_char; 128] = [0; 128];
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_CONN_CONFIG_version = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
         (*conn).proxy_ssl_config.version
     } else {
@@ -436,8 +445,8 @@ unsafe extern "C" fn mbed_connect_step1(
                                 };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_CONN_CONFIG_version = (*conn).ssl_config.version;
-    if SSL_CONN_CONFIG_version == CURL_SSLVERSION_SSLv2 as libc::c_int as libc::c_long
-        || SSL_CONN_CONFIG_version == CURL_SSLVERSION_SSLv3 as libc::c_int as libc::c_long
+    if SSL_CONN_CONFIG_version == CURL_SSLVERSION_SSLv2 as i64
+        || SSL_CONN_CONFIG_version == CURL_SSLVERSION_SSLv3 as i64
     {
         Curl_failf(
             data,
@@ -457,19 +466,19 @@ unsafe extern "C" fn mbed_connect_step1(
             entropy_func_mutex
                 as unsafe extern "C" fn(
                     *mut libc::c_void,
-                    *mut libc::c_uchar,
+                    *mut u8,
                     size_t,
-                ) -> libc::c_int,
+                ) -> i32,
         ),
         &mut ts_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
-        0 as *const libc::c_uchar,
-        0 as libc::c_int as size_t,
+        0 as *const u8,
+        0 as size_t,
     );
     if ret != 0 {
         mbedtls_strerror(
             ret,
             errorbuf.as_mut_ptr(),
-            ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+            ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
         );
         Curl_failf(
             data,
@@ -492,19 +501,19 @@ unsafe extern "C" fn mbed_connect_step1(
     //             entropy_func_mutex
     //                 as unsafe extern "C" fn(
     //                     *mut libc::c_void,
-    //                     *mut libc::c_uchar,
+    //                     *mut u8,
     //                     size_t,
-    //                 ) -> libc::c_int,
+    //                 ) -> i32,
     //         ),
     //         &mut ts_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
-    //         0 as *const libc::c_uchar,
-    //         0 as libc::c_int as size_t,
+    //         0 as *const u8,
+    //         0 as i32 as size_t,
     //     );
     //     if ret != 0 {
     //         mbedtls_strerror(
     //             ret,
     //             errorbuf.as_mut_ptr(),
-    //             ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+    //             ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
     //         );
     //         Curl_failf(
     //             data,
@@ -523,11 +532,11 @@ unsafe extern "C" fn mbed_connect_step1(
     mbedtls_x509_crt_init(&mut (*backend).cacert);
     if !ssl_cafile.is_null() {
         ret = mbedtls_x509_crt_parse_file(&mut (*backend).cacert, ssl_cafile);
-        if ret < 0 as libc::c_int {
+        if ret < 0 as i32 {
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -544,11 +553,11 @@ unsafe extern "C" fn mbed_connect_step1(
     }
     if !ssl_capath.is_null() {
         ret = mbedtls_x509_crt_parse_path(&mut (*backend).cacert, ssl_capath);
-        if ret < 0 as libc::c_int {
+        if ret < 0 as i32 {
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -570,7 +579,7 @@ unsafe extern "C" fn mbed_connect_step1(
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -584,18 +593,18 @@ unsafe extern "C" fn mbed_connect_step1(
         }
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_SET_OPTION_key = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                    == (*conn).http_proxy.proxytype as libc::c_uint
-                    && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_SET_OPTION_key = if CURLPROXY_HTTPS as u32
+                    == (*conn).http_proxy.proxytype as u32
+                    && ssl_connection_complete as u32
                         != (*conn)
-                            .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                                == -(1 as libc::c_int)
+                            .proxy_ssl[(if (*conn).sock[1 as usize]
+                                == -(1 as i32)
                             {
-                                0 as libc::c_int
+                                0 as i32
                             } else {
-                                1 as libc::c_int
+                                1 as i32
                             }) as usize]
-                            .state as libc::c_uint
+                            .state as u32
                 {
                     (*data).set.proxy_ssl.key
                 } else {
@@ -605,18 +614,18 @@ unsafe extern "C" fn mbed_connect_step1(
     let SSL_SET_OPTION_key = (*data).set.ssl.key;
 
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_SET_OPTION_key_blob = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-            == (*conn).http_proxy.proxytype as libc::c_uint
-            && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_SET_OPTION_key_blob = if CURLPROXY_HTTPS as u32
+            == (*conn).http_proxy.proxytype as u32
+            && ssl_connection_complete as u32
                 != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
+                    .proxy_ssl[(if (*conn).sock[1 as usize]
+                        == -(1 as i32)
                     {
-                        0 as libc::c_int
+                        0 as i32
                     } else {
-                        1 as libc::c_int
+                        1 as i32
                     }) as usize]
-                    .state as libc::c_uint
+                    .state as u32
         {
             (*data).set.proxy_ssl.key_blob
         } else {
@@ -626,18 +635,18 @@ unsafe extern "C" fn mbed_connect_step1(
     let SSL_SET_OPTION_key_blob = (*data).set.ssl.key_blob;
     
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_SET_OPTION_key_passwd = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-            == (*conn).http_proxy.proxytype as libc::c_uint
-            && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_SET_OPTION_key_passwd = if CURLPROXY_HTTPS as u32
+            == (*conn).http_proxy.proxytype as u32
+            && ssl_connection_complete as u32
                 != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
+                    .proxy_ssl[(if (*conn).sock[1 as usize]
+                        == -(1 as i32)
                     {
-                        0 as libc::c_int
+                        0 as i32
                     } else {
-                        1 as libc::c_int
+                        1 as i32
                     }) as usize]
-                    .state as libc::c_uint
+                    .state as u32
         {
                                         (*data).set.proxy_ssl.key_passwd
         } else {
@@ -647,8 +656,8 @@ unsafe extern "C" fn mbed_connect_step1(
     let SSL_SET_OPTION_key_passwd = (*data).set.ssl.key_passwd;
 
     if !ssl_cert_blob.is_null() {
-        let mut blob_data: *const libc::c_uchar = (*ssl_cert_blob).data
-            as *const libc::c_uchar;
+        let mut blob_data: *const u8 = (*ssl_cert_blob).data
+            as *const u8;
         ret = mbedtls_x509_crt_parse(
             &mut (*backend).clicert,
             blob_data,
@@ -658,7 +667,7 @@ unsafe extern "C" fn mbed_connect_step1(
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -686,7 +695,7 @@ unsafe extern "C" fn mbed_connect_step1(
                 mbedtls_strerror(
                     ret,
                     errorbuf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                    ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
                 );
                 Curl_failf(
                     data,
@@ -700,8 +709,8 @@ unsafe extern "C" fn mbed_connect_step1(
             }
         } else {
             let mut ssl_key_blob: *const curl_blob = SSL_SET_OPTION_key_blob;
-            let mut key_data: *const libc::c_uchar = (*ssl_key_blob).data
-                as *const libc::c_uchar;
+            let mut key_data: *const u8 = (*ssl_key_blob).data
+                as *const u8;
             let mut passwd: *const libc::c_char = SSL_SET_OPTION_key_passwd;
 // 401-done
 // #if MBEDTLS_VERSION_NUMBER >= 0x03000000
@@ -721,11 +730,11 @@ unsafe extern "C" fn mbed_connect_step1(
                 &mut (*backend).pk,
                 key_data,
                 (*ssl_key_blob).len,
-                passwd as *const libc::c_uchar,
+                passwd as *const u8,
                 if !passwd.is_null() {
                     strlen(passwd)
                 } else {
-                    0 as libc::c_int as libc::c_ulong
+                    0 as u64
                 },
             );
             }    
@@ -734,7 +743,7 @@ unsafe extern "C" fn mbed_connect_step1(
                 mbedtls_strerror(
                     ret,
                     errorbuf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                    ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
                 );
                 Curl_failf(
                     data,
@@ -746,11 +755,11 @@ unsafe extern "C" fn mbed_connect_step1(
                 return CURLE_SSL_CERTPROBLEM;
             }
         }
-        if ret == 0 as libc::c_int
+        if ret == 0 as i32
             && !(mbedtls_pk_can_do(&mut (*backend).pk, MBEDTLS_PK_RSA) != 0
                 || mbedtls_pk_can_do(&mut (*backend).pk, MBEDTLS_PK_ECKEY) != 0)
         {
-            ret = -(0x3f00 as libc::c_int);
+            ret = -(0x3f00 as i32);
         }
     }
 
@@ -761,7 +770,7 @@ unsafe extern "C" fn mbed_connect_step1(
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -791,9 +800,9 @@ unsafe extern "C" fn mbed_connect_step1(
     }
     ret = mbedtls_ssl_config_defaults(
         &mut (*backend).config,
-        0 as libc::c_int,
-        0 as libc::c_int,
-        0 as libc::c_int,
+        0 as i32,
+        0 as i32,
+        0 as i32,
     );
     if ret != 0 {
         Curl_failf(
@@ -810,8 +819,8 @@ unsafe extern "C" fn mbed_connect_step1(
         #[cfg(MBEDTLS_VERSION_NUMBER_LT_0X03000000)]
             mbedtls_ssl_conf_min_version(
                 &mut (*backend).config,
-                3 as libc::c_int,
-                1 as libc::c_int,
+                3 as i32,
+                1 as i32,
             );
         #[cfg(MBEDTLS_VERSION_NUMBER_LT_0X03000000)]
             Curl_infof(
@@ -823,7 +832,7 @@ unsafe extern "C" fn mbed_connect_step1(
 // 471        
         4 | 5 | 6 | 7 => {
             let mut result: CURLcode = set_ssl_version_min_max(data, conn, sockindex);
-            if result as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint {
+            if result as u32 != CURLE_OK as u32 {
                 return result;
             }
         }
@@ -836,16 +845,16 @@ unsafe extern "C" fn mbed_connect_step1(
             return CURLE_SSL_CONNECT_ERROR;
         }
     }
-    mbedtls_ssl_conf_authmode(&mut (*backend).config, 1 as libc::c_int);
+    mbedtls_ssl_conf_authmode(&mut (*backend).config, 1 as i32);
     mbedtls_ssl_conf_rng(
         &mut (*backend).config,
         Some(
             mbedtls_ctr_drbg_random
                 as unsafe extern "C" fn(
                     *mut libc::c_void,
-                    *mut libc::c_uchar,
+                    *mut u8,
                     size_t,
-                ) -> libc::c_int,
+                ) -> i32,
         ),
         &mut (*backend).ctr_drbg as *mut mbedtls_ctr_drbg_context as *mut libc::c_void,
     );
@@ -857,17 +866,17 @@ unsafe extern "C" fn mbed_connect_step1(
             mbedtls_net_send
                 as unsafe extern "C" fn(
                     *mut libc::c_void,
-                    *const libc::c_uchar,
+                    *const u8,
                     size_t,
-                ) -> libc::c_int,
+                ) -> i32,
         ),
         Some(
             mbedtls_net_recv
                 as unsafe extern "C" fn(
                     *mut libc::c_void,
-                    *mut libc::c_uchar,
+                    *mut u8,
                     size_t,
-                ) -> libc::c_int,
+                ) -> i32,
         ),
         None,
     );
@@ -877,28 +886,28 @@ unsafe extern "C" fn mbed_connect_step1(
     );
     // 499
     #[cfg(MBEDTLS_SSL_RENEGOTIATION)]
-    mbedtls_ssl_conf_renegotiation(&mut (*backend).config, 1 as libc::c_int);
+    mbedtls_ssl_conf_renegotiation(&mut (*backend).config, 1 as i32);
     // 504
     #[cfg(MBEDTLS_SSL_SESSION_TICKETS)]
-    mbedtls_ssl_conf_session_tickets(&mut (*backend).config, 0 as libc::c_int);
+    mbedtls_ssl_conf_session_tickets(&mut (*backend).config, 0 as i32);
     
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
-        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+        ((*data).set.proxy_ssl.primary).sessionid() as i32
     } else {
-        ((*data).set.ssl.primary).sessionid() as libc::c_int
+        ((*data).set.ssl.primary).sessionid() as i32
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
@@ -907,25 +916,25 @@ unsafe extern "C" fn mbed_connect_step1(
         let mut old_session: *mut libc::c_void = 0 as *mut libc::c_void;
         Curl_ssl_sessionid_lock(data);
         #[cfg(not(CURL_DISABLE_PROXY))]
-        let SSL_IS_PROXY_null = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-                == (*conn).http_proxy.proxytype as libc::c_uint
-                && ssl_connection_complete as libc::c_int as libc::c_uint
+        let SSL_IS_PROXY_null = if CURLPROXY_HTTPS as u32
+                == (*conn).http_proxy.proxytype as u32
+                && ssl_connection_complete as u32
                     != (*conn)
-                        .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                            == -(1 as libc::c_int)
+                        .proxy_ssl[(if (*conn).sock[1 as usize]
+                            == -(1 as i32)
                         {
-                            0 as libc::c_int
+                            0 as i32
                         } else {
-                            1 as libc::c_int
+                            1 as i32
                         }) as usize]
-                        .state as libc::c_uint
+                        .state as u32
             {
-                1 as libc::c_int
+                1 as i32
             } else {
-                0 as libc::c_int
+                0 as i32
                                 } != 0 ;
         #[cfg(CURL_DISABLE_PROXY)]
-        let SSL_IS_PROXY_null = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int } != 0 ;
+        let SSL_IS_PROXY_null = if 0 as i32 != 0 { 1 as i32 } else { 0 as i32 } != 0 ;
         if !Curl_ssl_getsessionid(
             data,
             conn,
@@ -979,21 +988,21 @@ unsafe extern "C" fn mbed_connect_step1(
     if ((*conn).bits).tls_enable_alpn() != 0 {
         let mut p: *mut *const libc::c_char = &mut *((*backend).protocols)
             .as_mut_ptr()
-            .offset(0 as libc::c_int as isize) as *mut *const libc::c_char;
+            .offset(0 as isize) as *mut *const libc::c_char;
             #[cfg(USE_NGHTTP2)]
-        if (*data).state.httpwant as libc::c_int >= CURL_HTTP_VERSION_2_0 as libc::c_int
+        if (*data).state.httpwant as i32 >= CURL_HTTP_VERSION_2_0 as i32
         {
             let fresh0 = p;
             p = p.offset(1);
-            *fresh0 = b"h2\0" as *const u8 as *const libc::c_char;
+            p = b"h2\0" as *const u8 as *const libc::c_char;
         }
         let fresh1 = p;
         p = p.offset(1);
-        *fresh1 = b"http/1.1\0" as *const u8 as *const libc::c_char;
+        p = b"http/1.1\0" as *const u8 as *const libc::c_char;
         *p = 0 as *const libc::c_char;
         if mbedtls_ssl_conf_alpn_protocols(
             &mut (*backend).config,
-            &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize),
+            &mut *((*backend).protocols).as_mut_ptr().offset(0 as isize),
         ) != 0
         {
             Curl_failf(
@@ -1002,7 +1011,7 @@ unsafe extern "C" fn mbed_connect_step1(
             );
             return CURLE_SSL_CONNECT_ERROR;
         }
-        p = &mut *((*backend).protocols).as_mut_ptr().offset(0 as libc::c_int as isize)
+        p = &mut *((*backend).protocols).as_mut_ptr().offset(0 as isize)
             as *mut *const libc::c_char;
         while !(*p).is_null() {
             Curl_infof(
@@ -1022,7 +1031,7 @@ unsafe extern "C" fn mbed_connect_step1(
             data,
             &mut (*backend).config as *mut mbedtls_ssl_config as *mut libc::c_void,
             (*data).set.ssl.fsslctxp,
-        ) as libc::c_int;
+        ) as i32;
         if ret != 0 {
             Curl_failf(
                 data,
@@ -1035,51 +1044,53 @@ unsafe extern "C" fn mbed_connect_step1(
     (*connssl).connecting_state = ssl_connect_2;
     return CURLE_OK;
 }
+}
 
 // done
-unsafe extern "C" fn mbed_connect_step2(
+extern "C" fn mbed_connect_step2(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) -> CURLcode {
-    let mut ret: libc::c_int = 0;
+    unsafe{
+    let mut ret: i32 = 0;
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut peercert: *const mbedtls_x509_crt = 0 as *const mbedtls_x509_crt;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let pinnedpubkey: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let pinnedpubkey: *const libc::c_char = if CURLPROXY_HTTPS as i32
+        as u32 == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
-        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as libc::c_int as usize]
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY_PROXY as usize]
     } else {
-        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize]
+        (*data).set.str_0[STRING_SSL_PINNEDPUBLICKEY as usize]
     };
     #[cfg(CURL_DISABLE_PROXY)]
     let pinnedpubkey: *const libc::c_char = (*data)
         .set
-        .str_0[STRING_SSL_PINNEDPUBLICKEY as libc::c_int as usize];
-    let ref mut fresh2 = (*conn).recv[sockindex as usize];
-    *fresh2 = Some(mbed_recv as Curl_recv);
-    let ref mut fresh3 = (*conn).send[sockindex as usize];
-    *fresh3 = Some(mbed_send as Curl_send);
+        .str_0[STRING_SSL_PINNEDPUBLICKEY as usize];
+    // let ref mut fresh2 = (*conn).recv[sockindex as usize];
+    (*conn).recv[sockindex as usize] = Some(mbed_recv as Curl_recv);
+    // let ref mut fresh3 = (*conn).send[sockindex as usize];
+    (*conn).send[sockindex as usize] = Some(mbed_send as Curl_send);
     ret = mbedtls_ssl_handshake(&mut (*backend).ssl);
-    if ret == -(0x6900 as libc::c_int) {
+    if ret == -(0x6900 as i32) {
         (*connssl).connecting_state = ssl_connect_2_reading;
         return CURLE_OK;
     } else {
-        if ret == -(0x6880 as libc::c_int) {
+        if ret == -(0x6880 as i32) {
             (*connssl).connecting_state = ssl_connect_2_writing;
             return CURLE_OK;
         } else {
@@ -1088,7 +1099,7 @@ unsafe extern "C" fn mbed_connect_step2(
                 mbedtls_strerror(
                     ret,
                     errorbuf.as_mut_ptr(),
-                    ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                    ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
                 );
                 Curl_failf(
                     data,
@@ -1107,78 +1118,78 @@ unsafe extern "C" fn mbed_connect_step2(
             as *const libc::c_char,
         mbedtls_ssl_get_ciphersuite(&mut (*backend).ssl),
     );
-    ret = mbedtls_ssl_get_verify_result(&mut (*backend).ssl) as libc::c_int;
+    ret = mbedtls_ssl_get_verify_result(&mut (*backend).ssl) as i32;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    if if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    if if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
-        ((*conn).proxy_ssl_config).verifyhost() as libc::c_int
+        ((*conn).proxy_ssl_config).verifyhost() as i32
     } else {
-        ((*conn).ssl_config).verifyhost() as libc::c_int
+        ((*conn).ssl_config).verifyhost() as i32
     } == 0
     {
-        ret &= !(0x4 as libc::c_int);
+        ret &= !(0x4 as i32);
     }
     #[cfg(CURL_DISABLE_PROXY)]
     if ((*conn).ssl_config).verifyhost() == 0 {
-        ret &= !(0x4 as libc::c_int);
+        ret &= !(0x4 as i32);
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_CONN_CONFIG_verifyhost_1 = (if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-            == (*conn).http_proxy.proxytype as libc::c_uint
-            && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_CONN_CONFIG_verifyhost_1 = (if CURLPROXY_HTTPS as u32
+            == (*conn).http_proxy.proxytype as u32
+            && ssl_connection_complete as u32
                 != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
+                    .proxy_ssl[(if (*conn).sock[1 as usize]
+                        == -(1 as i32)
                     {
-                        0 as libc::c_int
+                        0 as i32
                     } else {
-                        1 as libc::c_int
+                        1 as i32
                     }) as usize]
-                    .state as libc::c_uint
+                    .state as u32
         {
-            ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
+            ((*conn).proxy_ssl_config).verifypeer() as i32
         } else {
-            ((*conn).ssl_config).verifypeer() as libc::c_int
+            ((*conn).ssl_config).verifypeer() as i32
                                     }) != 0;
     #[cfg(CURL_DISABLE_PROXY)]
-    let SSL_CONN_CONFIG_verifyhost_1 = ((*conn).ssl_config).verifypeer() as libc::c_int != 0;
+    let SSL_CONN_CONFIG_verifyhost_1 = ((*conn).ssl_config).verifypeer() as i32 != 0;
     if ret != 0 && SSL_CONN_CONFIG_verifyhost_1{
-        if ret & 0x1 as libc::c_int != 0 {
+        if ret & 0x1 as i32 != 0 {
             Curl_failf(
                 data,
                 b"Cert verify failed: BADCERT_EXPIRED\0" as *const u8
                     as *const libc::c_char,
             );
-        } else if ret & 0x2 as libc::c_int != 0 {
+        } else if ret & 0x2 as i32 != 0 {
             Curl_failf(
                 data,
                 b"Cert verify failed: BADCERT_REVOKED\0" as *const u8
                     as *const libc::c_char,
             );
-        } else if ret & 0x4 as libc::c_int != 0 {
+        } else if ret & 0x4 as i32 != 0 {
             Curl_failf(
                 data,
                 b"Cert verify failed: BADCERT_CN_MISMATCH\0" as *const u8
                     as *const libc::c_char,
             );
-        } else if ret & 0x8 as libc::c_int != 0 {
+        } else if ret & 0x8 as i32 != 0 {
             Curl_failf(
                 data,
                 b"Cert verify failed: BADCERT_NOT_TRUSTED\0" as *const u8
                     as *const libc::c_char,
             );
-        } else if ret & 0x200 as libc::c_int != 0 {
+        } else if ret & 0x200 as i32 != 0 {
             Curl_failf(
                 data,
                 b"Cert verify failed: BADCERT_FUTURE\0" as *const u8
@@ -1188,15 +1199,15 @@ unsafe extern "C" fn mbed_connect_step2(
         return CURLE_PEER_FAILED_VERIFICATION;
     }
     peercert = mbedtls_ssl_get_peer_cert(&mut (*backend).ssl);
-    if !peercert.is_null() && ((*data).set).verbose() as libc::c_int != 0 {
-        let bufsize: size_t = 16384 as libc::c_int as size_t;
+    if !peercert.is_null() && ((*data).set).verbose() as i32 != 0 {
+        let bufsize: size_t = 16384 as size_t;
         #[cfg(not(CURLDEBUG))]
         let mut buffer: *mut libc::c_char = Curl_cmalloc
         .expect("non-null function pointer")(bufsize) as *mut libc::c_char;
 	#[cfg(CURLDEBUG)]
         let mut buffer: *mut libc::c_char = curl_dbg_malloc(
             bufsize,
-            655 as libc::c_int,
+            655 as i32,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
         ) as *mut libc::c_char;
         if buffer.is_null() {
@@ -1207,7 +1218,7 @@ unsafe extern "C" fn mbed_connect_step2(
             bufsize,
             b"* \0" as *const u8 as *const libc::c_char,
             peercert,
-        ) > 0 as libc::c_int
+        ) > 0 as i32
         {
             Curl_infof(
                 data,
@@ -1227,15 +1238,15 @@ unsafe extern "C" fn mbed_connect_step2(
 	#[cfg(CURLDEBUG)]
         curl_dbg_free(
             buffer as *mut libc::c_void,
-            665 as libc::c_int,
+            665 as i32,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
         );
     }
     if !pinnedpubkey.is_null() {
-        let mut size: libc::c_int = 0;
+        let mut size: i32 = 0;
         let mut result: CURLcode = CURLE_OK;
         let mut p: *mut mbedtls_x509_crt = 0 as *mut mbedtls_x509_crt;
-        let mut pubkey: *mut libc::c_uchar = 0 as *mut libc::c_uchar;
+        let mut pubkey: *mut u8 = 0 as *mut u8;
         // ******************************************************************
         // 674 - done
         // #if MBEDTLS_VERSION_NUMBER >= 0x03000000
@@ -1263,16 +1274,16 @@ unsafe extern "C" fn mbed_connect_step2(
                 .expect(
                     "non-null function pointer",
                 )(
-                1 as libc::c_int as size_t,
-                ::std::mem::size_of::<mbedtls_x509_crt>() as libc::c_ulong,
+                1 as size_t,
+                ::std::mem::size_of::<mbedtls_x509_crt>() as u64,
             ) as *mut mbedtls_x509_crt;
             }
             #[cfg(CURLDEBUG)]
             _ => {
                 p = curl_dbg_calloc(
-                    1 as libc::c_int as size_t,
-                    ::std::mem::size_of::<mbedtls_x509_crt>() as libc::c_ulong,
-                    684 as libc::c_int,
+                    1 as size_t,
+                    ::std::mem::size_of::<mbedtls_x509_crt>() as u64,
+                    684 as i32,
                     b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
                 ) as *mut mbedtls_x509_crt;
             }
@@ -1288,36 +1299,36 @@ unsafe extern "C" fn mbed_connect_step2(
                 .expect(
                     "non-null function pointer",
                 )(
-                (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                    > 30 as libc::c_int
-                        + 2 as libc::c_int
-                            * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                (if 38 as i32 + 2 as i32 * 1024 as i32
+                    > 30 as i32
+                        + 2 as i32
+                            * ((521 as i32 + 7 as i32) / 8 as i32)
                 {
-                    38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                    38 as i32 + 2 as i32 * 1024 as i32
                 } else {
-                    30 as libc::c_int
-                        + 2 as libc::c_int
-                            * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                    30 as i32
+                        + 2 as i32
+                            * ((521 as i32 + 7 as i32) / 8 as i32)
                 }) as size_t,
-            ) as *mut libc::c_uchar;
+            ) as *mut u8;
             }
             #[cfg(CURLDEBUG)]
             _ => {
                 pubkey = curl_dbg_malloc(
-                    (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                        > 30 as libc::c_int
-                            + 2 as libc::c_int
-                                * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                    (if 38 as i32 + 2 as i32 * 1024 as i32
+                        > 30 as i32
+                            + 2 as i32
+                                * ((521 as i32 + 7 as i32) / 8 as i32)
                     {
-                        38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                        38 as i32 + 2 as i32 * 1024 as i32
                     } else {
-                        30 as libc::c_int
-                            + 2 as libc::c_int
-                                * ((521 as libc::c_int + 7 as libc::c_int) / 8 as libc::c_int)
+                        30 as i32
+                            + 2 as i32
+                                * ((521 as i32 + 7 as i32) / 8 as i32)
                     }) as size_t,
-                    689 as libc::c_int,
+                    689 as i32,
                     b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
-                ) as *mut libc::c_uchar;
+                ) as *mut u8;
             }
         }
         
@@ -1345,22 +1356,22 @@ unsafe extern "C" fn mbed_connect_step2(
                 size = mbedtls_pk_write_pubkey_der(
                     &mut (*p).pk,
                     pubkey,
-                    (if 38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
-                        > 30 as libc::c_int
-                            + 2 as libc::c_int
-                                * ((521 as libc::c_int + 7 as libc::c_int)
-                                    / 8 as libc::c_int)
+                    (if 38 as i32 + 2 as i32 * 1024 as i32
+                        > 30 as i32
+                            + 2 as i32
+                                * ((521 as i32 + 7 as i32)
+                                    / 8 as i32)
                     {
-                        38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                        38 as i32 + 2 as i32 * 1024 as i32
                     } else {
-                        30 as libc::c_int
-                            + 2 as libc::c_int
-                                * ((521 as libc::c_int + 7 as libc::c_int)
-                                    / 8 as libc::c_int)
+                        30 as i32
+                            + 2 as i32
+                                * ((521 as i32 + 7 as i32)
+                                    / 8 as i32)
                     }) as size_t,
                 );
                 }
-                if size <= 0 as libc::c_int {
+                if size <= 0 as i32 {
                     Curl_failf(
                         data,
                         b"Failed copying public key from peer certificate\0" as *const u8
@@ -1373,19 +1384,19 @@ unsafe extern "C" fn mbed_connect_step2(
                         pinnedpubkey,
                         &mut *pubkey
                             .offset(
-                                ((if 38 as libc::c_int
-                                    + 2 as libc::c_int * 1024 as libc::c_int
-                                    > 30 as libc::c_int
-                                        + 2 as libc::c_int
-                                            * ((521 as libc::c_int + 7 as libc::c_int)
-                                                / 8 as libc::c_int)
+                                ((if 38 as i32
+                                    + 2 as i32 * 1024 as i32
+                                    > 30 as i32
+                                        + 2 as i32
+                                            * ((521 as i32 + 7 as i32)
+                                                / 8 as i32)
                                 {
-                                    38 as libc::c_int + 2 as libc::c_int * 1024 as libc::c_int
+                                    38 as i32 + 2 as i32 * 1024 as i32
                                 } else {
-                                    30 as libc::c_int
-                                        + 2 as libc::c_int
-                                            * ((521 as libc::c_int + 7 as libc::c_int)
-                                                / 8 as libc::c_int)
+                                    30 as i32
+                                        + 2 as i32
+                                            * ((521 as i32 + 7 as i32)
+                                                / 8 as i32)
                                 }) - size) as isize,
                             ),
                         size as size_t,
@@ -1401,7 +1412,7 @@ unsafe extern "C" fn mbed_connect_step2(
 	#[cfg(CURLDEBUG)]
         curl_dbg_free(
             p as *mut libc::c_void,
-            732 as libc::c_int,
+            732 as i32,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
         );
         #[cfg(not(CURLDEBUG))]
@@ -1410,7 +1421,7 @@ unsafe extern "C" fn mbed_connect_step2(
 	#[cfg(CURLDEBUG)]
         curl_dbg_free(
             pubkey as *mut libc::c_void,
-            733 as libc::c_int,
+            733 as i32,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
         );
         if result as u64 != 0 {
@@ -1436,17 +1447,17 @@ unsafe extern "C" fn mbed_connect_step2(
             if strncmp(
                 next_protocol,
                 b"h2\0" as *const u8 as *const libc::c_char,
-                2 as libc::c_int as libc::c_ulong,
-                ) == 0 && *next_protocol.offset(2 as libc::c_int as isize) == 0 && USE_NGHTTP2_flag
+                2 as u64,
+                ) == 0 && *next_protocol.offset(2 as isize) == 0 && USE_NGHTTP2_flag
             {
-                (*conn).negnpn = CURL_HTTP_VERSION_2_0 as libc::c_int;
+                (*conn).negnpn = CURL_HTTP_VERSION_2_0 as i32;
             } else if strncmp(
                     next_protocol,
                     b"http/1.1\0" as *const u8 as *const libc::c_char,
-                    8 as libc::c_int as libc::c_ulong,
-                ) == 0 && *next_protocol.offset(8 as libc::c_int as isize) == 0
+                    8 as u64,
+                ) == 0 && *next_protocol.offset(8 as isize) == 0
                 {
-                (*conn).negnpn = CURL_HTTP_VERSION_1_1 as libc::c_int;
+                (*conn).negnpn = CURL_HTTP_VERSION_1_1 as i32;
             }
         } else {
             Curl_infof(
@@ -1457,10 +1468,10 @@ unsafe extern "C" fn mbed_connect_step2(
         }
         Curl_multiuse_state(
             data,
-            if (*conn).negnpn == CURL_HTTP_VERSION_2_0 as libc::c_int {
-                2 as libc::c_int
+            if (*conn).negnpn == CURL_HTTP_VERSION_2_0 as i32 {
+                2 as i32
             } else {
-                -(1 as libc::c_int)
+                -(1 as i32)
             },
         );
     }
@@ -1469,27 +1480,29 @@ unsafe extern "C" fn mbed_connect_step2(
     Curl_infof(data, b"SSL connected\0" as *const u8 as *const libc::c_char);
     return CURLE_OK;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbed_connect_step3(
+extern "C" fn mbed_connect_step3(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) -> CURLcode {
+    unsafe{
     let mut retcode: CURLcode = CURLE_OK;
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if ssl_connect_3 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
+    if ssl_connect_3 as u32
+        == (*connssl).connecting_state as u32
     {} else {
         __assert_fail(
             b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
                 as *const libc::c_char,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
-            780 as libc::c_int as libc::c_uint,
+            780 as u32,
             (*::std::mem::transmute::<
                 &[u8; 75],
                 &[libc::c_char; 75],
@@ -1500,51 +1513,51 @@ unsafe extern "C" fn mbed_connect_step3(
         );
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-        == (*conn).http_proxy.proxytype as libc::c_uint
-        && ssl_connection_complete as libc::c_int as libc::c_uint
+    let SSL_SET_OPTION_primary_sessionid = if CURLPROXY_HTTPS as u32
+        == (*conn).http_proxy.proxytype as u32
+        && ssl_connection_complete as u32
             != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
+                .proxy_ssl[(if (*conn).sock[1 as usize]
+                    == -(1 as i32)
                 {
-                    0 as libc::c_int
+                    0 as i32
                 } else {
-                    1 as libc::c_int
+                    1 as i32
                 }) as usize]
-                .state as libc::c_uint
+                .state as u32
     {
-        ((*data).set.proxy_ssl.primary).sessionid() as libc::c_int
+        ((*data).set.proxy_ssl.primary).sessionid() as i32
     } else {
-        ((*data).set.ssl.primary).sessionid() as libc::c_int
+        ((*data).set.ssl.primary).sessionid() as i32
                                         };
     #[cfg(CURL_DISABLE_PROXY)]
     let SSL_SET_OPTION_primary_sessionid = ((*data).set.ssl.primary).sessionid();
 
     if SSL_SET_OPTION_primary_sessionid != 0{
-        let mut ret: libc::c_int = 0;
+        let mut ret: i32 = 0;
         let mut our_ssl_sessionid: *mut mbedtls_ssl_session = 0
             as *mut mbedtls_ssl_session;
         let mut old_ssl_sessionid: *mut libc::c_void = 0 as *mut libc::c_void;
         #[cfg(not(CURL_DISABLE_PROXY))]
-        let SSL_IS_PROXY_null_1 = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
-            == (*conn).http_proxy.proxytype as libc::c_uint
-            && ssl_connection_complete as libc::c_int as libc::c_uint
+        let SSL_IS_PROXY_null_1 = if CURLPROXY_HTTPS as u32
+            == (*conn).http_proxy.proxytype as u32
+            && ssl_connection_complete as u32
                 != (*conn)
-                    .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                        == -(1 as libc::c_int)
+                    .proxy_ssl[(if (*conn).sock[1 as usize]
+                        == -(1 as i32)
                     {
-                        0 as libc::c_int
+                        0 as i32
                     } else {
-                        1 as libc::c_int
+                        1 as i32
                     }) as usize]
-                    .state as libc::c_uint
+                    .state as u32
         {
-            1 as libc::c_int
+            1 as i32
         } else {
-            0 as libc::c_int
+            0 as i32
         } != 0 ;
         #[cfg(CURL_DISABLE_PROXY)]
-        let SSL_IS_PROXY_null_1 = if 0 as libc::c_int != 0 { 1 as libc::c_int } else { 0 as libc::c_int } != 0 ;
+        let SSL_IS_PROXY_null_1 = if 0 as i32 != 0 { 1 as i32 } else { 0 as i32 } != 0 ;
         let mut isproxy: bool = SSL_IS_PROXY_null_1;
         match () {
             #[cfg(not(CURLDEBUG))]
@@ -1552,14 +1565,14 @@ unsafe extern "C" fn mbed_connect_step3(
                 our_ssl_sessionid = Curl_cmalloc
                 .expect(
                     "non-null function pointer",
-                )(::std::mem::size_of::<mbedtls_ssl_session>() as libc::c_ulong)
+                )(::std::mem::size_of::<mbedtls_ssl_session>() as u64)
                 as *mut mbedtls_ssl_session;
             }
             #[cfg(CURLDEBUG)]
             _ => {
                 our_ssl_sessionid = curl_dbg_malloc(
-                    ::std::mem::size_of::<mbedtls_ssl_session>() as libc::c_ulong,
-                    788 as libc::c_int,
+                    ::std::mem::size_of::<mbedtls_ssl_session>() as u64,
+                    788 as i32,
                     b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
                 ) as *mut mbedtls_ssl_session;
             }
@@ -1571,7 +1584,7 @@ unsafe extern "C" fn mbed_connect_step3(
         mbedtls_ssl_session_init(our_ssl_sessionid);
         ret = mbedtls_ssl_get_session(&mut (*backend).ssl, our_ssl_sessionid);
         if ret != 0 {
-            if ret != -(0x7f00 as libc::c_int) {
+            if ret != -(0x7f00 as i32) {
                 mbedtls_ssl_session_free(our_ssl_sessionid);
             }
             #[cfg(not(CURLDEBUG))]
@@ -1582,7 +1595,7 @@ unsafe extern "C" fn mbed_connect_step3(
             #[cfg(CURLDEBUG)]
             curl_dbg_free(
                 our_ssl_sessionid as *mut libc::c_void,
-                798 as libc::c_int,
+                798 as i32,
                 b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
             );
             Curl_failf(
@@ -1609,7 +1622,7 @@ unsafe extern "C" fn mbed_connect_step3(
             conn,
             isproxy,
             our_ssl_sessionid as *mut libc::c_void,
-            0 as libc::c_int as size_t,
+            0 as size_t,
             sockindex,
         );
         Curl_ssl_sessionid_unlock(data);
@@ -1623,7 +1636,7 @@ unsafe extern "C" fn mbed_connect_step3(
 	#[cfg(CURLDEBUG)]
             curl_dbg_free(
                 our_ssl_sessionid as *mut libc::c_void,
-                814 as libc::c_int,
+                814 as i32,
                 b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
             );
             Curl_failf(
@@ -1636,42 +1649,46 @@ unsafe extern "C" fn mbed_connect_step3(
     (*connssl).connecting_state = ssl_connect_done;
     return CURLE_OK;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbed_send(
+extern "C" fn mbed_send(
     mut data: *mut Curl_easy,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
     mut mem: *const libc::c_void,
     mut len: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
+    unsafe{
     let mut conn: *mut connectdata = (*data).conn;
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
-    let mut ret: libc::c_int = -(1 as libc::c_int);
-    ret = mbedtls_ssl_write(&mut (*backend).ssl, mem as *mut libc::c_uchar, len);
-    if ret < 0 as libc::c_int {
-        *curlcode = (if ret == -(0x6880 as libc::c_int) {
-            CURLE_AGAIN as libc::c_int
+    let mut ret: i32 = -(1 as i32);
+    ret = mbedtls_ssl_write(&mut (*backend).ssl, mem as *mut u8, len);
+    if ret < 0 as i32 {
+        *curlcode = (if ret == -(0x6880 as i32) {
+            CURLE_AGAIN as i32
         } else {
-            CURLE_SEND_ERROR as libc::c_int
+            CURLE_SEND_ERROR as i32
         }) as CURLcode;
-        ret = -(1 as libc::c_int);
+        ret = -(1 as i32);
     }
     return ret as ssize_t;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_close_all(mut data: *mut Curl_easy) {}
+extern "C" fn mbedtls_close_all(mut data: *mut Curl_easy) {}
 
 // done
-unsafe extern "C" fn mbedtls_close(
+extern "C" fn mbedtls_close(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) {
+    unsafe{
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
@@ -1679,8 +1696,8 @@ unsafe extern "C" fn mbedtls_close(
     let mut buf: [libc::c_char; 32] = [0; 32];
     mbedtls_ssl_read(
         &mut (*backend).ssl,
-        buf.as_mut_ptr() as *mut libc::c_uchar,
-        ::std::mem::size_of::<[libc::c_char; 32]>() as libc::c_ulong,
+        buf.as_mut_ptr() as *mut u8,
+        ::std::mem::size_of::<[libc::c_char; 32]>() as u64,
     );
     mbedtls_pk_free(&mut (*backend).pk);
     mbedtls_x509_crt_free(&mut (*backend).clicert);
@@ -1693,40 +1710,44 @@ unsafe extern "C" fn mbedtls_close(
     #[cfg(THREADING_SUPPORT)]
     mbedtls_entropy_free(&mut (*backend).entropy);
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbed_recv(
+extern "C" fn mbed_recv(
     mut data: *mut Curl_easy,
-    mut num: libc::c_int,
+    mut num: i32,
     mut buf: *mut libc::c_char,
     mut buffersize: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
+    unsafe{
     let mut conn: *mut connectdata = (*data).conn;
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(num as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
-    let mut ret: libc::c_int = -(1 as libc::c_int);
-    let mut len: ssize_t = -(1 as libc::c_int) as ssize_t;
-    ret = mbedtls_ssl_read(&mut (*backend).ssl, buf as *mut libc::c_uchar, buffersize);
-    if ret <= 0 as libc::c_int {
-        if ret == -(0x7880 as libc::c_int) {
-            return 0 as libc::c_int as ssize_t;
+    let mut ret: i32 = -(1 as i32);
+    let mut len: ssize_t = -(1 as i32) as ssize_t;
+    ret = mbedtls_ssl_read(&mut (*backend).ssl, buf as *mut u8, buffersize);
+    if ret <= 0 as i32 {
+        if ret == -(0x7880 as i32) {
+            return 0 as ssize_t;
         }
-        *curlcode = (if ret == -(0x6900 as libc::c_int) {
-            CURLE_AGAIN as libc::c_int
+        *curlcode = (if ret == -(0x6900 as i32) {
+            CURLE_AGAIN as i32
         } else {
-            CURLE_RECV_ERROR as libc::c_int
+            CURLE_RECV_ERROR as i32
         }) as CURLcode;
-        return -(1 as libc::c_int) as ssize_t;
+        return -(1 as i32) as ssize_t;
     }
     len = ret as ssize_t;
     return len;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_session_free(mut ptr: *mut libc::c_void) {
+extern "C" fn mbedtls_session_free(mut ptr: *mut libc::c_void) {
+    unsafe{
     mbedtls_ssl_session_free(ptr as *mut mbedtls_ssl_session);
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(ptr);
@@ -1734,26 +1755,28 @@ unsafe extern "C" fn mbedtls_session_free(mut ptr: *mut libc::c_void) {
 	#[cfg(CURLDEBUG)]
     curl_dbg_free(
         ptr,
-        904 as libc::c_int,
+        904 as i32,
         b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
     );
 }
+}
 
 // done
-unsafe extern "C" fn mbedtls_version(
+extern "C" fn mbedtls_version(
     mut buffer: *mut libc::c_char,
     mut size: size_t,
 ) -> size_t {
+    unsafe{
     // 909 - done
     if cfg!(MBEDTLS_VERSION_C){
-    let mut version: libc::c_uint = mbedtls_version_get_number();
+    let mut version: u32 = mbedtls_version_get_number();
     return curl_msnprintf(
         buffer,
         size,
         b"mbedTLS/%u.%u.%u\0" as *const u8 as *const libc::c_char,
-        version >> 24 as libc::c_int,
-        version >> 16 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
-        version >> 8 as libc::c_int & 0xff as libc::c_int as libc::c_uint,
+        version >> 24 as i32,
+        version >> 16 as i32 & 0xff as u32,
+        version >> 8 as i32 & 0xff as u32,
     ) as size_t;
 }
 else{
@@ -1764,17 +1787,19 @@ else{
         b"2.16.3\0" as *const u8 as *const libc::c_char,
     ) as size_t;
 } 
+    }
     
 }
 
 // done
 unsafe extern "C" fn mbedtls_random(
     mut data: *mut Curl_easy,
-    mut entropy: *mut libc::c_uchar,
+    mut entropy: *mut u8,
     mut length: size_t,
 ) -> CURLcode {
+    unsafe{
     if cfg!(MBEDTLS_CTR_DRBG_C){
-    let mut ret: libc::c_int = -(1 as libc::c_int);
+    let mut ret: i32 = -(1 as i32);
     let mut errorbuf: [libc::c_char; 128] = [0; 128];
     let mut ctr_entropy: mbedtls_entropy_context = mbedtls_entropy_context {
         accumulator_started: 0,
@@ -1862,19 +1887,19 @@ unsafe extern "C" fn mbedtls_random(
             mbedtls_entropy_func
                 as unsafe extern "C" fn(
                     *mut libc::c_void,
-                    *mut libc::c_uchar,
+                    *mut u8,
                     size_t,
-                ) -> libc::c_int,
+                ) -> i32,
         ),
         &mut ctr_entropy as *mut mbedtls_entropy_context as *mut libc::c_void,
-        0 as *const libc::c_uchar,
-        0 as libc::c_int as size_t,
+        0 as *const u8,
+        0 as i32 as size_t,
     );
     if ret != 0 {
         mbedtls_strerror(
             ret,
             errorbuf.as_mut_ptr(),
-            ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+            ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
         );
         Curl_failf(
             data,
@@ -1893,7 +1918,7 @@ unsafe extern "C" fn mbedtls_random(
             mbedtls_strerror(
                 ret,
                 errorbuf.as_mut_ptr(),
-                ::std::mem::size_of::<[libc::c_char; 128]>() as libc::c_ulong,
+                ::std::mem::size_of::<[libc::c_char; 128]>() as u64,
             );
             Curl_failf(
                 data,
@@ -1906,45 +1931,47 @@ unsafe extern "C" fn mbedtls_random(
     }
     mbedtls_ctr_drbg_free(&mut ctr_drbg);
     mbedtls_entropy_free(&mut ctr_entropy);
-    return (if ret == 0 as libc::c_int {
-        CURLE_OK as libc::c_int
+    return (if ret == 0 as i32 {
+        CURLE_OK as i32
     } else {
-        CURLE_FAILED_INIT as libc::c_int
+        CURLE_FAILED_INIT as i32
     }) as CURLcode;
     }else if cfg!(MBEDTLS_HAVEGE_C){
         // todo
-        return CURLE_OK as libc::c_int as CURLcode;
+        return CURLE_OK as CURLcode;
     }else{
-        return CURLE_NOT_BUILT_IN as libc::c_int as CURLcode;
+        return CURLE_NOT_BUILT_IN as CURLcode;
 }
+    }
 }
 
 // 内部没有宏
-unsafe extern "C" fn mbed_connect_common(
+extern "C" fn mbed_connect_common(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
     mut nonblocking: bool,
     mut done: *mut bool,
 ) -> CURLcode {
+    unsafe{
     let mut retcode: CURLcode = CURLE_OK;
     let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
         .as_mut_ptr()
         .offset(sockindex as isize) as *mut ssl_connect_data;
     let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
     let mut timeout_ms: timediff_t = 0;
-    let mut what: libc::c_int = 0;
-    if ssl_connection_complete as libc::c_int as libc::c_uint
-        == (*connssl).state as libc::c_uint
+    let mut what: i32 = 0;
+    if ssl_connection_complete as u32
+        == (*connssl).state as u32
     {
-        *done = 1 as libc::c_int != 0;
+        *done = 1 as i32 != 0;
         return CURLE_OK;
     }
-    if ssl_connect_1 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
+    if ssl_connect_1 as u32
+        == (*connssl).connecting_state as u32
     {
-        timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as libc::c_int != 0);
-        if timeout_ms < 0 as libc::c_int as libc::c_long {
+        timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
+        if timeout_ms < 0 as i64 {
             Curl_failf(
                 data,
                 b"SSL connection timeout\0" as *const u8 as *const libc::c_char,
@@ -1956,51 +1983,51 @@ unsafe extern "C" fn mbed_connect_common(
             return retcode;
         }
     }
-    while ssl_connect_2 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
-        || ssl_connect_2_reading as libc::c_int as libc::c_uint
-            == (*connssl).connecting_state as libc::c_uint
-        || ssl_connect_2_writing as libc::c_int as libc::c_uint
-            == (*connssl).connecting_state as libc::c_uint
+    while ssl_connect_2 as u32
+        == (*connssl).connecting_state as u32
+        || ssl_connect_2_reading as u32
+            == (*connssl).connecting_state as u32
+        || ssl_connect_2_writing as u32
+            == (*connssl).connecting_state as u32
     {
-        timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as libc::c_int != 0);
-        if timeout_ms < 0 as libc::c_int as libc::c_long {
+        timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
+        if timeout_ms < 0 as i64 {
             Curl_failf(
                 data,
                 b"SSL connection timeout\0" as *const u8 as *const libc::c_char,
             );
             return CURLE_OPERATION_TIMEDOUT;
         }
-        if (*connssl).connecting_state as libc::c_uint
-            == ssl_connect_2_reading as libc::c_int as libc::c_uint
-            || (*connssl).connecting_state as libc::c_uint
-                == ssl_connect_2_writing as libc::c_int as libc::c_uint
+        if (*connssl).connecting_state as u32
+            == ssl_connect_2_reading as u32
+            || (*connssl).connecting_state as u32
+                == ssl_connect_2_writing as u32
         {
-            let mut writefd: curl_socket_t = if ssl_connect_2_writing as libc::c_int
-                as libc::c_uint == (*connssl).connecting_state as libc::c_uint
+            let mut writefd: curl_socket_t = if ssl_connect_2_writing as i32
+                as u32 == (*connssl).connecting_state as u32
             {
                 sockfd
             } else {
-                -(1 as libc::c_int)
+                -(1 as i32)
             };
-            let mut readfd: curl_socket_t = if ssl_connect_2_reading as libc::c_int
-                as libc::c_uint == (*connssl).connecting_state as libc::c_uint
+            let mut readfd: curl_socket_t = if ssl_connect_2_reading as i32
+                as u32 == (*connssl).connecting_state as u32
             {
                 sockfd
             } else {
-                -(1 as libc::c_int)
+                -(1 as i32)
             };
             what = Curl_socket_check(
                 readfd,
-                -(1 as libc::c_int),
+                -(1 as i32),
                 writefd,
-                if nonblocking as libc::c_int != 0 {
-                    0 as libc::c_int as libc::c_long
+                if nonblocking as i32 != 0 {
+                    0 as i64
                 } else {
                     timeout_ms
                 },
             );
-            if what < 0 as libc::c_int {
+            if what < 0 as i32 {
                 Curl_failf(
                     data,
                     b"select/poll on SSL socket, errno: %d\0" as *const u8
@@ -2009,9 +2036,9 @@ unsafe extern "C" fn mbed_connect_common(
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             } else {
-                if 0 as libc::c_int == what {
+                if 0 as i32 == what {
                     if nonblocking {
-                        *done = 0 as libc::c_int != 0;
+                        *done = 0 as i32 != 0;
                         return CURLE_OK;
                     } else {
                         Curl_failf(
@@ -2025,65 +2052,69 @@ unsafe extern "C" fn mbed_connect_common(
             }
         }
         retcode = mbed_connect_step2(data, conn, sockindex);
-        if retcode as libc::c_uint != 0
-            || nonblocking as libc::c_int != 0
-                && (ssl_connect_2 as libc::c_int as libc::c_uint
-                    == (*connssl).connecting_state as libc::c_uint
-                    || ssl_connect_2_reading as libc::c_int as libc::c_uint
-                        == (*connssl).connecting_state as libc::c_uint
-                    || ssl_connect_2_writing as libc::c_int as libc::c_uint
-                        == (*connssl).connecting_state as libc::c_uint)
+        if retcode as u32 != 0
+            || nonblocking as i32 != 0
+                && (ssl_connect_2 as u32
+                    == (*connssl).connecting_state as u32
+                    || ssl_connect_2_reading as u32
+                        == (*connssl).connecting_state as u32
+                    || ssl_connect_2_writing as u32
+                        == (*connssl).connecting_state as u32)
         {
             return retcode;
         }
     }
-    if ssl_connect_3 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
+    if ssl_connect_3 as u32
+        == (*connssl).connecting_state as u32
     {
         retcode = mbed_connect_step3(data, conn, sockindex);
         if retcode as u64 != 0 {
             return retcode;
         }
     }
-    if ssl_connect_done as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
+    if ssl_connect_done as u32
+        == (*connssl).connecting_state as u32
     {
         (*connssl).state = ssl_connection_complete;
-        let ref mut fresh4 = (*conn).recv[sockindex as usize];
-        *fresh4 = Some(mbed_recv as Curl_recv);
-        let ref mut fresh5 = (*conn).send[sockindex as usize];
-        *fresh5 = Some(mbed_send as Curl_send);
-        *done = 1 as libc::c_int != 0;
+        // let ref mut fresh4 = (*conn).recv[sockindex as usize];
+        (*conn).recv[sockindex as usize] = Some(mbed_recv as Curl_recv);
+        // let ref mut fresh5 = (*conn).send[sockindex as usize];
+        (*conn).send[sockindex as usize] = Some(mbed_send as Curl_send);
+        *done = 1 as i32 != 0;
     } else {
-        *done = 0 as libc::c_int != 0;
+        *done = 0 as i32 != 0;
     }
     (*connssl).connecting_state = ssl_connect_1;
     return CURLE_OK;
 }
-
-// 内部没有宏
-unsafe extern "C" fn mbedtls_connect_nonblocking(
-    mut data: *mut Curl_easy,
-    mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
-    mut done: *mut bool,
-) -> CURLcode {
-    return mbed_connect_common(data, conn, sockindex, 1 as libc::c_int != 0, done);
 }
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_connect(
+extern "C" fn mbedtls_connect_nonblocking(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
+    mut done: *mut bool,
 ) -> CURLcode {
+    unsafe{
+    return mbed_connect_common(data, conn, sockindex, 1 as i32 != 0, done);
+    }
+}
+
+// 内部没有宏
+extern "C" fn mbedtls_connect(
+    mut data: *mut Curl_easy,
+    mut conn: *mut connectdata,
+    mut sockindex: i32,
+) -> CURLcode {
+    unsafe{
     let mut retcode: CURLcode = CURLE_OK;
-    let mut done: bool = 0 as libc::c_int != 0;
+    let mut done: bool = 0 as i32 != 0;
     retcode = mbed_connect_common(
         data,
         conn,
         sockindex,
-        0 as libc::c_int != 0,
+        0 as i32 != 0,
         &mut done,
     );
     if retcode as u64 != 0 {
@@ -2094,7 +2125,7 @@ unsafe extern "C" fn mbedtls_connect(
         __assert_fail(
             b"done\0" as *const u8 as *const libc::c_char,
             b"vtls/mbedtls.c\0" as *const u8 as *const libc::c_char,
-            1094 as libc::c_int as libc::c_uint,
+            1094 as u32,
             (*::std::mem::transmute::<
                 &[u8; 72],
                 &[libc::c_char; 72],
@@ -2106,37 +2137,45 @@ unsafe extern "C" fn mbedtls_connect(
     }
     return CURLE_OK;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_init() -> libc::c_int {
+extern "C" fn mbedtls_init() -> i32 {
+    unsafe{
     return Curl_mbedtlsthreadlock_thread_setup();
+    }
 }
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_cleanup() {
+extern "C" fn mbedtls_cleanup() {
+    unsafe{
     Curl_mbedtlsthreadlock_thread_cleanup();
+    }
 }
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_data_pending(
+extern "C" fn mbedtls_data_pending(
     mut conn: *const connectdata,
-    mut sockindex: libc::c_int,
+    mut sockindex: i32,
 ) -> bool {
+    unsafe{
     let mut connssl: *const ssl_connect_data = &*((*conn).ssl)
         .as_ptr()
         .offset(sockindex as isize) as *const ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     return mbedtls_ssl_get_bytes_avail(&mut (*backend).ssl)
-        != 0 as libc::c_int as libc::c_ulong;
+        != 0 as u64;
+    }
 }
 
 // done
-unsafe extern "C" fn mbedtls_sha256sum(
-    mut input: *const libc::c_uchar,
+extern "C" fn mbedtls_sha256sum(
+    mut input: *const u8,
     mut inputlen: size_t,
-    mut sha256sum: *mut libc::c_uchar,
+    mut sha256sum: *mut u8,
     mut sha256len: size_t,
 ) -> CURLcode {
+    unsafe{
 // 1128 - done
     if cfg!(MBEDTLS_VERSION_NUMBER_LT_0X02070000){
         // C语句 - 未翻译
@@ -2153,21 +2192,25 @@ unsafe extern "C" fn mbedtls_sha256sum(
             // C语句
             // if(mbedtls_sha256_ret(input, inputlen, sha256sum, 0) != 0)
             // 所以对应的版本是     0X03000000 > MBEDTLS_VERSION_NUMBER >= 0X02070000
-            if mbedtls_sha256_ret(input, inputlen, sha256sum, 0 as libc::c_int)!= 0 as libc::c_int {
+            if mbedtls_sha256_ret(input, inputlen, sha256sum, 0 as i32)!= 0 as i32 {
         return CURLE_BAD_FUNCTION_ARGUMENT;
             }
         }
     }
     return CURLE_OK;
 }
+}
 
 // 内部没有宏
-unsafe extern "C" fn mbedtls_get_internals(
+extern "C" fn mbedtls_get_internals(
     mut connssl: *mut ssl_connect_data,
     mut info: CURLINFO,
 ) -> *mut libc::c_void {
+    unsafe{
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     return &mut (*backend).ssl as *mut mbedtls_ssl_context as *mut libc::c_void;
+
+    }
 }
 
 
@@ -2182,12 +2225,12 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
                 };
                 init
             },
-            supports: ((1 as libc::c_int) << 0 as libc::c_int
-                | (1 as libc::c_int) << 2 as libc::c_int
-                | (1 as libc::c_int) << 3 as libc::c_int) as libc::c_uint,
+            supports: ((1 as i32) << 0 as i32
+                | (1 as i32) << 2 as i32
+                | (1 as i32) << 3 as i32) as u32,
             sizeof_ssl_backend_data: ::std::mem::size_of::<ssl_backend_data>()
-                as libc::c_ulong,
-            init: Some(mbedtls_init as unsafe extern "C" fn() -> libc::c_int),
+                as u64,
+            init: Some(mbedtls_init as unsafe extern "C" fn() -> i32),
             cleanup: Some(mbedtls_cleanup as unsafe extern "C" fn() -> ()),
             version: Some(
                 mbedtls_version
@@ -2195,25 +2238,25 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
             ),
             check_cxn: Some(
                 Curl_none_check_cxn
-                    as unsafe extern "C" fn(*mut connectdata) -> libc::c_int,
+                    as unsafe extern "C" fn(*mut connectdata) -> i32,
             ),
             shut_down: Some(
                 Curl_none_shutdown
                     as unsafe extern "C" fn(
                         *mut Curl_easy,
                         *mut connectdata,
-                        libc::c_int,
-                    ) -> libc::c_int,
+                        i32,
+                    ) -> i32,
             ),
             data_pending: Some(
                 mbedtls_data_pending
-                    as unsafe extern "C" fn(*const connectdata, libc::c_int) -> bool,
+                    as unsafe extern "C" fn(*const connectdata, i32) -> bool,
             ),
             random: Some(
                 mbedtls_random
                     as unsafe extern "C" fn(
                         *mut Curl_easy,
-                        *mut libc::c_uchar,
+                        *mut u8,
                         size_t,
                     ) -> CURLcode,
             ),
@@ -2225,7 +2268,7 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
                     as unsafe extern "C" fn(
                         *mut Curl_easy,
                         *mut connectdata,
-                        libc::c_int,
+                        i32,
                     ) -> CURLcode,
             ),
             connect_nonblocking: Some(
@@ -2233,7 +2276,7 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
                     as unsafe extern "C" fn(
                         *mut Curl_easy,
                         *mut connectdata,
-                        libc::c_int,
+                        i32,
                         *mut bool,
                     ) -> CURLcode,
             ),
@@ -2242,7 +2285,7 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
                     as unsafe extern "C" fn(
                         *mut connectdata,
                         *mut curl_socket_t,
-                    ) -> libc::c_int,
+                    ) -> i32,
             ),
             get_internals: Some(
                 mbedtls_get_internals
@@ -2256,7 +2299,7 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
                     as unsafe extern "C" fn(
                         *mut Curl_easy,
                         *mut connectdata,
-                        libc::c_int,
+                        i32,
                     ) -> (),
             ),
             close_all: Some(
@@ -2284,9 +2327,9 @@ pub static mut Curl_ssl_mbedtls: Curl_ssl = unsafe {
             sha256sum: Some(
                 mbedtls_sha256sum
                     as unsafe extern "C" fn(
-                        *const libc::c_uchar,
+                        *const u8,
                         size_t,
-                        *mut libc::c_uchar,
+                        *mut u8,
                         size_t,
                     ) -> CURLcode,
             ),
