@@ -130,8 +130,8 @@ extern "C" fn br_ssl_engine_set_protocol_names(
 extern "C" fn br_ssl_engine_get_selected_protocol(
     mut ctx: *mut br_ssl_engine_context,
 ) -> *const i8 {
+    let mut k: u32 = 0;
     unsafe {
-        let mut k: u32 = 0;
         k = (*ctx).selected_protocol as u32;
         return if k == 0 as u32 || k == 0xffff as u32 {
             0 as *const i8
@@ -159,8 +159,8 @@ extern "C" fn append_dn(mut ctx: *mut libc::c_void, mut buf: *const libc::c_void
     }
 }
 extern "C" fn x509_push(mut ctx: *mut libc::c_void, mut buf: *const libc::c_void, mut len: size_t) {
+    let mut ca: *mut cafile_parser = ctx as *mut cafile_parser;
     unsafe {
-        let mut ca: *mut cafile_parser = ctx as *mut cafile_parser;
         if (*ca).in_cert {
             br_x509_decoder_push(&mut (*ca).xc, buf, len);
         }
@@ -171,53 +171,22 @@ extern "C" fn load_cafile(
     mut anchors: *mut *mut br_x509_trust_anchor,
     mut anchors_len: *mut size_t,
 ) -> CURLcode {
-    unsafe {
-        let mut ca: cafile_parser = cafile_parser {
-            err: CURLE_OK,
-            in_cert: false,
-            xc: br_x509_decoder_context {
-                pkey: br_x509_pkey {
-                    key_type: 0,
-                    key: bear_C2RustUnnamed_6 {
-                        rsa: br_rsa_public_key {
-                            n: 0 as *mut u8,
-                            nlen: 0,
-                            e: 0 as *mut u8,
-                            elen: 0,
-                        },
+    let mut ca: cafile_parser = cafile_parser {
+        err: CURLE_OK,
+        in_cert: false,
+        xc: br_x509_decoder_context {
+            pkey: br_x509_pkey {
+                key_type: 0,
+                key: bear_C2RustUnnamed_6 {
+                    rsa: br_rsa_public_key {
+                        n: 0 as *mut u8,
+                        nlen: 0,
+                        e: 0 as *mut u8,
+                        elen: 0,
                     },
                 },
-                cpu: C2RustUnnamed_30 {
-                    dp: 0 as *mut uint32_t,
-                    rp: 0 as *mut uint32_t,
-                    ip: 0 as *const u8,
-                },
-                dp_stack: [0; 32],
-                rp_stack: [0; 32],
-                err: 0,
-                pad: [0; 256],
-                decoded: 0,
-                notbefore_days: 0,
-                notbefore_seconds: 0,
-                notafter_days: 0,
-                notafter_seconds: 0,
-                isCA: 0,
-                copy_dn: 0,
-                append_dn_ctx: 0 as *mut libc::c_void,
-                append_dn: None,
-                hbuf: 0 as *const u8,
-                hlen: 0,
-                pkey_data: [0; 520],
-                signer_key_type: 0,
-                signer_hash_id: 0,
             },
-            anchors: 0 as *mut br_x509_trust_anchor,
-            anchors_len: 0,
-            dn: [0; 1024],
-            dn_len: 0,
-        };
-        let mut pc: br_pem_decoder_context = br_pem_decoder_context {
-            cpu: C2RustUnnamed_31 {
+            cpu: C2RustUnnamed_30 {
                 dp: 0 as *mut uint32_t,
                 rp: 0 as *mut uint32_t,
                 ip: 0 as *const u8,
@@ -225,30 +194,60 @@ extern "C" fn load_cafile(
             dp_stack: [0; 32],
             rp_stack: [0; 32],
             err: 0,
+            pad: [0; 256],
+            decoded: 0,
+            notbefore_days: 0,
+            notbefore_seconds: 0,
+            notafter_days: 0,
+            notafter_seconds: 0,
+            isCA: 0,
+            copy_dn: 0,
+            append_dn_ctx: 0 as *mut libc::c_void,
+            append_dn: None,
             hbuf: 0 as *const u8,
             hlen: 0,
-            dest: None,
-            dest_ctx: 0 as *mut libc::c_void,
-            event: 0,
-            name: [0; 128],
-            buf: [0; 255],
-            ptr: 0,
-        };
-        let mut ta: *mut br_x509_trust_anchor = 0 as *mut br_x509_trust_anchor;
-        let mut ta_size: size_t = 0;
-        let mut new_anchors: *mut br_x509_trust_anchor = 0 as *mut br_x509_trust_anchor;
-        let mut new_anchors_len: size_t = 0;
-        let mut pkey: *mut br_x509_pkey = 0 as *mut br_x509_pkey;
-        let mut fp: *mut FILE = 0 as *mut FILE;
-        let mut buf: [u8; 8192] = [0; 8192];
-        let mut p: *const u8 = 0 as *const u8;
-        let mut name: *const i8 = 0 as *const i8;
-        let mut n: size_t = 0;
-        let mut i: size_t = 0;
-        let mut pushed: size_t = 0;
-        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if (*source).type_0 == 1 as libc::c_int || (*source).type_0 == 2 as libc::c_int
-    {} else {
+            pkey_data: [0; 520],
+            signer_key_type: 0,
+            signer_hash_id: 0,
+        },
+        anchors: 0 as *mut br_x509_trust_anchor,
+        anchors_len: 0,
+        dn: [0; 1024],
+        dn_len: 0,
+    };
+    let mut pc: br_pem_decoder_context = br_pem_decoder_context {
+        cpu: C2RustUnnamed_31 {
+            dp: 0 as *mut uint32_t,
+            rp: 0 as *mut uint32_t,
+            ip: 0 as *const u8,
+        },
+        dp_stack: [0; 32],
+        rp_stack: [0; 32],
+        err: 0,
+        hbuf: 0 as *const u8,
+        hlen: 0,
+        dest: None,
+        dest_ctx: 0 as *mut libc::c_void,
+        event: 0,
+        name: [0; 128],
+        buf: [0; 255],
+        ptr: 0,
+    };
+    let mut ta: *mut br_x509_trust_anchor = 0 as *mut br_x509_trust_anchor;
+    let mut ta_size: size_t = 0;
+    let mut new_anchors: *mut br_x509_trust_anchor = 0 as *mut br_x509_trust_anchor;
+    let mut new_anchors_len: size_t = 0;
+    let mut pkey: *mut br_x509_pkey = 0 as *mut br_x509_pkey;
+    let mut fp: *mut FILE = 0 as *mut FILE;
+    let mut buf: [u8; 8192] = [0; 8192];
+    let mut p: *const u8 = 0 as *const u8;
+    let mut name: *const i8 = 0 as *const i8;
+    let mut n: size_t = 0;
+    let mut i: size_t = 0;
+    let mut pushed: size_t = 0;
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if (*source).type_0 == 1 as libc::c_int || (*source).type_0 == 2 as libc::c_int {
+    } else {
         __assert_fail(
             b"source->type == 1 || source->type == 2\0" as *const u8
                 as *const libc::c_char,
@@ -263,31 +262,37 @@ extern "C" fn load_cafile(
                 .as_ptr(),
         );
     }
+    unsafe {
         if (*source).type_0 == 1 as i32 {
             fp = fopen((*source).data, b"rb\0" as *const u8 as *const i8);
             if fp.is_null() {
                 return CURLE_SSL_CACERT_BADFILE;
             }
         }
-        let int_max = 2147483647 as size_t;
+    }
+    let int_max = 2147483647 as size_t;
+    unsafe {
         if (*source).type_0 == 2 as i32 && (*source).len > int_max {
             return CURLE_SSL_CACERT_BADFILE;
         }
-        ca.err = CURLE_OK;
-        ca.in_cert = 0 as i32 != 0;
-        ca.anchors = 0 as *mut br_x509_trust_anchor;
-        ca.anchors_len = 0 as size_t;
+    }
+    ca.err = CURLE_OK;
+    ca.in_cert = 0 as i32 != 0;
+    ca.anchors = 0 as *mut br_x509_trust_anchor;
+    ca.anchors_len = 0 as size_t;
+    unsafe {
         br_pem_decoder_init(&mut pc);
-        br_pem_decoder_setdest(
-            &mut pc,
-            Some(
-                x509_push
-                    as unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
-            ),
-            &mut ca as *mut cafile_parser as *mut libc::c_void,
-        );
-        'fail: loop {
-            loop {
+    }
+    br_pem_decoder_setdest(
+        &mut pc,
+        Some(
+            x509_push as unsafe extern "C" fn(*mut libc::c_void, *const libc::c_void, size_t) -> (),
+        ),
+        &mut ca as *mut cafile_parser as *mut libc::c_void,
+    );
+    'fail: loop {
+        loop {
+            unsafe {
                 if (*source).type_0 == 1 as i32 {
                     n = fread(
                         buf.as_mut_ptr() as *mut libc::c_void,
@@ -303,17 +308,23 @@ extern "C" fn load_cafile(
                     n = (*source).len;
                     p = (*source).data as *mut u8;
                 }
-                while n != 0 {
+            }
+            while n != 0 {
+                unsafe {
                     pushed = br_pem_decoder_push(&mut pc, p as *const libc::c_void, n);
-                    if ca.err as u64 != 0 {
-                        break 'fail;
-                    }
+                }
+                if ca.err as u64 != 0 {
+                    break 'fail;
+                }
+                unsafe {
                     p = p.offset(pushed as isize);
-                    n = (n as u64).wrapping_sub(pushed) as size_t;
-                    match br_pem_decoder_event(&mut pc) {
-                        0 => {}
-                        1 => {
-                            name = br_pem_decoder_name(&mut pc);
+                }
+                n = (n as u64).wrapping_sub(pushed) as size_t;
+                match unsafe { br_pem_decoder_event(&mut pc) } {
+                    0 => {}
+                    1 => {
+                        name = br_pem_decoder_name(&mut pc);
+                        unsafe {
                             if !(strcmp(name, b"CERTIFICATE\0" as *const u8 as *const i8) != 0
                                 && strcmp(name, b"X509 CERTIFICATE\0" as *const u8 as *const i8)
                                     != 0)
@@ -331,76 +342,82 @@ extern "C" fn load_cafile(
                                     ),
                                     &mut ca as *mut cafile_parser as *mut libc::c_void,
                                 );
-                                let size_max = 18446744073709551615 as u64;
-                                if ca.anchors_len
-                                    == (size_max).wrapping_div(::std::mem::size_of::<
+                            }
+                        }
+                        let size_max = 18446744073709551615 as u64;
+                        if ca.anchors_len
+                            == (size_max)
+                                .wrapping_div(::std::mem::size_of::<br_x509_trust_anchor>() as u64)
+                        {
+                            ca.err = CURLE_OUT_OF_MEMORY;
+                            break 'fail;
+                        }
+                        new_anchors_len = (ca.anchors_len).wrapping_add(1 as u64);
+                        match () {
+                            #[cfg(not(CURLDEBUG))]
+                            _ => unsafe {
+                                new_anchors = Curl_crealloc.expect("non-null function pointer")(
+                                    ca.anchors as *mut libc::c_void,
+                                    new_anchors_len.wrapping_mul(::std::mem::size_of::<
                                         br_x509_trust_anchor,
                                     >(
                                     )
-                                        as u64)
-                                {
-                                    ca.err = CURLE_OUT_OF_MEMORY;
-                                    break 'fail;
-                                }
-                                new_anchors_len = (ca.anchors_len).wrapping_add(1 as u64);
-                                match () {
-                                    #[cfg(not(CURLDEBUG))]
-                                    _ => {
-                                        new_anchors = Curl_crealloc.expect("non-null function pointer")(
-                                            ca.anchors as *mut libc::c_void,
-                                            new_anchors_len.wrapping_mul(::std::mem::size_of::<
-                                                br_x509_trust_anchor,
-                                            >(
-                                            )
-                                                as u64),
-                                        )
-                                            as *mut br_x509_trust_anchor;
-                                    }
-                                    #[cfg(CURLDEBUG)]
-                                    _ => {
-                                        new_anchors = realloc(
-                                            ca.anchors as *mut libc::c_void,
-                                            new_anchors_len
-                                                .wrapping_mul(
-                                                    ::std::mem::size_of::<br_x509_trust_anchor>()
-                                                        as libc::c_ulong,
-                                                ),
-                                        ) as *mut br_x509_trust_anchor;
-                                    }
-                                }                                
-                                if new_anchors.is_null() {
-                                    ca.err = CURLE_OUT_OF_MEMORY;
-                                    break 'fail;
-                                }
-                                ca.anchors = new_anchors;
-                                ca.anchors_len = new_anchors_len;
-                                ca.in_cert = 1 as i32 != 0;
-                                ca.dn_len = 0 as size_t;
-                                ta = &mut *(ca.anchors)
-                                    .offset((ca.anchors_len).wrapping_sub(1 as u64) as isize)
+                                        as u64),
+                                )
                                     as *mut br_x509_trust_anchor;
-                                (*ta).dn.data = 0 as *mut u8;
+                            },
+                            #[cfg(CURLDEBUG)]
+                            _ => {
+                                new_anchors = realloc(
+                                    ca.anchors as *mut libc::c_void,
+                                    new_anchors_len.wrapping_mul(::std::mem::size_of::<
+                                        br_x509_trust_anchor,
+                                    >(
+                                    )
+                                        as libc::c_ulong),
+                                )
+                                    as *mut br_x509_trust_anchor;
                             }
                         }
-                        2 => {
-                            if ca.in_cert {
-                                ca.in_cert = 0 as i32 != 0;
-                                if br_x509_decoder_last_error(&mut ca.xc) != 0 {
-                                    ca.err = CURLE_SSL_CACERT_BADFILE;
-                                    break 'fail;
-                                }
+                        if new_anchors.is_null() {
+                            ca.err = CURLE_OUT_OF_MEMORY;
+                            break 'fail;
+                        }
+                        ca.anchors = new_anchors;
+                        ca.anchors_len = new_anchors_len;
+                        ca.in_cert = 1 as i32 != 0;
+                        ca.dn_len = 0 as size_t;
+                        unsafe {
+                            ta = &mut *(ca.anchors)
+                                .offset((ca.anchors_len).wrapping_sub(1 as u64) as isize)
+                                as *mut br_x509_trust_anchor;
+                            (*ta).dn.data = 0 as *mut u8;
+                        }
+                    }
+                    2 => {
+                        if ca.in_cert {
+                            ca.in_cert = 0 as i32 != 0;
+                            if br_x509_decoder_last_error(&mut ca.xc) != 0 {
+                                ca.err = CURLE_SSL_CACERT_BADFILE;
+                                break 'fail;
+                            }
+                            unsafe {
                                 (*ta).flags = 0 as u32;
                                 if br_x509_decoder_isCA(&mut ca.xc) != 0 {
                                     (*ta).flags |= 0x1 as u32;
                                 }
-                                pkey = br_x509_decoder_get_pkey(&mut ca.xc);
-                                if pkey.is_null() {
-                                    ca.err = CURLE_SSL_CACERT_BADFILE;
-                                    break 'fail;
-                                }
+                            }
+                            pkey = br_x509_decoder_get_pkey(&mut ca.xc);
+                            if pkey.is_null() {
+                                ca.err = CURLE_SSL_CACERT_BADFILE;
+                                break 'fail;
+                            }
+                            unsafe {
                                 (*ta).pkey = *pkey;
-                                /* calculate space needed for trust anchor data */
-                                ta_size = ca.dn_len;
+                            }
+                            /* calculate space needed for trust anchor data */
+                            ta_size = ca.dn_len;
+                            unsafe {
                                 match (*pkey).key_type as i32 {
                                     1 => {
                                         ta_size = (ta_size as u64).wrapping_add(
@@ -423,8 +440,10 @@ extern "C" fn load_cafile(
                                 match () {
                                     #[cfg(not(CURLDEBUG))]
                                     _ => {
-                                        (*ta).dn.data =
-                                        Curl_cmalloc.expect("non-null function pointer")(ta_size)
+                                        (*ta).dn.data = Curl_cmalloc
+                                            .expect("non-null function pointer")(
+                                            ta_size
+                                        )
                                             as *mut u8;
                                     }
                                     #[cfg(CURLDEBUG)]
@@ -472,54 +491,61 @@ extern "C" fn load_cafile(
                                 }
                             }
                         }
-                        _ => {
-                            ca.err = CURLE_SSL_CACERT_BADFILE;
-                            break 'fail;
-                        }
+                    }
+                    _ => {
+                        ca.err = CURLE_SSL_CACERT_BADFILE;
+                        break 'fail;
                     }
                 }
-                if !((*source).type_0 != 2 as i32) {
-                    break;
-                }
             }
-            if !fp.is_null() && ferror(fp) != 0 {
-                ca.err = CURLE_READ_ERROR;
+            if unsafe { !((*source).type_0 != 2 as i32) } {
+                break;
             }
-            break 'fail;
         }
+        if !fp.is_null() && unsafe { ferror(fp) != 0 } {
+            ca.err = CURLE_READ_ERROR;
+        }
+        break 'fail;
+    }
 
-        if !fp.is_null() {
+    if !fp.is_null() {
+        unsafe {
             fclose(fp);
         }
-        if ca.err as u32 == CURLE_OK as u32 {
+    }
+    if ca.err as u32 == CURLE_OK as u32 {
+        unsafe {
             *anchors = ca.anchors;
             *anchors_len = ca.anchors_len;
-        } else {
-            i = 0 as size_t;
-            while i < ca.anchors_len {
-                #[cfg(not(CURLDEBUG))]
-
+        }
+    } else {
+        i = 0 as size_t;
+        while i < ca.anchors_len {
+            #[cfg(not(CURLDEBUG))]
+            unsafe {
                 Curl_cfree.expect("non-null function pointer")(
                     (*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void,
                 );
-                
-	#[cfg(CURLDEBUG)]
-    free((*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void);
-
-                i = i.wrapping_add(1);
             }
-            #[cfg(not(CURLDEBUG))]
-            Curl_cfree.expect("non-null function pointer")(ca.anchors as *mut libc::c_void);
-	        #[cfg(CURLDEBUG)]
-            free(ca.anchors as *mut libc::c_void);
 
+            #[cfg(CURLDEBUG)]
+            free((*(ca.anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+
+            i = i.wrapping_add(1);
         }
-        return ca.err;
+        #[cfg(not(CURLDEBUG))]
+        unsafe {
+            Curl_cfree.expect("non-null function pointer")(ca.anchors as *mut libc::c_void);
+        }
+        #[cfg(CURLDEBUG)]
+        free(ca.anchors as *mut libc::c_void);
     }
+    return ca.err;
 }
+
 extern "C" fn x509_start_chain(mut ctx: *mut *const br_x509_class, mut server_name: *const i8) {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
         if !(*x509).verifyhost {
             server_name = 0 as *const i8;
         }
@@ -530,8 +556,8 @@ extern "C" fn x509_start_chain(mut ctx: *mut *const br_x509_class, mut server_na
     }
 }
 extern "C" fn x509_start_cert(mut ctx: *mut *const br_x509_class, mut length: uint32_t) {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
         ((*(*x509).minimal.vtable).start_cert).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
             length,
@@ -539,8 +565,8 @@ extern "C" fn x509_start_cert(mut ctx: *mut *const br_x509_class, mut length: ui
     }
 }
 extern "C" fn x509_append(mut ctx: *mut *const br_x509_class, mut buf: *const u8, mut len: size_t) {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
         ((*(*x509).minimal.vtable).append).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
             buf,
@@ -549,17 +575,17 @@ extern "C" fn x509_append(mut ctx: *mut *const br_x509_class, mut buf: *const u8
     }
 }
 extern "C" fn x509_end_cert(mut ctx: *mut *const br_x509_class) {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
         ((*(*x509).minimal.vtable).end_cert).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
         );
     }
 }
 extern "C" fn x509_end_chain(mut ctx: *mut *const br_x509_class) -> u32 {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
+    let mut err: u32 = 0;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
-        let mut err: u32 = 0;
         err = ((*(*x509).minimal.vtable).end_chain).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
         );
@@ -574,8 +600,8 @@ extern "C" fn x509_get_pkey(
     mut ctx: *const *const br_x509_class,
     mut usages: *mut u32,
 ) -> *const br_x509_pkey {
+    let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
-        let mut x509: *mut x509_context = ctx as *mut x509_context;
         return ((*(*x509).minimal.vtable).get_pkey).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
             usages,
@@ -1126,9 +1152,10 @@ extern "C" fn bearssl_connect_step3(
         let mut ret: CURLcode = CURLE_OK;
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
         if ssl_connect_3 as libc::c_int as libc::c_uint
-        == (*connssl).connecting_state as libc::c_uint
-    {} else {
-        __assert_fail(
+            == (*connssl).connecting_state as libc::c_uint
+        {
+        } else {
+            __assert_fail(
             b"ssl_connect_3 == connssl->connecting_state\0" as *const u8
                 as *const libc::c_char,
             b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
@@ -1141,7 +1168,7 @@ extern "C" fn bearssl_connect_step3(
             ))
                 .as_ptr(),
         );
-    }
+        }
         if ((*conn).bits).tls_enable_alpn() != 0 {
             let mut protocol: *const i8 = 0 as *const i8;
             protocol = br_ssl_engine_get_selected_protocol(&mut (*backend).bear_ctx.eng);
@@ -1211,15 +1238,17 @@ extern "C" fn bearssl_connect_step3(
             match () {
                 #[cfg(not(CURLDEBUG))]
                 _ => {
-                    session = Curl_cmalloc.expect("non-null function pointer")(::std::mem::size_of::<
-                        br_ssl_session_parameters,
-                    >() as u64) as *mut br_ssl_session_parameters;
+                    session =
+                        Curl_cmalloc.expect("non-null function pointer")(::std::mem::size_of::<
+                            br_ssl_session_parameters,
+                        >()
+                            as u64) as *mut br_ssl_session_parameters;
                 }
                 #[cfg(CURLDEBUG)]
                 _ => {
-                    session = malloc(
-                        ::std::mem::size_of::<br_ssl_session_parameters>() as libc::c_ulong,
-                    ) as *mut br_ssl_session_parameters;
+                    session =
+                        malloc(::std::mem::size_of::<br_ssl_session_parameters>() as libc::c_ulong)
+                            as *mut br_ssl_session_parameters;
                 }
             }
 
@@ -1272,8 +1301,8 @@ extern "C" fn bearssl_connect_step3(
             Curl_ssl_sessionid_unlock(data);
             if ret as u64 != 0 {
                 #[cfg(not(CURLDEBUG))]
-                Curl_cfree.expect("non-null function pointer")(session as *mut libc::c_void);               
-	             #[cfg(CURLDEBUG)]
+                Curl_cfree.expect("non-null function pointer")(session as *mut libc::c_void);
+                #[cfg(CURLDEBUG)]
                 free(session as *mut libc::c_void);
 
                 return CURLE_OUT_OF_MEMORY;
@@ -1366,8 +1395,8 @@ extern "C" fn bearssl_connect_common(
     mut nonblocking: bool,
     mut done: *mut bool,
 ) -> CURLcode {
+    let mut ret: CURLcode = CURLE_OK;
     unsafe {
-        let mut ret: CURLcode = CURLE_OK;
         let mut connssl: *mut ssl_connect_data =
             &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
         let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
@@ -1516,14 +1545,14 @@ extern "C" fn bearssl_random(
     mut entropy: *mut u8,
     mut length: size_t,
 ) -> CURLcode {
+    static mut ctx: br_hmac_drbg_context = br_hmac_drbg_context {
+        vtable: 0 as *const br_prng_class,
+        K: [0; 64],
+        V: [0; 64],
+        digest_class: 0 as *const br_hash_class,
+    };
+    static mut seeded: bool = 0 as i32 != 0;
     unsafe {
-        static mut ctx: br_hmac_drbg_context = br_hmac_drbg_context {
-            vtable: 0 as *const br_prng_class,
-            K: [0; 64],
-            V: [0; 64],
-            digest_class: 0 as *const br_hash_class,
-        };
-        static mut seeded: bool = 0 as i32 != 0;
         if !seeded {
             let mut seeder: br_prng_seeder = None;
             br_hmac_drbg_init(
@@ -1540,8 +1569,8 @@ extern "C" fn bearssl_random(
             seeded = 1 as i32 != 0;
         }
         br_hmac_drbg_generate(&mut ctx, entropy as *mut libc::c_void, length);
-        return CURLE_OK;
     }
+    return CURLE_OK;
 }
 
 extern "C" fn bearssl_connect(
@@ -1549,30 +1578,26 @@ extern "C" fn bearssl_connect(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> CURLcode {
-    unsafe {
-        let mut ret: CURLcode = CURLE_OK;
-        let mut done: bool = 0 as i32 != 0;
-        ret = bearssl_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
-        if ret as u64 != 0 {
-            return ret;
-        }
-        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if done {} else {
-            __assert_fail(
-                b"done\0" as *const u8 as *const libc::c_char,
-                b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
-                839 as libc::c_int as libc::c_uint,
-                (*::std::mem::transmute::<
-                    &[u8; 72],
-                    &[libc::c_char; 72],
-                >(
-                    b"CURLcode bearssl_connect(struct Curl_easy *, struct connectdata *, int)\0",
-                ))
-                    .as_ptr(),
-            );
-        }
-        return CURLE_OK;
+    let mut ret: CURLcode = CURLE_OK;
+    let mut done: bool = 0 as i32 != 0;
+    ret = bearssl_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
+    if ret as u64 != 0 {
+        return ret;
     }
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {
+    } else {
+        __assert_fail(
+            b"done\0" as *const u8 as *const libc::c_char,
+            b"vtls/bearssl.c\0" as *const u8 as *const libc::c_char,
+            839 as libc::c_int as libc::c_uint,
+            (*::std::mem::transmute::<&[u8; 72], &[libc::c_char; 72]>(
+                b"CURLcode bearssl_connect(struct Curl_easy *, struct connectdata *, int)\0",
+            ))
+            .as_ptr(),
+        );
+    }
+    return CURLE_OK;
 }
 
 extern "C" fn bearssl_connect_nonblocking(
@@ -1581,9 +1606,7 @@ extern "C" fn bearssl_connect_nonblocking(
     mut sockindex: i32,
     mut done: *mut bool,
 ) -> CURLcode {
-    unsafe {
-        return bearssl_connect_common(data, conn, sockindex, 1 as i32 != 0, done);
-    }
+    return bearssl_connect_common(data, conn, sockindex, 1 as i32 != 0, done);
 }
 
 extern "C" fn bearssl_get_internals(
@@ -1617,26 +1640,24 @@ extern "C" fn bearssl_close(
                 (*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void,
             );
             #[cfg(CURLDEBUG)]
-        free((*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void);
+            free((*((*backend).anchors).offset(i as isize)).dn.data as *mut libc::c_void);
 
             i = i.wrapping_add(1);
         }
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")((*backend).anchors as *mut libc::c_void);
         #[cfg(CURLDEBUG)]
-    free((*backend).anchors as *mut libc::c_void);
-
+        free((*backend).anchors as *mut libc::c_void);
     }
 }
 
 extern "C" fn bearssl_session_free(mut ptr: *mut libc::c_void) {
+    #[cfg(not(CURLDEBUG))]
     unsafe {
-        #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(ptr);
-        #[cfg(CURLDEBUG)]
-    free(ptr);
-
     }
+    #[cfg(CURLDEBUG)]
+    free(ptr);
 }
 
 extern "C" fn bearssl_sha256sum(
@@ -1645,19 +1666,20 @@ extern "C" fn bearssl_sha256sum(
     mut sha256sum: *mut u8,
     mut sha256len: size_t,
 ) -> CURLcode {
+    let mut ctx: br_sha256_context = br_sha256_context {
+        vtable: 0 as *const br_hash_class,
+        buf: [0; 64],
+        count: 0,
+        val: [0; 8],
+    };
     unsafe {
-        let mut ctx: br_sha256_context = br_sha256_context {
-            vtable: 0 as *const br_hash_class,
-            buf: [0; 64],
-            count: 0,
-            val: [0; 8],
-        };
         br_sha256_init(&mut ctx);
         br_sha224_update(&mut ctx, input as *const libc::c_void, inputlen);
         br_sha256_out(&mut ctx, sha256sum as *mut libc::c_void);
-        return CURLE_OK;
     }
+    return CURLE_OK;
 }
+
 #[no_mangle]
 
 pub static mut Curl_ssl_bearssl: Curl_ssl = Curl_ssl {
