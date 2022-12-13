@@ -2,12 +2,11 @@
 
 set +e
 
-# cd ../
+cd ../
 aclocal
 automake
 
-LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2 
-# LIBS=-ldl ./configure --with-mesalink=/home/hanxj/mesalink/build --disable-shared --without-ngtcp2 --enable-debug
+# LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
 cd lib
 make
 
