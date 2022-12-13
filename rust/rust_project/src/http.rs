@@ -1046,14 +1046,12 @@ pub unsafe extern "C" fn Curl_http_output_auth(
     let mut result: CURLcode = CURLE_OK;
     let mut authhost: *mut auth = 0 as *mut auth;
     let mut authproxy: *mut auth = 0 as *mut auth;
-
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !data.is_null() {
-    } else {
+    if !data.is_null() {} else {
         __assert_fail(
             b"data\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
-            805 as u32,
+            805 as libc::c_int as libc::c_uint,
             (*::std::mem::transmute::<
                 &[u8; 122],
                 &[libc::c_char; 122],
@@ -1063,23 +1061,21 @@ pub unsafe extern "C" fn Curl_http_output_auth(
                 .as_ptr(),
         );
     }
-
     authhost = &mut (*data).state.authhost;
     authproxy = &mut (*data).state.authproxy;
-
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag1: bool = ((*conn).bits).httpproxy() as i32 != 0
-        && ((*conn).bits).proxy_user_passwd() as i32 != 0
-        || ((*conn).bits).user_passwd() as i32 != 0
-        || !((*data).set.str_0[STRING_BEARER as usize]).is_null(); /* continue please */
+    let flag1: bool = ((*conn).bits).httpproxy() as libc::c_int != 0
+        && ((*conn).bits).proxy_user_passwd() as libc::c_int != 0
+        || ((*conn).bits).user_passwd() as libc::c_int != 0
+        || !((*data).set.str_0[STRING_BEARER as libc::c_int as usize]).is_null();
     #[cfg(CURL_DISABLE_PROXY)]
-    let flag1: bool = ((*conn).bits).user_passwd() as i32 != 0
-        || !((*data).set.str_0[STRING_BEARER as usize]).is_null(); /* continue please */
+    let flag1: bool = ((*conn).bits).user_passwd() as libc::c_int != 0
+        || !((*data).set.str_0[STRING_BEARER as libc::c_int as usize]).is_null();
     if flag1 {
     } else {
-        (*authhost).set_done(1 as bit);
-        (*authproxy).set_done(1 as bit);
-        return CURLE_OK; /* no authentication with no user or password */
+        (*authhost).set_done(1 as libc::c_int as bit);
+        (*authproxy).set_done(1 as libc::c_int as bit);
+        return CURLE_OK;
     }
     if (*authhost).want != 0 && (*authhost).picked == 0 {
         /* The app has selected one or more methods, but none has been picked
@@ -1093,35 +1089,34 @@ pub unsafe extern "C" fn Curl_http_output_auth(
         and if this is one single bit it'll be used instantly. */
         (*authproxy).picked = (*authproxy).want;
     }
-
     match () {
         #[cfg(not(CURL_DISABLE_PROXY))]
         /* Send proxy authentication header if needed */
         _ => {
-            if ((*conn).bits).httpproxy() as i32 != 0
-                && ((*conn).bits).tunnel_proxy() == proxytunnel as bit
-            {
-                result = output_auth_headers(data, conn, authproxy, request, path, false);
-                if result as u64 != 0 {
-                    return result;
-                }
-            } else {
-                (*authproxy).set_done(1 as bit);
-            }
+    if ((*conn).bits).httpproxy() as libc::c_int != 0
+        && ((*conn).bits).tunnel_proxy() == proxytunnel as bit
+    {
+                result = output_auth_headers(data, conn, authproxy, request, path, 1 as libc::c_int != 0);
+        if result as u64 != 0 {
+            return result;
+        }
+    } else {
+        (*authproxy).set_done(1 as libc::c_int as bit);
+    }
         }
         /* CURL_DISABLE_PROXY */
         #[cfg(CURL_DISABLE_PROXY)]
         /* we have no proxy so let's pretend we're done authenticating
         with it */
         _ => {
-            (*authproxy).set_done(1 as bit);
+            (*authproxy).set_done(1 as libc::c_int as bit);
         }
     }
     #[cfg(not(CURL_DISABLE_NETRC))]
     let flag2: bool = ((*data).state).this_is_a_follow() == 0
-        || ((*conn).bits).netrc() as i32 != 0
+        || ((*conn).bits).netrc() as libc::c_int != 0
         || ((*data).state.first_host).is_null()
-        || ((*data).set).allow_auth_to_other_hosts() as i32 != 0
+        || ((*data).set).allow_auth_to_other_hosts() as libc::c_int != 0
         || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0;
 
     /* To prevent the user+password to get sent to other than the original
@@ -1129,23 +1124,23 @@ pub unsafe extern "C" fn Curl_http_output_auth(
     #[cfg(CURL_DISABLE_NETRC)]
     let flag2: bool = ((*data).state).this_is_a_follow() == 0
         || ((*data).state.first_host).is_null()
-        || ((*data).set).allow_auth_to_other_hosts() as i32 != 0
+        || ((*data).set).allow_auth_to_other_hosts() as libc::c_int != 0
         || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0;
     if flag2 {
-        result = output_auth_headers(data, conn, authhost, request, path, 0 as i32 != 0);
+        result = output_auth_headers(data, conn, authhost, request, path, 0 as libc::c_int != 0);
     } else {
-        (*authhost).set_done(1 as bit);
+        (*authhost).set_done(1 as libc::c_int as bit);
     }
-    if ((*authhost).multipass() as i32 != 0 && (*authhost).done() == 0
-        || (*authproxy).multipass() as i32 != 0 && (*authproxy).done() == 0)
-        && httpreq as u32 != HTTPREQ_GET as u32
-        && httpreq as u32 != HTTPREQ_HEAD as u32
+    if ((*authhost).multipass() as libc::c_int != 0 && (*authhost).done() == 0
+        || (*authproxy).multipass() as libc::c_int != 0 && (*authproxy).done() == 0)
+        && httpreq as libc::c_uint != HTTPREQ_GET as libc::c_int as libc::c_uint
+        && httpreq as libc::c_uint != HTTPREQ_HEAD as libc::c_int as libc::c_uint
     {
-        /* Auth is required and we are not authenticated yet. Make a PUT or POST
-        with content-length zero as a "probe". */
-        (*conn).bits.set_authneg(1 as bit);
+        let ref mut fresh8 = (*conn).bits;
+        (*fresh8).set_authneg(1 as libc::c_int as bit);
     } else {
-        (*conn).bits.set_authneg(0 as bit);
+        let ref mut fresh9 = (*conn).bits;
+        (*fresh9).set_authneg(0 as libc::c_int as bit);
     }
     return result;
 }
@@ -1153,7 +1148,7 @@ pub unsafe extern "C" fn Curl_http_output_auth(
 /* when disabled */
 #[cfg(CURL_DISABLE_HTTP_AUTH)]
 #[no_mangle]
-pub extern "C" fn Curl_http_output_auth(
+pub unsafe extern "C" fn Curl_http_output_auth(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut request: *const libc::c_char,
@@ -1169,12 +1164,10 @@ pub extern "C" fn Curl_http_output_auth(
  * headers. They are dealt with both in the transfer.c main loop and in the
  * proxy CONNECT loop.
  */
-extern "C" fn is_valid_auth_separator(mut ch: libc::c_char) -> i32 {
-    unsafe {
-        return (ch as i32 == '\0' as i32
-            || ch as i32 == ',' as i32
-            || Curl_isspace(ch as u8 as i32) != 0) as i32;
-    }
+unsafe extern "C" fn is_valid_auth_separator(mut ch: libc::c_char) -> libc::c_int {
+    return (ch as libc::c_int == '\0' as i32
+        || ch as libc::c_int == ',' as i32
+        || Curl_isspace(ch as libc::c_uchar as libc::c_int) != 0) as libc::c_int;
 }
 
 #[no_mangle]
