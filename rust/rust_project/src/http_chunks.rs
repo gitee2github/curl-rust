@@ -54,13 +54,13 @@
  */
  #[no_mangle]
  pub extern "C" fn Curl_httpchunk_init(mut data: *mut Curl_easy) {
-     unsafe {
-         let mut conn: *mut connectdata = (*data).conn;
-         let mut chunk: *mut Curl_chunker = &mut (*conn).chunk;
-         (*chunk).hexindex = 0 as u8; /* start at 0 */
+
+         let mut conn: *mut connectdata = unsafe{(*data).conn};
+         let mut chunk: *mut Curl_chunker = unsafe{&mut (*conn).chunk};
+         unsafe{(*chunk).hexindex = 0 as u8; /* start at 0 */
          (*chunk).state = CHUNK_HEX; /* we get hex first! */
-         Curl_dyn_init(&mut (*conn).trailer, 4096 as size_t);
-     }
+         Curl_dyn_init(&mut (*conn).trailer, 4096 as size_t);}
+
  }
  
  /*
@@ -82,27 +82,27 @@
      mut wrotep: *mut ssize_t,
      mut extrap: *mut CURLcode,
  ) -> CHUNKcode {
-     unsafe {
          let mut result: CURLcode = CURLE_OK;
-         let mut conn: *mut connectdata = (*data).conn;
-         let mut ch: *mut Curl_chunker = &mut (*conn).chunk;
-         let mut k: *mut SingleRequest = &mut (*data).req;
+         let mut conn: *mut connectdata = unsafe{(*data).conn};
+         let mut ch: *mut Curl_chunker = unsafe{&mut (*conn).chunk};
+         let mut k: *mut SingleRequest =unsafe{ &mut (*data).req};
          let mut piece: size_t = 0;
          let mut length: curl_off_t = datalen;
          let mut wrote: *mut size_t = wrotep as *mut size_t;
-         *wrote = 0 as size_t; /* nothing's written yet */
+         unsafe{*wrote = 0 as size_t;} /* nothing's written yet */
  
          /* the original data is written to the client, but we go on with the
          chunk read process, to properly calculate the content length*/
-         if ((*data).set).http_te_skip() as i32 != 0 && (*k).ignorebody() == 0 {
-             result = Curl_client_write(data, (1 as i32) << 0 as i32, datap, datalen as size_t);
+         if unsafe{((*data).set).http_te_skip() as i32} != 0 && unsafe{(*k).ignorebody()} == 0 {
+             result = unsafe{Curl_client_write(data, (1 as i32) << 0 as i32, datap, datalen as size_t)};
              if result as u64 != 0 {
-                 *extrap = result;
+                unsafe{*extrap = result;}
                  return CHUNKE_PASSTHRU_ERROR; /* longer hex than we support */
              }
          }
          while length != 0 {
              let mut current_block_101: u64;
+             unsafe{
              match (*ch).state as u32 {
                  0 => {
                      if Curl_isxdigit(*datap as i32) != 0 {
@@ -297,13 +297,13 @@
                  }
                  _ => {}
              }
+            }
          }
          return CHUNKE_OK;
-     }
  }
  #[no_mangle]
  pub extern "C" fn Curl_chunked_strerror(mut code: CHUNKcode) -> *const libc::c_char {
-     unsafe {
+    unsafe{
          match code as i32 {
              1 => return b"Too long hexadecimal number\0" as *const u8 as *const libc::c_char,
              2 => {
@@ -328,7 +328,7 @@
              5 => return b"Out of memory\0" as *const u8 as *const libc::c_char,
              _ => return b"OK\0" as *const u8 as *const libc::c_char,
          };
-     }
+        }
  }
  /* CURL_DISABLE_HTTP */
  

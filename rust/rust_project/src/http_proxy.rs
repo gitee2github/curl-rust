@@ -32,9 +32,9 @@
      mut data: *mut Curl_easy,
      mut sockindex: i32,
  ) -> CURLcode {
-     unsafe{
+
      if cfg!(USE_SSL) {
-         let mut conn: *mut connectdata = (*data).conn;
+         let mut conn: *mut connectdata = unsafe{(*data).conn};
          let mut result: CURLcode = CURLE_OK;
          #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
          if (*conn).http_proxy.proxytype as u32
@@ -52,9 +52,9 @@
                  .as_ptr(),
              );
          }
-         if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
+         if unsafe{!(*conn).bits.proxy_ssl_connected[sockindex as usize]} {
              /* perform SSL initialization for this socket */
-             result = Curl_ssl_connect_nonblocking(
+             result = unsafe{Curl_ssl_connect_nonblocking(
                  data,
                  conn,
                  1 as i32 != 0,
@@ -62,7 +62,7 @@
                  &mut *((*conn).bits.proxy_ssl_connected)
                      .as_mut_ptr()
                      .offset(sockindex as isize),
-             );
+             )};
              if result as u64 != 0 {
                   /* a failed connection is marked for closure to prevent (bad) re-use or
           similar */
@@ -73,14 +73,14 @@
                      b"TLS handshake failed\0" as *const u8 as *const libc::c_char,
                  );
                  #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
-                 Curl_conncontrol(conn, 1 as i32);
+                 unsafe{Curl_conncontrol(conn, 1 as i32);}
              }
          }
          return result;
      } else {
          return CURLE_NOT_BUILT_IN;
      }
- }
+ 
  }
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  #[no_mangle]
@@ -88,21 +88,20 @@
      mut data: *mut Curl_easy,
      mut sockindex: i32,
  ) -> CURLcode {
-     unsafe{
-     let mut conn: *mut connectdata = (*data).conn;
-     if (*conn).http_proxy.proxytype as u32
+     let mut conn: *mut connectdata = unsafe{(*data).conn};
+     if unsafe{(*conn).http_proxy.proxytype as u32}
          == CURLPROXY_HTTPS as u32
      {
          let result: CURLcode = https_proxy_connect(data, sockindex);
          if result as u64 != 0 {
              return result;
          }
-         if !(*conn).bits.proxy_ssl_connected[sockindex as usize] {
+         if unsafe{!(*conn).bits.proxy_ssl_connected[sockindex as usize]} {
              return result; /* wait for HTTPS proxy SSL initialization to complete */
          }
      }
-     if ((*conn).bits).tunnel_proxy() as i32 != 0
-         && ((*conn).bits).httpproxy() as i32 != 0
+     if unsafe{ ((*conn).bits).tunnel_proxy() as i32} != 0
+         && unsafe{((*conn).bits).httpproxy() as i32 }!= 0
      {
          if cfg!(not(CURL_DISABLE_PROXY)) {
              /* for [protocol] tunneled through HTTP proxy */
@@ -114,43 +113,43 @@
      /* for the secondary socket (FTP), use the "connect to host"
       * but ignore the "connect to port" (use the secondary port)
       */
-             if ((*conn).bits).conn_to_host() != 0 {
-                 hostname = (*conn).conn_to_host.name;
+             if unsafe{((*conn).bits).conn_to_host() }!= 0 {
+                 hostname = unsafe{(*conn).conn_to_host.name};
              } else if sockindex == 1 as i32 {
-                 hostname = (*conn).secondaryhostname;
+                 hostname = unsafe{(*conn).secondaryhostname};
              } else {
-                 hostname = (*conn).host.name;
+                 hostname = unsafe{(*conn).host.name};
              }
              if sockindex == 1 as i32 {
-                 remote_port = (*conn).secondary_port as i32;
-             } else if ((*conn).bits).conn_to_port() != 0 {
-                 remote_port = (*conn).conn_to_port;
+                 remote_port = unsafe{(*conn).secondary_port as i32};
+             } else if unsafe{((*conn).bits).conn_to_port() }!= 0 {
+                 remote_port = unsafe{(*conn).conn_to_port};
              } else {
-                 remote_port = (*conn).remote_port;
+                 remote_port = unsafe{(*conn).remote_port};
              }
              result_0 = Curl_proxyCONNECT(data, sockindex, hostname, remote_port);
              if CURLE_OK as u32 != result_0 as u32 {
                  return result_0;
              }
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")(
+             unsafe{Curl_cfree.expect("non-null function pointer")(
                  (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-             );
+             );}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
                  120 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
              );
              // let ref mut fresh0 = (*data).state.aptr.proxyuserpwd;
-             (*data).state.aptr.proxyuserpwd = 0 as *mut libc::c_char;
+             (*data).state.aptr.proxyuserpwd = 0 as *mut libc::c_char;}
          } else {
              return CURLE_NOT_BUILT_IN;
          }
      }
       /* no HTTP tunnel proxy, just return */
      return CURLE_OK;
- }
+
  }
  
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
@@ -177,11 +176,11 @@
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  #[no_mangle]
  pub extern "C" fn Curl_connect_getsock(mut conn: *mut connectdata) -> i32 {
-     unsafe{
      let mut http: *mut HTTP = 0 as *mut HTTP;
      #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
      if !conn.is_null() {
      } else {
+        unsafe{
          __assert_fail(
              b"conn\0" as *const u8 as *const libc::c_char,
              b"http_proxy.c\0" as *const u8 as *const libc::c_char,
@@ -190,11 +189,12 @@
                  b"int Curl_connect_getsock(struct connectdata *)\0",
              ))
              .as_ptr(),
-         );
+         );}
      }
      #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-     if !((*conn).connect_state).is_null() {
+     if unsafe{ !((*conn).connect_state).is_null()} {
      } else {
+        unsafe{
          __assert_fail(
              b"conn->connect_state\0" as *const u8 as *const libc::c_char,
              b"http_proxy.c\0" as *const u8 as *const libc::c_char,
@@ -203,25 +203,23 @@
                  b"int Curl_connect_getsock(struct connectdata *)\0",
              ))
              .as_ptr(),
-         );
+         );}
      }
-     http = &mut (*(*conn).connect_state).http_proxy;
-     if (*http).sending as u32 == HTTPSEND_REQUEST as u32 {
+     http = unsafe{&mut (*(*conn).connect_state).http_proxy};
+     if unsafe{(*http).sending as u32} == HTTPSEND_REQUEST as u32 {
          return (1 as i32) << 16 as i32 + 0 as i32;
      }
      return (1 as i32) << 0 as i32;
  }
- }
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  extern "C" fn connect_init(mut data: *mut Curl_easy, mut reinit: bool) -> CURLcode {
-     unsafe{
      let mut s: *mut http_connect_state = 0 as *mut http_connect_state;
-     let mut conn: *mut connectdata = (*data).conn;
+     let mut conn: *mut connectdata = unsafe{(*data).conn};
      if !reinit {
          let mut result: CURLcode = CURLE_OK;
          #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-         if ((*conn).connect_state).is_null() {
-         } else {
+         if unsafe{((*conn).connect_state).is_null()}{
+         } else {unsafe{
              __assert_fail(
                  b"!conn->connect_state\0" as *const u8 as *const libc::c_char,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
@@ -230,29 +228,30 @@
                      b"CURLcode connect_init(struct Curl_easy *, _Bool)\0",
                  ))
                  .as_ptr(),
-             );
+             );}
          }
           /* we might need the upload buffer for streaming a partial request */
-         result = Curl_get_upload_buffer(data);
+         result = unsafe{Curl_get_upload_buffer(data)};
          if result as u64 != 0 {
              return result;
          }
          #[cfg(not(CURLDEBUG))]
-         let news: *mut http_connect_state = Curl_ccalloc.expect("non-null function pointer")(
+         let news: *mut http_connect_state = unsafe{Curl_ccalloc.expect("non-null function pointer")(
              1 as size_t,
              ::std::mem::size_of::<http_connect_state>() as u64,
-         ) as *mut http_connect_state;
+         ) as *mut http_connect_state};
          #[cfg(CURLDEBUG)]
-         let news: *mut http_connect_state = curl_dbg_calloc(
+         let news: *mut http_connect_state =unsafe{ curl_dbg_calloc(
              1 as size_t,
              ::std::mem::size_of::<http_connect_state>() as u64,
              169 as i32,
              b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-         ) as *mut http_connect_state;
+         ) as *mut http_connect_state};
          s = news;
          if s.is_null() {
              return CURLE_OUT_OF_MEMORY;
          }
+         unsafe{
          Curl_infof(
              data,
              b"allocate connect buffer!\0" as *const u8 as *const libc::c_char,
@@ -263,15 +262,15 @@
          // let ref mut fresh2 = (*s).prot_save;
          (*s).prot_save = (*data).req.p.http;
          // let ref mut fresh3 = (*data).req.p.http;
-         (*data).req.p.http = &mut (*s).http_proxy;
+         (*data).req.p.http = &mut (*s).http_proxy;}
          #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
-         Curl_conncontrol(conn, 0 as i32);
+         unsafe{Curl_conncontrol(conn, 0 as i32);}
          #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
-         Curl_conncontrol(
+         unsafe{Curl_conncontrol(
              conn,
              0 as i32,
              b"HTTP proxy CONNECT\0" as *const u8 as *const libc::c_char,
-         );
+         );}
          /* Curl_proxyCONNECT is based on a pointer to a struct HTTP at the
       * member conn->proto.http; we want [protocol] through HTTP and we have
       * to change the member temporarily for connecting to the HTTP
@@ -283,8 +282,9 @@
       */
      } else {
          #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-         if !((*conn).connect_state).is_null() {
+         if unsafe{!((*conn).connect_state).is_null()} {
          } else {
+            unsafe{
              __assert_fail(
                  b"conn->connect_state\0" as *const u8 as *const libc::c_char,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
@@ -293,24 +293,26 @@
                      b"CURLcode connect_init(struct Curl_easy *, _Bool)\0",
                  ))
                  .as_ptr(),
-             );
+             );}
          }
-         s = (*conn).connect_state;
-         Curl_dyn_reset(&mut (*s).rcvbuf);
+         s = unsafe{(*conn).connect_state};
+         unsafe{ Curl_dyn_reset(&mut (*s).rcvbuf);}
      }
+     unsafe{
      (*s).tunnel_state = TUNNEL_INIT;
      (*s).keepon = KEEPON_CONNECT;
      (*s).cl = 0 as curl_off_t;
      (*s).set_close_connection(0 as bit);
+     }
      return CURLE_OK;
- }
+
  }
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  extern "C" fn connect_done(mut data: *mut Curl_easy) {
-     unsafe{
-     let mut conn: *mut connectdata = (*data).conn;
-     let mut s: *mut http_connect_state = (*conn).connect_state;
-     if (*s).tunnel_state as u32 != TUNNEL_EXIT as u32 {
+     let mut conn: *mut connectdata = unsafe{(*data).conn};
+     let mut s: *mut http_connect_state = unsafe{(*conn).connect_state};
+     if unsafe{(*s).tunnel_state as u32} != TUNNEL_EXIT as u32 {
+        unsafe{
          (*s).tunnel_state = TUNNEL_EXIT;
          Curl_dyn_free(&mut (*s).rcvbuf);
          Curl_dyn_free(&mut (*s).req);
@@ -322,9 +324,8 @@
          Curl_infof(
              data,
              b"CONNECT phase completed!\0" as *const u8 as *const libc::c_char,
-         );
+         );}
      }
- }
  }
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  extern "C" fn CONNECT_host(
@@ -335,16 +336,15 @@
      mut connecthostp: *mut *mut libc::c_char,
      mut hostp: *mut *mut libc::c_char,
  ) -> CURLcode {
-     unsafe{
      let mut hostheader: *mut libc::c_char = 0 as *mut libc::c_char; /* for CONNECT */
      let mut host: *mut libc::c_char = 0 as *mut libc::c_char; /* Host: */
-     let mut ipv6_ip: bool = ((*conn).bits).ipv6_ip() != 0;
+     let mut ipv6_ip: bool = unsafe{((*conn).bits).ipv6_ip() }!= 0;
      /* the hostname may be different */
-     if hostname != (*conn).host.name as *const libc::c_char {
-         ipv6_ip = !(strchr(hostname, ':' as i32)).is_null();
+     if hostname != unsafe{(*conn).host.name as *const libc::c_char }{
+         ipv6_ip = unsafe{!(strchr(hostname, ':' as i32)).is_null()};
      }
      /* host:port with IPv6 support */
-     hostheader = curl_maprintf(
+     hostheader = unsafe{curl_maprintf(
          b"%s%s%s:%d\0" as *const u8 as *const libc::c_char,
          if ipv6_ip as i32 != 0 {
              b"[\0" as *const u8 as *const libc::c_char
@@ -358,83 +358,83 @@
              b"\0" as *const u8 as *const libc::c_char
          },
          remote_port,
-     );
+     )};
      if hostheader.is_null() {
          return CURLE_OUT_OF_MEMORY;
      }
-     if (Curl_checkProxyheaders(data, conn, b"Host\0" as *const u8 as *const libc::c_char)).is_null()
+     if unsafe{(Curl_checkProxyheaders(data, conn, b"Host\0" as *const u8 as *const libc::c_char)).is_null()}
      {
-         host = curl_maprintf(
+         host = unsafe{curl_maprintf(
              b"Host: %s\r\n\0" as *const u8 as *const libc::c_char,
              hostheader,
-         );
+         )};
          if host.is_null() {
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);
+             unsafe{Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  hostheader as *mut libc::c_void,
                  240 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-             );
+             );}
              return CURLE_OUT_OF_MEMORY;
          }
      }
+     unsafe{
      *connecthostp = hostheader;
-     *hostp = host;
+     *hostp = host;}
      return CURLE_OK;
  }
- }
- #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP), not(USE_HYPER)))]
+//  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP), not(USE_HYPER)))]
+#[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP), not(USE_HYPER)))]
  extern "C" fn CONNECT(
      mut data: *mut Curl_easy,
      mut sockindex: i32,
      mut hostname: *const libc::c_char,
      mut remote_port: i32,
  ) -> CURLcode {
-     unsafe{
      let mut subversion: i32 = 0 as i32;
-     let mut k: *mut SingleRequest = &mut (*data).req;
+     let mut k: *mut SingleRequest = unsafe{&mut (*data).req};
      let mut result: CURLcode = CURLE_OK;
-     let mut conn: *mut connectdata = (*data).conn;
-     let mut tunnelsocket: curl_socket_t = (*conn).sock[sockindex as usize];
-     let mut s: *mut http_connect_state = (*conn).connect_state;
-     let mut http: *mut HTTP = (*data).req.p.http;
+     let mut conn: *mut connectdata = unsafe{(*data).conn};
+     let mut tunnelsocket: curl_socket_t = unsafe{(*conn).sock[sockindex as usize]};
+     let mut s: *mut http_connect_state =unsafe{ (*conn).connect_state};
+     let mut http: *mut HTTP =unsafe{ (*data).req.p.http};
      let mut linep: *mut libc::c_char = 0 as *mut libc::c_char;
      let mut perline: size_t = 0;
      if Curl_connect_complete(conn) {
          return CURLE_OK; /* CONNECT is already completed */
      }
      // let ref mut fresh6 = (*conn).bits;
-     ((*conn).bits).set_proxy_connect_closed(0 as bit);
+     unsafe{((*conn).bits).set_proxy_connect_closed(0 as bit)};
      loop {
          let mut check: timediff_t = 0;
-         if TUNNEL_INIT as u32 == (*s).tunnel_state as u32 {
+         if TUNNEL_INIT as u32 == unsafe{(*s).tunnel_state as u32} {
              /* BEGIN CONNECT PHASE */
-             let mut req: *mut dynbuf = &mut (*s).req;
+             let mut req: *mut dynbuf = unsafe{&mut (*s).req};
              let mut hostheader: *mut libc::c_char = 0 as *mut libc::c_char;
              let mut host: *mut libc::c_char = 0 as *mut libc::c_char;
-             Curl_infof(
+             unsafe{Curl_infof(
                  data,
                  b"Establish HTTP proxy tunnel to %s:%d\0" as *const u8 as *const libc::c_char,
                  hostname,
                  remote_port,
-             );
+             );}
              /* This only happens if we've looped here due to authentication
             reasons, and we don't really use the newly cloned URL here
             then. Just free() it. */
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);
+             unsafe{Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  (*data).req.newurl as *mut libc::c_void,
                  287 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-             );
+             );}
              // let ref mut fresh7 = (*data).req.newurl;
-             (*data).req.newurl = 0 as *mut libc::c_char;
+             unsafe{(*data).req.newurl = 0 as *mut libc::c_char;
               /* initialize send-buffer */
-             Curl_dyn_init(req, (1024 as i32 * 1024 as i32) as size_t);
+            Curl_dyn_init(req, (1024 as i32 * 1024 as i32) as size_t)};
              /* Setup the proxy-authorization header, if any */
              result = CONNECT_host(
                  data,
@@ -447,23 +447,23 @@
              if result as u64 != 0 {
                  return result;
              }
-             result = Curl_http_output_auth(
+             result = unsafe{Curl_http_output_auth(
                  data,
                  conn,
                  b"CONNECT\0" as *const u8 as *const libc::c_char,
                  HTTPREQ_GET,
                  hostheader,
                  1 as i32 != 0,
-             );
+             )};
              if result as u64 == 0 {
-                 let mut httpv: *const libc::c_char = if (*conn).http_proxy.proxytype as u32
+                 let mut httpv: *const libc::c_char = if unsafe{ (*conn).http_proxy.proxytype as u32}
                      == CURLPROXY_HTTP_1_0 as u32
                  {
                      b"1.0\0" as *const u8 as *const libc::c_char
                  } else {
                      b"1.1\0" as *const u8 as *const libc::c_char
                  };
-                 result = Curl_dyn_addf(
+                 result = unsafe{Curl_dyn_addf(
                      req,
                      b"CONNECT %s HTTP/%s\r\n%s%s\0" as *const u8 as *const libc::c_char,
                      hostheader, /* Host: */
@@ -478,191 +478,192 @@
                      } else {
                          b"\0" as *const u8 as *const libc::c_char
                      },
-                 );
+                 )};
                  if result as u64 == 0
-                     && (Curl_checkProxyheaders(
+                     && unsafe{(Curl_checkProxyheaders(
                          data,
                          conn,
                          b"User-Agent\0" as *const u8 as *const libc::c_char,
                      ))
-                     .is_null()
-                     && !((*data).set.str_0[STRING_USERAGENT as usize]).is_null()
+                     .is_null()}
+                     && unsafe{!((*data).set.str_0[STRING_USERAGENT as usize]).is_null()}
                  {
-                     result = Curl_dyn_addf(
+                     result = unsafe{Curl_dyn_addf(
                          req,
                          b"User-Agent: %s\r\n\0" as *const u8 as *const libc::c_char,
                          (*data).set.str_0[STRING_USERAGENT as usize],
-                     );
+                     )};
                  }
                  if result as u64 == 0
-                     && (Curl_checkProxyheaders(
+                     && unsafe{(Curl_checkProxyheaders(
                          data,
                          conn,
                          b"Proxy-Connection\0" as *const u8 as *const libc::c_char,
                      ))
-                     .is_null()
+                     .is_null()}
                  { /* CRLF terminate the request */
-                     result = Curl_dyn_add(
+                     result = unsafe{Curl_dyn_add(
                          req,
                          b"Proxy-Connection: Keep-Alive\r\n\0" as *const u8 as *const libc::c_char,
-                     );
+                     )};
                  }
                  if result as u64 == 0 {
                      /* Send the connect request to the proxy */
-                     result = Curl_add_custom_headers(data, 1 as i32 != 0, req);
+                     result = unsafe{Curl_add_custom_headers(data, 1 as i32 != 0, req)};
                  }
                  if result as u64 == 0 {
-                     result = Curl_dyn_add(req, b"\r\n\0" as *const u8 as *const libc::c_char);
+                     result = unsafe{Curl_dyn_add(req, b"\r\n\0" as *const u8 as *const libc::c_char)};
                  }
                  if result as u64 == 0 {
-                     result = Curl_buffer_send(
+                     result = unsafe{Curl_buffer_send(
                          req,
                          data,
                          &mut (*data).info.request_size,
                          0 as curl_off_t,
                          sockindex,
-                     );
+                     )};
                  }
                  if result as u64 != 0 {
-                     Curl_failf(
+                    unsafe{Curl_failf(
                          data,
                          b"Failed sending CONNECT to proxy\0" as *const u8 as *const libc::c_char,
-                     );
+                     );}
                  }
              }
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")(host as *mut libc::c_void);
+             unsafe{Curl_cfree.expect("non-null function pointer")(host as *mut libc::c_void);}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  host as *mut libc::c_void,
                  340 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-             );
+             );}
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);
+             unsafe{Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  hostheader as *mut libc::c_void,
                  341 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
-             );
+             );}
              if result as u64 != 0 {
                  return result;
              }
-             (*s).tunnel_state = TUNNEL_CONNECT;/* END CONNECT PHASE */
+             unsafe{(*s).tunnel_state = TUNNEL_CONNECT;}/* END CONNECT PHASE */
          }
-         check = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
+         check = unsafe{Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0)};
          if check <= 0 as i64 {
-             Curl_failf(
+            unsafe{ Curl_failf(
                  data,
                  b"Proxy CONNECT aborted due to timeout\0" as *const u8 as *const libc::c_char,
-             );
+             );}
              return CURLE_OPERATION_TIMEDOUT;
          }
-         if !Curl_conn_data_pending(conn, sockindex) && (*http).sending as u64 == 0 {
+         if unsafe{!Curl_conn_data_pending(conn, sockindex)} && unsafe{(*http).sending as u64 }== 0 {
              return CURLE_OK;  /* return so we'll be called again polling-style */
          }
          /* at this point, the tunnel_connecting phase is over. */
-         if (*http).sending as u32 == HTTPSEND_REQUEST as u32 {
-             if (*s).nsend == 0 {
+         if unsafe{(*http).sending as u32 }== HTTPSEND_REQUEST as u32 {
+             if unsafe{(*s).nsend} == 0 {
                  let mut fillcount: size_t = 0;
                  // let ref mut fresh8 = (*k).upload_fromhere;
-                 (*k).upload_fromhere = (*data).state.ulbuf;
+                 unsafe{(*k).upload_fromhere = (*data).state.ulbuf;
                  result = Curl_fillreadbuffer(
                      data,
                      (*data).set.upload_buffer_size as size_t,
                      &mut fillcount,
-                 );
+                 );}
                  if result as u64 != 0 {
                      return result;
                  }
-                 (*s).nsend = fillcount;
+                 unsafe{(*s).nsend = fillcount;}
              }
-             if (*s).nsend != 0 {
+             if unsafe{(*s).nsend }!= 0 {
                  let mut bytes_written: ssize_t = 0; /* write to socket (send away data) */
-                 result = Curl_write(
+                 result = unsafe{Curl_write(
                      data,
                      (*conn).writesockfd, /* socket to send to */
                      (*k).upload_fromhere as *const libc::c_void, /* buffer pointer */
                      (*s).nsend, /* buffer size */
                      &mut bytes_written, /* actually sent */
-                 );
+                 )};
                  if result as u64 == 0 {
                      /* send to debug callback! */
-                     result = Curl_debug(
+                     result = unsafe{Curl_debug(
                          data,
                          CURLINFO_HEADER_OUT,
                          (*k).upload_fromhere,
                          bytes_written as size_t,
-                     ) as CURLcode;
+                     ) as CURLcode};
                  }
                  // let ref mut fresh9 = (*s).nsend;
-                 (*s).nsend = ((*s).nsend as u64).wrapping_sub(bytes_written as u64)
+                 unsafe{(*s).nsend = ((*s).nsend as u64).wrapping_sub(bytes_written as u64)
                      as size_t as size_t;
                  // let ref mut fresh10 = (*k).upload_fromhere;
-                 (*k).upload_fromhere = ((*k).upload_fromhere).offset(bytes_written as isize);
+                 (*k).upload_fromhere = ((*k).upload_fromhere).offset(bytes_written as isize);}
                  return result;
              }
-             (*http).sending = HTTPSEND_NADA;
+             unsafe{(*http).sending = HTTPSEND_NADA;}
               /* if nothing left to send, continue */
          }
           /* READING RESPONSE PHASE */
          let mut error: i32 = 0 as i32;
-         while (*s).keepon as u64 != 0 {
+         while unsafe{(*s).keepon as u64} != 0 {
              let mut gotbytes: ssize_t = 0;
              let mut byte: libc::c_char = 0;
               /* Read one byte at a time to avoid a race condition. Wait at most one
             second before looping to ensure continuous pgrsUpdates. */
-             result = Curl_read(
+             result = unsafe{Curl_read(
                  data,
                  tunnelsocket,
                  &mut byte,
                  1 as size_t,
                  &mut gotbytes,
-             );
+             )};
              if result as u32 == CURLE_AGAIN as u32 {
                   /* socket buffer drained, return */
                  return CURLE_OK;
              }
-             if Curl_pgrsUpdate(data) != 0 {
+             if unsafe{Curl_pgrsUpdate(data)} != 0 {
                  return CURLE_ABORTED_BY_CALLBACK;
              }
              if result as u64 != 0 {
-                 (*s).keepon = KEEPON_DONE;
+                unsafe{(*s).keepon = KEEPON_DONE;}
                  break;
              } else if gotbytes <= 0 as i64 {
-                 if (*data).set.proxyauth != 0
-                     && (*data).state.authproxy.avail != 0
-                     && !((*data).state.aptr.proxyuserpwd).is_null()
+                 if unsafe{(*data).set.proxyauth} != 0
+                     && unsafe{(*data).state.authproxy.avail} != 0
+                     && unsafe{!((*data).state.aptr.proxyuserpwd).is_null()}
                  { /* proxy auth was requested and there was proxy auth available,
                      then deem this as "mere" proxy disconnect */
                      // let ref mut fresh11 = (*conn).bits;
-                     ((*conn).bits).set_proxy_connect_closed(1 as bit);
+                     unsafe{((*conn).bits).set_proxy_connect_closed(1 as bit);
                      Curl_infof(
                          data,
                          b"Proxy CONNECT connection closed\0" as *const u8 as *const libc::c_char,
-                     );
+                     );}
                  } else {
                      error = 1 as i32;
+                     unsafe{
                      Curl_failf(
                          data,
                          b"Proxy CONNECT aborted\0" as *const u8 as *const libc::c_char,
-                     );
+                     );}
                  }
-                 (*s).keepon = KEEPON_DONE;
+                 unsafe{ (*s).keepon = KEEPON_DONE;}
                  break;
-             } else if (*s).keepon as u32 == KEEPON_IGNORE as u32 {
+             } else if unsafe{(*s).keepon as u32} == KEEPON_IGNORE as u32 {
                  /* This means we are currently ignoring a response-body */
-                 if (*s).cl != 0 {
+                 if unsafe{(*s).cl} != 0 {
                      // let ref mut fresh12 = (*s).cl;
                      /* A Content-Length based body: simply count down the counter
                 and make sure to break out of the loop when we're done! */
-                     (*s).cl -= 1;
+                unsafe{(*s).cl -= 1;
                      if !((*s).cl <= 0 as i64) {
                          continue;
                      }
                      (*s).keepon = KEEPON_DONE;
-                     (*s).tunnel_state = TUNNEL_COMPLETE;
+                     (*s).tunnel_state = TUNNEL_COMPLETE;}
                      break;
                  } else {
                      /* chunked-encoded body, so we need to do the chunked dance
@@ -672,15 +673,16 @@
                      let mut tookcareof: ssize_t = 0 as ssize_t;
                      /* now parse the chunked piece of data so that we can
                 properly tell when the stream ends */
-                     r = Curl_httpchunk_read(
+                     r = unsafe{Curl_httpchunk_read(
                          data,
                          &mut byte,
                          1 as ssize_t,
                          &mut tookcareof,
                          &mut extra,
-                     );
+                     )};
                      if r as i32 == CHUNKE_STOP as i32 {
                          /* we're done reading chunks! */
+                         unsafe{
                          Curl_infof(
                              data,
                              b"chunk reading DONE\0" as *const u8 as *const libc::c_char,
@@ -688,28 +690,29 @@
                          (*s).keepon = KEEPON_DONE;
                           /* we did the full CONNECT treatment, go COMPLETE */
                          (*s).tunnel_state = TUNNEL_COMPLETE;
+                        }
                      }
                  }
              } else {
-                 if Curl_dyn_addn(
+                 if unsafe{Curl_dyn_addn(
                      &mut (*s).rcvbuf,
                      &mut byte as *mut libc::c_char as *const libc::c_void,
                      1 as size_t,
-                 ) as u64
+                 ) as u64}
                      != 0
                  {
-                     Curl_failf(
+                    unsafe{ Curl_failf(
                          data,
                          b"CONNECT response too large!\0" as *const u8 as *const libc::c_char,
-                     );
+                     );}
                      return CURLE_RECV_ERROR;
                  }
                       /* if this is not the end of a header line then continue */
                  if byte as i32 != 0xa as i32 {
                      continue;
                  }
-                 linep = Curl_dyn_ptr(&mut (*s).rcvbuf);
-                 perline = Curl_dyn_len(&mut (*s).rcvbuf);/* amount of bytes in this line */
+                 linep = unsafe{Curl_dyn_ptr(&mut (*s).rcvbuf)};
+                 perline = unsafe{Curl_dyn_len(&mut (*s).rcvbuf)};/* amount of bytes in this line */
                   /* convert from the network encoding */
                  result = CURLE_OK as CURLcode;
                   /* Curl_convert_from_network calls failf if unsuccessful */
@@ -717,7 +720,7 @@
                      return result;
                  }
                  /* output debug if that is requested */
-                 Curl_debug(data, CURLINFO_HEADER_IN, linep, perline);
+                 unsafe{ Curl_debug(data, CURLINFO_HEADER_IN, linep, perline);
                  if ((*data).set).suppress_connect_headers() == 0 {
                       /* send the header to the callback */
                      let mut writetype: i32 = (1 as i32) << 1 as i32;
@@ -731,13 +734,15 @@
                  }
                  // let ref mut fresh13 = (*data).info.header_size;
                  (*data).info.header_size += perline as i64;
+                }
                   /* Newlines are CRLF, so the CR is ignored as the line isn't
             really terminated until the LF comes. Treat a following CR
             as end-of-headers as well.*/
-                 if '\r' as i32 == *linep.offset(0 as isize) as i32
-                     || '\n' as i32 == *linep.offset(0 as isize) as i32
+                 if '\r' as i32 == unsafe{*linep.offset(0 as isize) as i32}
+                     || '\n' as i32 == unsafe{*linep.offset(0 as isize) as i32}
                  { /* end of response-headers from the proxy */
-                     if 407 as i32 == (*k).httpcode && ((*data).state).authproblem() == 0 {
+                     if 407 as i32 == unsafe{(*k).httpcode} && unsafe{((*data).state).authproblem()} == 0 {
+                        unsafe{
                           /* If we get a 407 response code with content length
                 when we have no auth problem, we must ignore the
                 whole response-body */
@@ -785,27 +790,30 @@
                                  (*s).keepon = KEEPON_DONE;
                                   /* we did the full CONNECT treatment, go to COMPLETE */
                                  (*s).tunnel_state = TUNNEL_COMPLETE;
-                             }
+                                }
                          } else {
                                /* without content-length or chunked encoding, we
                   can't keep the connection alive since the close is
                   the end signal so we bail out at once instead */
                              (*s).keepon = KEEPON_DONE;
                          }
-                     } else {
-                         (*s).keepon = KEEPON_DONE;
+                        }
+                        } else {
+                            unsafe{
+                         (*s).keepon = KEEPON_DONE;}
                      }
-                     if (*s).keepon as u32 == KEEPON_DONE as u32
-                         && (*s).cl == 0
-                     {
+                     if unsafe{(*s).keepon as u32} == KEEPON_DONE as u32
+                         && unsafe{(*s).cl }== 0
+                     {   unsafe{
                          /* we did the full CONNECT treatment, go to COMPLETE */
-                         (*s).tunnel_state = TUNNEL_COMPLETE;
+                         (*s).tunnel_state = TUNNEL_COMPLETE;}
                      }
                      #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-                     if (*s).keepon as u32 == KEEPON_IGNORE as u32
-                         || (*s).keepon as u32 == KEEPON_DONE as u32
+                     if unsafe{(*s).keepon as u32} == KEEPON_IGNORE as u32
+                         || unsafe{(*s).keepon as u32} == KEEPON_DONE as u32
                      {
                      } else {
+                        unsafe{
                          __assert_fail(
                              b"s->keepon == KEEPON_IGNORE || s->keepon == KEEPON_DONE\0" as *const u8
                                  as *const libc::c_char,
@@ -816,8 +824,10 @@
                              ))
                              .as_ptr(),
                          );
+                        }
                      }
                  } else {
+                    unsafe{
                      if curl_strnequal(
                          b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char,
                          linep,
@@ -930,42 +940,45 @@
                          (*data).info.httpproxycode = (*k).httpcode;
                      }
                      Curl_dyn_reset(&mut (*s).rcvbuf);
+                    }
                  } /* while there's buffer left and loop is requested */
              }
          }
-         if Curl_pgrsUpdate(data) != 0 {
+         if unsafe{Curl_pgrsUpdate(data)} != 0 {
              return CURLE_ABORTED_BY_CALLBACK;
          }
          if error != 0 {
              return CURLE_RECV_ERROR;
          }
-         if (*data).info.httpproxycode / 100 as i32 != 2 as i32 {
+         if unsafe{(*data).info.httpproxycode / 100 as i32 }!= 2 as i32 {
              /* Deal with the possibly already received authenticate
             headers. 'newurl' is set to a new URL if we must loop. */
-             result = Curl_http_auth_act(data);
+             result = unsafe{Curl_http_auth_act(data)};
              if result as u64 != 0 {
                  return result;
              }
-             if ((*conn).bits).close() != 0 {
+             if unsafe{ ((*conn).bits).close() }!= 0 {
                   /* the connection has been marked for closure, most likely in the
               Curl_http_auth_act() function and thus we can kill it at once
               below */
-                 (*s).set_close_connection(1 as bit);
+              unsafe{(*s).set_close_connection(1 as bit);}
              }
          }
-         if (*s).close_connection() as i32 != 0 && !((*data).req.newurl).is_null() {
+         if unsafe{(*s).close_connection() as i32} != 0 && unsafe{!((*data).req.newurl).is_null()} {
+            unsafe{
               /* Connection closed by server. Don't use it anymore */
              Curl_closesocket(data, conn, (*conn).sock[sockindex as usize]);
              (*conn).sock[sockindex as usize] = -(1 as i32);
+            }
              break;
          } else {
-             if !((*data).req.newurl).is_null()
+             if unsafe{!((*data).req.newurl).is_null()}
                  && TUNNEL_COMPLETE as u32
-                     == (*s).tunnel_state as u32
+                     == unsafe{(*s).tunnel_state as u32}
              {
                  connect_init(data, 1 as i32 != 0);
              }
-             if ((*data).req.newurl).is_null() {
+             if unsafe{((*data).req.newurl).is_null()} {
                  break;
              }
          } /* END READING RESPONSE PHASE */
@@ -973,60 +986,61 @@
       /* If we are supposed to continue and request a new URL, which basically
       * means the HTTP authentication is still going on so if the tunnel
       * is complete we start over in INIT state */
-     if (*data).info.httpproxycode / 100 as i32 != 2 as i32 {
-         if (*s).close_connection() as i32 != 0 && !((*data).req.newurl).is_null() {
+     if unsafe{(*data).info.httpproxycode / 100 as i32} != 2 as i32 {
+         if unsafe{(*s).close_connection() as i32} != 0 && unsafe{!((*data).req.newurl).is_null()} {
              // let ref mut fresh14 = (*conn).bits;
-             ((*conn).bits).set_proxy_connect_closed(1 as bit);
+             unsafe{((*conn).bits).set_proxy_connect_closed(1 as bit);
              Curl_infof(
                  data,
                  b"Connect me again please\0" as *const u8 as *const libc::c_char,
              );
              connect_done(data);
+            }
          } else {
              #[cfg(not(CURLDEBUG))]
-             Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);
+             unsafe{Curl_cfree.expect("non-null function pointer")((*data).req.newurl as *mut libc::c_void);}
              #[cfg(CURLDEBUG)]
-             curl_dbg_free(
+             unsafe{curl_dbg_free(
                  (*data).req.newurl as *mut libc::c_void,
                  663 as i32,
                  b"http_proxy.c\0" as *const u8 as *const libc::c_char,
              );
              // let ref mut fresh15 = (*data).req.newurl;
-             (*data).req.newurl = 0 as *mut libc::c_char;
+             (*data).req.newurl = 0 as *mut libc::c_char;}
              #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
-             Curl_conncontrol(conn, 2 as i32);
+             unsafe{Curl_conncontrol(conn, 2 as i32);}
              #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
-             Curl_conncontrol(
+             unsafe{Curl_conncontrol(
                  conn,
                  2 as i32,
                  b"proxy CONNECT failure\0" as *const u8 as *const libc::c_char,
              );
              Curl_closesocket(data, conn, (*conn).sock[sockindex as usize]);
-             (*conn).sock[sockindex as usize] = -(1 as i32);
+             (*conn).sock[sockindex as usize] = -(1 as i32);}
          }
-         (*s).tunnel_state = TUNNEL_INIT;/* to back to init state */
-         if ((*conn).bits).proxy_connect_closed() != 0 {
+         unsafe{(*s).tunnel_state = TUNNEL_INIT;}/* to back to init state */
+         if unsafe{((*conn).bits).proxy_connect_closed()} != 0 {
               /* this is not an error, just part of the connection negotiation */
              return CURLE_OK;
          }
-         Curl_dyn_free(&mut (*s).rcvbuf);
+         unsafe{Curl_dyn_free(&mut (*s).rcvbuf);
          Curl_failf(
              data,
              b"Received HTTP code %d from proxy after CONNECT\0" as *const u8 as *const libc::c_char,
              (*data).req.httpcode,
-         );
+         );}
          return CURLE_RECV_ERROR;
      }
-     (*s).tunnel_state = TUNNEL_COMPLETE;
+     unsafe{(*s).tunnel_state = TUNNEL_COMPLETE;}
      /* If a proxy-authorization header was used for the proxy, then we should
       make sure that it isn't accidentally used for the document request
       after we've connected. So let's free and clear it here. */
      #[cfg(not(CURLDEBUG))]
-     Curl_cfree.expect("non-null function pointer")(
+     unsafe{Curl_cfree.expect("non-null function pointer")(
          (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
-     );
+     );}
      #[cfg(CURLDEBUG)]
-     curl_dbg_free(
+     unsafe{ curl_dbg_free(
          (*data).state.aptr.proxyuserpwd as *mut libc::c_void,
          688 as i32,
          b"http_proxy.c\0" as *const u8 as *const libc::c_char,
@@ -1049,9 +1063,8 @@
      // let ref mut fresh21 = (*conn).bits;
      ((*conn).bits).set_rewindaftersend(0 as bit);/* make sure this isn't set for the
      document request  */
-     Curl_dyn_free(&mut (*s).rcvbuf);
+     Curl_dyn_free(&mut (*s).rcvbuf);}
      return CURLE_OK;
- }
  }
  /* The Hyper version of CONNECT */
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP), USE_HYPER))]
@@ -1061,12 +1074,11 @@
      mut hostname: *const libc::c_char,
      mut remote_port: i32,
  ) -> CURLcode {
-     unsafe{
      let mut current_block: u64;
-     let mut conn: *mut connectdata = (*data).conn;
-     let mut h: *mut hyptransfer = &mut (*data).hyp;
-     let mut tunnelsocket: curl_socket_t = (*conn).sock[sockindex as usize];
-     let mut s: *mut http_connect_state = (*conn).connect_state;
+     let mut conn: *mut connectdata = unsafe {(*data).conn};
+     let mut h: *mut hyptransfer = unsafe {&mut (*data).hyp};
+     let mut tunnelsocket: curl_socket_t = unsafe {(*conn).sock[sockindex as usize]};
+     let mut s: *mut http_connect_state = unsafe {(*conn).connect_state};
      let mut result: CURLcode = CURLE_OUT_OF_MEMORY;
      let mut io: *mut hyper_io = 0 as *mut hyper_io;
      let mut req: *mut hyper_request = 0 as *mut hyper_request;
@@ -1083,8 +1095,9 @@
          return CURLE_OK;/* CONNECT is already completed */
      }
      // let ref mut fresh6 = (*conn).bits;
-     ((*conn).bits).set_proxy_connect_closed(0 as bit);
+     unsafe {((*conn).bits).set_proxy_connect_closed(0 as bit);}
      's_65: loop {
+        unsafe {
          match (*s).tunnel_state as u32 {
              0 => {
                   /* BEGIN CONNECT PHASE */
@@ -1488,15 +1501,17 @@
              current_block = 14027225908442187354;
              break;
          }
-     }
+        }
+        }
      match current_block {
          14027225908442187354 => {
              result = CURLE_OK;
-             if (*s).tunnel_state as u32 == TUNNEL_COMPLETE as u32 {
-                 (*data).info.httpproxycode = (*data).req.httpcode;
-                 if (*data).info.httpproxycode / 100 as i32 != 2 as i32 {
-                     if ((*conn).bits).close() as i32 != 0 && !((*data).req.newurl).is_null()
-                     {
+             if unsafe {(*s).tunnel_state as u32} == TUNNEL_COMPLETE as u32 {
+                unsafe {
+                 (*data).info.httpproxycode = (*data).req.httpcode;}
+                 if unsafe {(*data).info.httpproxycode / 100 as i32} != 2 as i32 {
+                     if unsafe {((*conn).bits).close() as i32} != 0 &&unsafe { !((*data).req.newurl).is_null()}
+                     {unsafe {
                          // let ref mut fresh11 = (*conn).bits;
                          ((*conn).bits).set_proxy_connect_closed(1 as bit);
                          Curl_infof(
@@ -1504,7 +1519,9 @@
                              b"Connect me again please\0" as *const u8 as *const libc::c_char,
                          );
                          connect_done(data);
+                        }
                      } else {
+                        unsafe {
                          Curl_cfree.expect("non-null function pointer")(
                              (*data).req.newurl as *mut libc::c_void,
                          );
@@ -1513,15 +1530,18 @@
                          Curl_conncontrol(conn, 2 as i32);
                          Curl_closesocket(data, conn, (*conn).sock[sockindex as usize]);
                          (*conn).sock[sockindex as usize] = -(1 as i32);
+                        }
                      }
-                     (*s).tunnel_state = TUNNEL_INIT;
-                     if ((*conn).bits).proxy_connect_closed() == 0 {
+                     unsafe {
+                     (*s).tunnel_state = TUNNEL_INIT;}
+                     if unsafe {((*conn).bits).proxy_connect_closed()} == 0 {
+                        unsafe {
                          Curl_failf(
                              data,
                              b"Received HTTP code %d from proxy after CONNECT\0" as *const u8
                                  as *const libc::c_char,
                              (*data).req.httpcode,
-                         );
+                         );}
                          result = CURLE_RECV_ERROR;
                      }
                  }
@@ -1529,54 +1549,60 @@
          }
          _ => {}
      }
+     unsafe {
      Curl_cfree.expect("non-null function pointer")(host as *mut libc::c_void);
      Curl_cfree.expect("non-null function pointer")(hostheader as *mut libc::c_void);
+     }
      if !io.is_null() {
+        unsafe {
          hyper_io_free(io);
+        }
      }
      if !options.is_null() {
-         hyper_clientconn_options_free(options);
+        unsafe {
+         hyper_clientconn_options_free(options);}
      }
      if !handshake.is_null() {
-         hyper_task_free(handshake);
+        unsafe {
+         hyper_task_free(handshake);}
      }
      if !hypererr.is_null() {
          let mut errbuf: [uint8_t; 256] = [0; 256];
-         let mut errlen: size_t = hyper_error_print(
+         let mut errlen: size_t = unsafe {hyper_error_print(
              hypererr,
              errbuf.as_mut_ptr(),
              ::std::mem::size_of::<[uint8_t; 256]>() as u64,
-         );
+         )};
+         unsafe {
          Curl_failf(
              data,
              b"Hyper: %.*s\0" as *const u8 as *const libc::c_char,
              errlen as i32,
              errbuf.as_mut_ptr(),
          );
-         hyper_error_free(hypererr);
+         hyper_error_free(hypererr);}
      }
      return result;
  }
- }
+ 
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  #[no_mangle]
  pub extern "C" fn Curl_connect_free(mut data: *mut Curl_easy) {
-     unsafe{
-     let mut conn: *mut connectdata = (*data).conn;
-     let mut s: *mut http_connect_state = (*conn).connect_state;
+     let mut conn: *mut connectdata = unsafe{ (*data).conn};
+     let mut s: *mut http_connect_state = unsafe{ (*conn).connect_state};
      if !s.is_null() {
          #[cfg(not(CURLDEBUG))]
-         Curl_cfree.expect("non-null function pointer")(s as *mut libc::c_void);
+         unsafe{ Curl_cfree.expect("non-null function pointer")(s as *mut libc::c_void);}
          #[cfg(CURLDEBUG)]
-         curl_dbg_free(
+         unsafe{ curl_dbg_free(
              s as *mut libc::c_void,
              968 as i32,
              b"http_proxy.c\0" as *const u8 as *const libc::c_char,
          );
          // let ref mut fresh22 = (*conn).connect_state;
-         (*conn).connect_state = 0 as *mut http_connect_state;
+         (*conn).connect_state = 0 as *mut http_connect_state;}
      }
- }
+
  }
  #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
  #[no_mangle]
@@ -1586,21 +1612,21 @@
      mut hostname: *const libc::c_char,
      mut remote_port: i32,
  ) -> CURLcode {
-     unsafe{
+
      let mut result: CURLcode = CURLE_OK;
-     let mut conn: *mut connectdata = (*data).conn;
-     if ((*conn).connect_state).is_null() {
-         result = connect_init(data, 0 as i32 != 0);
+     let mut conn: *mut connectdata = unsafe{ (*data).conn};
+     if unsafe{ ((*conn).connect_state).is_null() }{
+         result = unsafe{ connect_init(data, 0 as i32 != 0)};
          if result as u64 != 0 {
              return result;
          }
      }
-     result = CONNECT(data, sockindex, hostname, remote_port);
-     if result as u32 != 0 || Curl_connect_complete(conn) as i32 != 0 {
+     result = unsafe{ CONNECT(data, sockindex, hostname, remote_port)};
+     if result as u32 != 0 || unsafe{ Curl_connect_complete(conn) as i32} != 0 {
          connect_done(data);
      }
      return result;
- }
+
  }
  
  /*
