@@ -37,39 +37,36 @@ use rust_ffi::src::ffi_struct::struct_define::*;
 // 有2个enum，2个union，1个struct在ftplistparser.c中定义的，要保留在这个文件中
 #[no_mangle]
 pub extern "C" fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data {
-   unsafe{
     #[cfg(not(CURLDEBUG))]
-    return Curl_ccalloc.expect("non-null function pointer")(
+    return unsafe{Curl_ccalloc.expect("non-null function pointer")(
         1 as size_t,
         ::std::mem::size_of::<ftp_parselist_data>() as u64,
-    ) as *mut ftp_parselist_data;
+    ) as *mut ftp_parselist_data};
     #[cfg(CURLDEBUG)]
-    return curl_dbg_calloc(
+    return unsafe{curl_dbg_calloc(
         1 as size_t,
         ::std::mem::size_of::<ftp_parselist_data>() as u64,
         184 as i32,
         b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
-    ) as *mut ftp_parselist_data;
-   }
+    ) as *mut ftp_parselist_data};
+
 }
 #[no_mangle]
 pub extern "C" fn Curl_ftp_parselist_data_free(mut parserp: *mut *mut ftp_parselist_data) {
-   unsafe{
-    let mut parser: *mut ftp_parselist_data = *parserp;
+    let mut parser: *mut ftp_parselist_data = unsafe{*parserp};
     if !parser.is_null() {
-        Curl_fileinfo_cleanup((*parser).file_data);
+        unsafe{Curl_fileinfo_cleanup((*parser).file_data);}
     }
     #[cfg(not(CURLDEBUG))]
-    Curl_cfree.expect("non-null function pointer")(parser as *mut libc::c_void);
+    unsafe{Curl_cfree.expect("non-null function pointer")(parser as *mut libc::c_void);}
 
     #[cfg(CURLDEBUG)]
-    curl_dbg_free(
+    unsafe{curl_dbg_free(
         parser as *mut libc::c_void,
         193 as i32,
         b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
     );
-    *parserp = 0 as *mut ftp_parselist_data;
-   }
+    *parserp = 0 as *mut ftp_parselist_data;}
 }
 #[no_mangle]
 pub extern "C" fn Curl_ftp_parselist_geterror(
@@ -80,90 +77,87 @@ pub extern "C" fn Curl_ftp_parselist_geterror(
    }
 }
 extern "C" fn ftp_pl_get_permission(mut str: *const libc::c_char) -> i32 {
-   unsafe{
     let mut permissions: i32 = 0 as i32;
     /* USER */
-    if *str.offset(0 as isize) as i32 == 'r' as i32 {
+    if unsafe{ *str.offset(0 as isize) as i32} == 'r' as i32 {
         permissions |= (1 as i32) << 8 as i32;
-    } else if *str.offset(0 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(0 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(1 as isize) as i32 == 'w' as i32 {
+    if unsafe{*str.offset(1 as isize) as i32} == 'w' as i32 {
         permissions |= (1 as i32) << 7 as i32;
-    } else if *str.offset(1 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(1 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(2 as isize) as i32 == 'x' as i32 {
+    if unsafe{*str.offset(2 as isize) as i32} == 'x' as i32 {
         permissions |= (1 as i32) << 6 as i32;
-    } else if *str.offset(2 as i32 as isize) as i32 == 's' as i32 {
+    } else if unsafe{*str.offset(2 as i32 as isize) as i32} == 's' as i32 {
         permissions |= (1 as i32) << 6 as i32;
         permissions |= (1 as i32) << 11 as i32;
-    } else if *str.offset(2 as isize) as i32 == 'S' as i32 {
+    } else if unsafe{*str.offset(2 as isize) as i32} == 'S' as i32 {
         permissions |= (1 as i32) << 11 as i32;
-    } else if *str.offset(2 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(2 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
     /* GROUP */
-    if *str.offset(3 as isize) as i32 == 'r' as i32 {
+    if unsafe{*str.offset(3 as isize) as i32} == 'r' as i32 {
         permissions |= (1 as i32) << 5 as i32;
-    } else if *str.offset(3 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(3 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(4 as isize) as i32 == 'w' as i32 {
+    if unsafe{*str.offset(4 as isize) as i32} == 'w' as i32 {
         permissions |= (1 as i32) << 4 as i32;
-    } else if *str.offset(4 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(4 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(5 as isize) as i32 == 'x' as i32 {
+    if unsafe{*str.offset(5 as isize) as i32} == 'x' as i32 {
         permissions |= (1 as i32) << 3 as i32;
-    } else if *str.offset(5 as isize) as i32 == 's' as i32 {
+    } else if unsafe{*str.offset(5 as isize) as i32} == 's' as i32 {
         permissions |= (1 as i32) << 3 as i32;
         permissions |= (1 as i32) << 10 as i32;
-    } else if *str.offset(5 as isize) as i32 == 'S' as i32 {
+    } else if unsafe{*str.offset(5 as isize) as i32} == 'S' as i32 {
         permissions |= (1 as i32) << 10 as i32;
-    } else if *str.offset(5 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(5 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
     /* others */
-    if *str.offset(6 as isize) as i32 == 'r' as i32 {
+    if unsafe{*str.offset(6 as isize) as i32} == 'r' as i32 {
         permissions |= (1 as i32) << 2 as i32;
-    } else if *str.offset(6 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(6 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(7 as isize) as i32 == 'w' as i32 {
+    if unsafe{*str.offset(7 as isize) as i32} == 'w' as i32 {
         permissions |= (1 as i32) << 1 as i32;
-    } else if *str.offset(7 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(7 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
-    if *str.offset(8 as isize) as i32 == 'x' as i32 {
+    if unsafe{*str.offset(8 as isize) as i32} == 'x' as i32 {
         permissions |= 1 as i32;
-    } else if *str.offset(8 as isize) as i32 == 't' as i32 {
+    } else if unsafe{*str.offset(8 as isize) as i32} == 't' as i32 {
         permissions |= 1 as i32;
         permissions |= (1 as i32) << 9 as i32;
-    } else if *str.offset(8 as isize) as i32 == 'T' as i32 {
+    } else if unsafe{*str.offset(8 as isize) as i32} == 'T' as i32 {
         permissions |= (1 as i32) << 9 as i32;
-    } else if *str.offset(8 as isize) as i32 != '-' as i32 {
+    } else if unsafe{*str.offset(8 as isize) as i32} != '-' as i32 {
         permissions |= 0x1000000 as i32;
     }
     return permissions;
-   }
 }
 extern "C" fn ftp_pl_insert_finfo(
     mut data: *mut Curl_easy,
     mut infop: *mut fileinfo,
 ) -> CURLcode {
-   unsafe{
     let mut compare: curl_fnmatch_callback = None;
-    let mut wc: *mut WildcardData = &mut (*data).wildcard;
-    let mut ftpwc: *mut ftp_wc = (*wc).protdata as *mut ftp_wc;
-    let mut llist: *mut Curl_llist = &mut (*wc).filelist;
-    let mut parser: *mut ftp_parselist_data = (*ftpwc).parser;
+    let mut wc: *mut WildcardData = unsafe{&mut (*data).wildcard};
+    let mut ftpwc: *mut ftp_wc = unsafe{(*wc).protdata as *mut ftp_wc};
+    let mut llist: *mut Curl_llist = unsafe{&mut (*wc).filelist};
+    let mut parser: *mut ftp_parselist_data = unsafe{(*ftpwc).parser};
     let mut add: bool = 1 as i32 != 0;
-    let mut finfo: *mut curl_fileinfo = &mut (*infop).info;
+    let mut finfo: *mut curl_fileinfo = unsafe{&mut (*infop).info};
     /* move finfo pointers to b_data */
-    let mut str: *mut libc::c_char = (*finfo).b_data;
+    let mut str: *mut libc::c_char = unsafe{(*finfo).b_data};
     // let ref mut fresh0 = (*finfo).filename;
-    (*finfo).filename = str.offset((*parser).offsets.filename as isize);
+    unsafe{(*finfo).filename = str.offset((*parser).offsets.filename as isize);
     // let ref mut fresh1 = (*finfo).strings.group;
     (*finfo).strings.group = if (*parser).offsets.group != 0 {
         str.offset((*parser).offsets.group as isize)
@@ -189,9 +183,9 @@ extern "C" fn ftp_pl_insert_finfo(
         str.offset((*parser).offsets.user as isize)
     } else {
         0 as *mut libc::c_char
-    };
+    };}
      /* get correct fnmatch callback */
-    compare = (*data).set.fnmatch;
+    compare = unsafe{(*data).set.fnmatch};
     if compare.is_none() {
         compare = Some(
             Curl_fnmatch
@@ -203,41 +197,40 @@ extern "C" fn ftp_pl_insert_finfo(
         );
     }
     /* filter pattern-corresponding filenames */
-    Curl_set_in_callback(data, 1 as i32 != 0);
-    if compare.expect("non-null function pointer")(
+    unsafe{Curl_set_in_callback(data, 1 as i32 != 0);}
+    if unsafe{compare.expect("non-null function pointer")(
         (*data).set.fnmatch_data,
         (*wc).pattern,
         (*finfo).filename,
-    ) == 0 as i32
+    )} == 0 as i32
     {/* discard symlink which is containing multiple " -> " */
-        if (*finfo).filetype as u32 == CURLFILETYPE_SYMLINK as u32
-            && !((*finfo).strings.target).is_null()
-            && !(strstr(
+        if unsafe{(*finfo).filetype} as u32 == CURLFILETYPE_SYMLINK as u32
+            && unsafe{!((*finfo).strings.target).is_null()}
+            && unsafe{!(strstr(
                 (*finfo).strings.target,
                 b" -> \0" as *const u8 as *const libc::c_char,
             ))
-                .is_null()
+                .is_null()}
         {
             add = 0 as i32 != 0;
         }
     } else {
         add = 0 as i32 != 0;
     }
-    Curl_set_in_callback(data, 0 as i32 != 0);
+    unsafe{Curl_set_in_callback(data, 0 as i32 != 0);}
     if add {
-        Curl_llist_insert_next(
+        unsafe{Curl_llist_insert_next(
             llist,
             (*llist).tail,
             finfo as *const libc::c_void,
             &mut (*infop).list,
-        );
+        );}
     } else {
-        Curl_fileinfo_cleanup(infop);
+        unsafe{Curl_fileinfo_cleanup(infop);}
     }
     // let ref mut fresh6 = (*(*ftpwc).parser).file_data;
-    (*(*ftpwc).parser).file_data = 0 as *mut fileinfo;
+    unsafe{(*(*ftpwc).parser).file_data = 0 as *mut fileinfo;}
     return CURLE_OK;
-   }
 }
 #[no_mangle]
 pub extern "C" fn Curl_ftp_parselist(
@@ -246,11 +239,10 @@ pub extern "C" fn Curl_ftp_parselist(
    mut nmemb: size_t,
    mut connptr: *mut libc::c_void,
 ) -> size_t {
-   unsafe{
    let mut bufflen: size_t = size.wrapping_mul(nmemb);
    let mut data: *mut Curl_easy = connptr as *mut Curl_easy;
-   let mut ftpwc: *mut ftp_wc = (*data).wildcard.protdata as *mut ftp_wc;
-   let mut parser: *mut ftp_parselist_data = (*ftpwc).parser;
+   let mut ftpwc: *mut ftp_wc = unsafe{(*data).wildcard.protdata as *mut ftp_wc};
+   let mut parser: *mut ftp_parselist_data = unsafe{(*ftpwc).parser};
    let mut infop: *mut fileinfo = 0 as *mut fileinfo;
    let mut finfo: *mut curl_fileinfo = 0 as *mut curl_fileinfo;
    let mut i: u64 = 0 as i32 as u64;
@@ -258,7 +250,7 @@ pub extern "C" fn Curl_ftp_parselist(
    let mut retsize: size_t = bufflen;
 
    'fail: loop {
-       if (*parser).error as u64 != 0 {
+       if unsafe{(*parser).error as u64} != 0 {
            /* error in previous call */
    /* scenario:
     * 1. call => OK..
@@ -269,11 +261,11 @@ pub extern "C" fn Curl_ftp_parselist(
            // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
            break 'fail;
        }
-       if (*parser).os_type as u32
+       if unsafe{(*parser).os_type as u32}
            == OS_TYPE_UNKNOWN as u32
            && bufflen > 0 as u64
        {/* considering info about FILE response format */
-           (*parser)
+        unsafe{(*parser)
                .os_type = (if *buffer.offset(0 as isize) as i32
                >= '0' as i32
                && *buffer.offset(0 as isize) as i32 <= '9' as i32
@@ -281,22 +273,23 @@ pub extern "C" fn Curl_ftp_parselist(
                OS_TYPE_WIN_NT as i32
            } else {
                OS_TYPE_UNIX as i32
-           }) as C2RustUnnamed_22;
+           }) as C2RustUnnamed_22;}
        }
        while i < bufflen {/* FSM */
-           let mut c: libc::c_char = *buffer.offset(i as isize);
-           if ((*parser).file_data).is_null() {/* tmp file data is not allocated yet */
+           let mut c: libc::c_char = unsafe{*buffer.offset(i as isize)};
+           if unsafe{((*parser).file_data).is_null()} {/* tmp file data is not allocated yet */
             //    let ref mut fresh7 = (*parser).file_data;
-               (*parser).file_data = Curl_fileinfo_alloc();
-               if ((*parser).file_data).is_null() {
-                   (*parser).error = CURLE_OUT_OF_MEMORY;
+            unsafe{(*parser).file_data = Curl_fileinfo_alloc();}
+               if unsafe{((*parser).file_data).is_null()} {
+                unsafe{(*parser).error = CURLE_OUT_OF_MEMORY;}
                    // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
                    break 'fail;
                }
+               unsafe{
                match () {
                    #[cfg(not(CURLDEBUG))]
                    _ => {
-                       (*(*parser).file_data).info.b_data = Curl_cmalloc
+                    (*(*parser).file_data).info.b_data = Curl_cmalloc
                        .expect("non-null function pointer")(160 as size_t)
                        as *mut libc::c_char;
                    }
@@ -309,57 +302,59 @@ pub extern "C" fn Curl_ftp_parselist(
                        ) as *mut libc::c_char;
                    }
                }
-  
-               if ((*(*parser).file_data).info.b_data).is_null() {
-                   (*parser).error = CURLE_OUT_OF_MEMORY;
+            }
+               if unsafe{((*(*parser).file_data).info.b_data).is_null() }{
+                unsafe{(*parser).error = CURLE_OUT_OF_MEMORY;}
                    // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
                    break 'fail;
                }
+               unsafe{
                (*(*parser).file_data).info.b_size = 160 as size_t;
                (*parser).item_offset = 0 as size_t;
-               (*parser).item_length = 0 as u32;
+               (*parser).item_length = 0 as u32;}
            }
-           infop = (*parser).file_data;
-           finfo = &mut (*infop).info;
+           infop = unsafe{(*parser).file_data};
+           finfo = unsafe{&mut (*infop).info};
         //    let ref mut fresh9 = (*finfo).b_used;
-           let fresh10 =  (*finfo).b_used;
-           (*finfo).b_used = ( (*finfo).b_used).wrapping_add(1);
-           *((*finfo).b_data).offset(fresh10 as isize) = c;
-           if (*finfo).b_used
-               >= ((*finfo).b_size).wrapping_sub(1 as u64)
+           let fresh10 =  unsafe{(*finfo).b_used};
+           unsafe{(*finfo).b_used = ( (*finfo).b_used).wrapping_add(1);
+           *((*finfo).b_data).offset(fresh10 as isize) = c;}
+           if unsafe{(*finfo).b_used}
+               >= unsafe{((*finfo).b_size).wrapping_sub(1 as u64)}
            { /* if it is important, extend buffer space for file data */
                #[cfg(not(CURLDEBUG))]
-               let mut tmp: *mut libc::c_char = Curl_crealloc
+               let mut tmp: *mut libc::c_char = unsafe{Curl_crealloc
                    .expect(
                        "non-null function pointer",
                    )(
                    (*finfo).b_data as *mut libc::c_void,
                    ((*finfo).b_size).wrapping_add(160 as u64),
-               ) as *mut libc::c_char;
+               ) as *mut libc::c_char};
                #[cfg(CURLDEBUG)]
-               let mut tmp: *mut libc::c_char = curl_dbg_realloc(
+               let mut tmp: *mut libc::c_char = unsafe{curl_dbg_realloc(
                    (*finfo).b_data as *mut libc::c_void,
                    ((*finfo).b_size).wrapping_add(160 as u64),
                    381 as i32,
                    b"ftplistparser.c\0" as *const u8 as *const libc::c_char,
-               ) as *mut libc::c_char;
+               ) as *mut libc::c_char};
                if !tmp.is_null() {
                 //    let ref mut fresh11 = (*finfo).b_size;
-                   (*finfo).b_size = ((*finfo).b_size as u64)
+                unsafe{(*finfo).b_size = ((*finfo).b_size as u64)
                        .wrapping_add(160 as u64) as size_t
                        as size_t;
                 //    let ref mut fresh12 = (*finfo).b_data;
-                   (*finfo).b_data = tmp;
+                   (*finfo).b_data = tmp;}
                } else {
-                   Curl_fileinfo_cleanup((*parser).file_data);
+                unsafe{Curl_fileinfo_cleanup((*parser).file_data);
                 //    let ref mut fresh13 = (*parser).file_data;
                    (*parser).file_data = 0 as *mut fileinfo;
-                   (*parser).error = CURLE_OUT_OF_MEMORY;
+                   (*parser).error = CURLE_OUT_OF_MEMORY;}
                    // printf(b"hanxj\n\0" as *const u8 as *const libc::c_char);
                    break 'fail;
                }
            }
-           match (*parser).os_type as u32 {
+           unsafe{
+           match (*parser).os_type as u32{
                1 => {
                    match (*parser).state.UNIX.main as u32 {
                        0 => {
@@ -1245,6 +1240,7 @@ pub extern "C" fn Curl_ftp_parselist(
                    break 'fail;
                }
            }
+        }
            i = i.wrapping_add(1);
        }
        // original normal exit
@@ -1256,11 +1252,10 @@ pub extern "C" fn Curl_ftp_parselist(
 
    // original label fail
     /* Clean up any allocated memory. */
-   if !((*parser).file_data).is_null() {
-       Curl_fileinfo_cleanup((*parser).file_data);
+   if unsafe{!((*parser).file_data).is_null() }{
+    unsafe{Curl_fileinfo_cleanup((*parser).file_data);
     //    let ref mut fresh38 = (*parser).file_data;
-       (*parser).file_data = 0 as *mut fileinfo;
+       (*parser).file_data = 0 as *mut fileinfo;}
    }
    return retsize;
-}
 }
