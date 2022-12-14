@@ -2,15 +2,14 @@
 
 set +e
 
-cd ../
+# cd ../
 
-make clean
+# make clean
 
 aclocal
 automake
 
-# LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
-LIBS=-ldl ./configure --with-openssl --disable-shared --without-ngtcp2 --enable-http --enable-ipv6 --with-gssapi
+LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
 cd lib
 make
 

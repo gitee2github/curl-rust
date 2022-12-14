@@ -1440,6 +1440,7 @@ pub unsafe extern "C" fn Curl_http_input_auth(
  */
 unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
     let mut httpcode: i32 = 0;
+
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if !data.is_null() {
     } else {
@@ -1453,6 +1454,7 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
             .as_ptr(),
         );
     }
+    
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if !((*data).conn).is_null() {
     } else {
@@ -1500,7 +1502,7 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
      ** a terminal error
      */
     if httpcode != 401 && httpcode != 407 {
-        return false;
+        return true;
     }
 
     /*
