@@ -2578,7 +2578,7 @@ extern "C" fn multissl_version(mut buffer: *mut libc::c_char, mut size: size_t) 
     } else {
         unsafe { Curl_ssl }
     };
-    if current != selected {
+    if current != unsafe { selected } {
         let mut p: *mut libc::c_char = unsafe { backends.as_mut_ptr() };
         let mut end: *mut libc::c_char = unsafe {
             backends
