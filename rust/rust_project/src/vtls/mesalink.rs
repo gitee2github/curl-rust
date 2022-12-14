@@ -20,18 +20,16 @@ use rust_ffi::src::ffi_struct::struct_define::*;
 
 // 内部没有宏
 extern "C" fn do_file_type(mut type_0: *const i8) -> i32 {
-    unsafe {
-        if type_0.is_null() || *type_0.offset(0 as isize) == 0 {
-            return MESALINK_FILETYPE_PEM as i32;
-        }
-        if Curl_strcasecompare(type_0, b"PEM\0" as *const u8 as *const i8) != 0 {
-            return MESALINK_FILETYPE_PEM as i32;
-        }
-        if Curl_strcasecompare(type_0, b"DER\0" as *const u8 as *const i8) != 0 {
-            return MESALINK_FILETYPE_ASN1 as i32;
-        }
-        return -(1 as i32);
+    if type_0.is_null() || unsafe { *type_0.offset(0 as isize) == 0 } {
+        return MESALINK_FILETYPE_PEM as i32;
     }
+    if unsafe { Curl_strcasecompare(type_0, b"PEM\0" as *const u8 as *const i8) } != 0 {
+        return MESALINK_FILETYPE_PEM as i32;
+    }
+    if unsafe { Curl_strcasecompare(type_0, b"DER\0" as *const u8 as *const i8) } != 0 {
+        return MESALINK_FILETYPE_ASN1 as i32;
+    }
+    return -(1 as i32);
 }
 
 /*
@@ -44,149 +42,171 @@ extern "C" fn mesalink_connect_step1(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> CURLcode {
-    unsafe {
-        let mut ciphers: *mut i8 = 0 as *mut i8;
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
-        let mut addr4: in_addr = in_addr { s_addr: 0 };
-        #[cfg(ENABLE_IPV6)] // done - 98
-        let mut addr6: in6_addr = in6_addr {
-            __in6_u: C2RustUnnamed_8 {
-                __u6_addr8: [0; 16],
-            },
-        };
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let hostname: *const i8 = if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    let mut ciphers: *mut i8 = 0 as *mut i8;
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
+    let mut addr4: in_addr = in_addr { s_addr: 0 };
+    #[cfg(ENABLE_IPV6)] // done - 98
+    let mut addr6: in6_addr = in6_addr {
+        __in6_u: C2RustUnnamed_8 {
+            __u6_addr8: [0; 16],
+        },
+    };
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let hostname: *const i8 = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).http_proxy.host.name
-        } else {
-            (*conn).host.name
-        };
-        // vtls.h
-        #[cfg(CURL_DISABLE_PROXY)]
-        let hostname: *const i8 = (*conn).host.name;
-        let mut hostname_len: size_t = strlen(hostname);
-        let mut req_method: *mut MESALINK_METHOD = 0 as *mut MESALINK_METHOD;
-        let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
-        if (*connssl).state as u32 == ssl_connection_complete as u32 {
-            return CURLE_OK;
-        }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_1 = (if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+            } {
+        unsafe { (*conn).http_proxy.host.name }
+    } else {
+        unsafe { (*conn).host.name }
+    };
+    // vtls.h
+    #[cfg(CURL_DISABLE_PROXY)]
+    let hostname: *const i8 = unsafe { (*conn).host.name };
+    let mut hostname_len: size_t = unsafe { strlen(hostname) };
+    let mut req_method: *mut MESALINK_METHOD = 0 as *mut MESALINK_METHOD;
+    let mut sockfd: curl_socket_t = unsafe { (*conn).sock[sockindex as usize] };
+    if unsafe { (*connssl).state } as u32 == ssl_connection_complete as u32 {
+        return CURLE_OK;
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_1 = (if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.version_max
-        } else {
-            (*conn).ssl_config.version_max
-        });
-        // vtls.h
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_1 = (*conn).ssl_config.version_max;
-        if CURL_DISABLE_PROXY_1 != CURL_SSLVERSION_MAX_NONE as i64 {
+            } {
+        unsafe { (*conn).proxy_ssl_config.version_max }
+    } else {
+        unsafe { (*conn).ssl_config.version_max }
+    });
+    // vtls.h
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_1 = unsafe { (*conn).ssl_config.version_max };
+    if CURL_DISABLE_PROXY_1 != CURL_SSLVERSION_MAX_NONE as i64 {
+        unsafe {
             Curl_failf(
                 data,
                 b"MesaLink does not support to set maximum SSL/TLS version\0" as *const u8
                     as *const i8,
             );
-            return CURLE_SSL_CONNECT_ERROR;
         }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_2 = if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+        return CURLE_SSL_CONNECT_ERROR;
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_2 = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.version
-        } else {
-            (*conn).ssl_config.version
-        };
-        // vtls.h
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_2 = (*conn).ssl_config.version;
-        match CURL_DISABLE_PROXY_2 {
-            3 | 1 | 4 | 5 => {
+            } {
+        unsafe { (*conn).proxy_ssl_config.version }
+    } else {
+        unsafe { (*conn).ssl_config.version }
+    };
+    // vtls.h
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_2 = unsafe { (*conn).ssl_config.version };
+    match CURL_DISABLE_PROXY_2 {
+        3 | 1 | 4 | 5 => {
+            unsafe {
                 Curl_failf(
                     data,
                     b"MesaLink does not support SSL 3.0, TLS 1.0, or TLS 1.1\0" as *const u8
                         as *const i8,
                 );
-                return CURLE_NOT_BUILT_IN;
             }
-            0 | 6 => {
-                req_method = mesalink_TLSv1_2_client_method();
-            }
-            7 => {
-                req_method = mesalink_TLSv1_3_client_method();
-            }
-            2 => {
+            return CURLE_NOT_BUILT_IN;
+        }
+        0 | 6 => {
+            req_method = unsafe { mesalink_TLSv1_2_client_method() };
+        }
+        7 => {
+            req_method = unsafe { mesalink_TLSv1_3_client_method() };
+        }
+        2 => {
+            unsafe {
                 Curl_failf(
                     data,
                     b"MesaLink does not support SSLv2\0" as *const u8 as *const i8,
                 );
-                return CURLE_SSL_CONNECT_ERROR;
             }
-            _ => {
+            return CURLE_SSL_CONNECT_ERROR;
+        }
+        _ => {
+            unsafe {
                 Curl_failf(
                     data,
                     b"Unrecognized parameter passed via CURLOPT_SSLVERSION\0" as *const u8
                         as *const i8,
                 );
-                return CURLE_SSL_CONNECT_ERROR;
             }
+            return CURLE_SSL_CONNECT_ERROR;
         }
-        if req_method.is_null() {
+    }
+    if req_method.is_null() {
+        unsafe {
             Curl_failf(
                 data,
                 b"SSL: couldn't create a method!\0" as *const u8 as *const i8,
             );
-            return CURLE_OUT_OF_MEMORY;
         }
+        return CURLE_OUT_OF_MEMORY;
+    }
+    unsafe {
         if !((*(*connssl).backend).mesalink_ctx).is_null() {
             mesalink_SSL_CTX_free((*(*connssl).backend).mesalink_ctx);
         }
         (*(*connssl).backend).mesalink_ctx = mesalink_SSL_CTX_new(req_method);
-        if ((*(*connssl).backend).mesalink_ctx).is_null() {
+    }
+    if unsafe { ((*(*connssl).backend).mesalink_ctx).is_null() } {
+        unsafe {
             Curl_failf(
                 data,
                 b"SSL: couldn't create a context!\0" as *const u8 as *const i8,
             );
-            return CURLE_OUT_OF_MEMORY;
         }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_verifypeer = if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+        return CURLE_OUT_OF_MEMORY;
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_verifypeer = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            ((*conn).proxy_ssl_config).verifypeer() as i32
-        } else {
-            ((*conn).ssl_config).verifypeer() as i32
-        };
-        // vtls.h
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_verifypeer = ((*conn).ssl_config).verifypeer() as i32;
+            } {
+        unsafe { ((*conn).proxy_ssl_config).verifypeer() as i32 }
+    } else {
+        unsafe { ((*conn).ssl_config).verifypeer() as i32 }
+    };
+    // vtls.h
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_verifypeer = unsafe { ((*conn).ssl_config).verifypeer() as i32 };
+    unsafe {
         mesalink_SSL_CTX_set_verify(
             (*(*connssl).backend).mesalink_ctx,
             if CURL_DISABLE_PROXY_verifypeer != 0 {
@@ -196,88 +216,95 @@ extern "C" fn mesalink_connect_step1(
             },
             None,
         );
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_CAfile_1 = !(if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_CAfile_1 = !(if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.CAfile
-        } else {
-            (*conn).ssl_config.CAfile
-        })
-        .is_null();
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_CAfile_1 = !((*conn).ssl_config.CAfile).is_null();
+            } {
+        unsafe { (*conn).proxy_ssl_config.CAfile }
+    } else {
+        unsafe { (*conn).ssl_config.CAfile }
+    })
+    .is_null();
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_CAfile_1 = unsafe { !((*conn).ssl_config.CAfile).is_null() };
 
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_CApath_1 = !(if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_CApath_1 = !(if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.CApath
-        } else {
-            (*conn).ssl_config.CApath
-        })
-        .is_null();
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_CApath_1 = !((*conn).ssl_config.CApath).is_null();
+            } {
+        unsafe { (*conn).proxy_ssl_config.CApath }
+    } else {
+        unsafe { (*conn).ssl_config.CApath }
+    })
+    .is_null();
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_CApath_1 = unsafe { !((*conn).ssl_config.CApath).is_null() };
 
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_CAfile_2 = if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_CAfile_2 = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.CAfile
-        } else {
-            (*conn).ssl_config.CAfile
-        };
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_CAfile_2 = (*conn).ssl_config.CAfile;
+            } {
+        unsafe { (*conn).proxy_ssl_config.CAfile }
+    } else {
+        unsafe { (*conn).ssl_config.CAfile }
+    };
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_CAfile_2 = unsafe { (*conn).ssl_config.CAfile };
 
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_CApath_2 = if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_CApath_2 = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.CApath
-        } else {
-            (*conn).ssl_config.CApath
-        };
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_CApath_2 = (*conn).ssl_config.CApath;
+            } {
+        unsafe { (*conn).proxy_ssl_config.CApath }
+    } else {
+        unsafe { (*conn).ssl_config.CApath }
+    };
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_CApath_2 = unsafe { (*conn).ssl_config.CApath };
 
-        if CURL_DISABLE_PROXY_CAfile_1 || CURL_DISABLE_PROXY_CApath_1 {
-            if mesalink_SSL_CTX_load_verify_locations(
+    if CURL_DISABLE_PROXY_CAfile_1 || CURL_DISABLE_PROXY_CApath_1 {
+        if unsafe {
+            mesalink_SSL_CTX_load_verify_locations(
                 (*(*connssl).backend).mesalink_ctx,
                 CURL_DISABLE_PROXY_CAfile_2,
                 CURL_DISABLE_PROXY_CApath_2,
             ) == 0
-            {
-                if CURL_DISABLE_PROXY_verifypeer != 0 {
+        } {
+            if CURL_DISABLE_PROXY_verifypeer != 0 {
+                unsafe {
                     Curl_failf(
                         data,
                         b"error setting certificate verify locations:  CAfile: %s CApath: %s\0"
@@ -293,19 +320,25 @@ extern "C" fn mesalink_connect_step1(
                             b"none\0" as *const u8 as *const i8
                         },
                     );
-                    return CURLE_SSL_CACERT_BADFILE;
                 }
+                return CURLE_SSL_CACERT_BADFILE;
+            }
+            unsafe {
                 Curl_infof(
                     data,
                     b"error setting certificate verify locations, continuing anyway:\0" as *const u8
                         as *const i8,
                 );
-            } else {
+            }
+        } else {
+            unsafe {
                 Curl_infof(
                     data,
                     b"successfully set certificate verify locations:\0" as *const u8 as *const i8,
                 );
             }
+        }
+        unsafe {
             Curl_infof(
                 data,
                 b" CAfile: %s\0" as *const u8 as *const i8,
@@ -315,6 +348,8 @@ extern "C" fn mesalink_connect_step1(
                     b"none\0" as *const u8 as *const i8
                 },
             );
+        }
+        unsafe {
             Curl_infof(
                 data,
                 b" CApath: %s\0" as *const u8 as *const i8,
@@ -325,51 +360,59 @@ extern "C" fn mesalink_connect_step1(
                 },
             );
         }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        if !(if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    if !(if CURLPROXY_HTTPS as u32 == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*data).set.proxy_ssl.primary.clientcert
-        } else {
-            (*data).set.ssl.primary.clientcert
-        })
-        .is_null()
-            && !(if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-                && ssl_connection_complete as u32
-                    != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+            }
+    {
+        unsafe { (*data).set.proxy_ssl.primary.clientcert }
+    } else {
+        unsafe { (*data).set.ssl.primary.clientcert }
+    })
+    .is_null()
+        && !(if CURLPROXY_HTTPS as u32 == unsafe { (*conn).http_proxy.proxytype as u32 }
+            && ssl_connection_complete as u32
+                != unsafe {
+                    (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                         0 as i32
                     } else {
                         1 as i32
                     }) as usize]
                         .state as u32
-            {
-                (*data).set.proxy_ssl.key
-            } else {
-                (*data).set.ssl.key
-            })
-            .is_null()
+                }
         {
-            let mut file_type: i32 = do_file_type(
-                if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-                    && ssl_connection_complete as u32
-                        != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+            unsafe { (*data).set.proxy_ssl.key }
+        } else {
+            unsafe { (*data).set.ssl.key }
+        })
+        .is_null()
+    {
+        let mut file_type: i32 = do_file_type(
+            if CURLPROXY_HTTPS as u32 == unsafe { (*conn).http_proxy.proxytype as u32 }
+                && ssl_connection_complete as u32
+                    != unsafe {
+                        (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                             0 as i32
                         } else {
                             1 as i32
                         }) as usize]
                             .state as u32
-                {
-                    (*data).set.proxy_ssl.cert_type
-                } else {
-                    (*data).set.ssl.cert_type
-                },
-            );
+                    }
+            {
+                unsafe { (*data).set.proxy_ssl.cert_type }
+            } else {
+                unsafe { (*data).set.ssl.cert_type }
+            },
+        );
+        unsafe {
             if mesalink_SSL_CTX_use_certificate_chain_file(
                 (*(*connssl).backend).mesalink_ctx,
                 (if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
@@ -395,21 +438,25 @@ extern "C" fn mesalink_connect_step1(
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
-            file_type = do_file_type(
-                if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
-                    && ssl_connection_complete as u32
-                        != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+        }
+        file_type = do_file_type(
+            if CURLPROXY_HTTPS as u32 == unsafe { (*conn).http_proxy.proxytype as u32 }
+                && ssl_connection_complete as u32
+                    != unsafe {
+                        (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                             0 as i32
                         } else {
                             1 as i32
                         }) as usize]
                             .state as u32
-                {
-                    (*data).set.proxy_ssl.key_type
-                } else {
-                    (*data).set.ssl.key_type
-                },
-            );
+                    }
+            {
+                unsafe { (*data).set.proxy_ssl.key_type }
+            } else {
+                unsafe { (*data).set.ssl.key_type }
+            },
+        );
+        unsafe {
             if mesalink_SSL_CTX_use_PrivateKey_file(
                 (*(*connssl).backend).mesalink_ctx,
                 (if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
@@ -470,7 +517,10 @@ extern "C" fn mesalink_connect_step1(
                 },
             );
         }
-        #[cfg(CURL_DISABLE_PROXY)]
+    }
+
+    #[cfg(CURL_DISABLE_PROXY)]
+    unsafe {
         if !((*data).set.ssl.primary.clientcert).is_null() && !((*data).set.ssl.key).is_null() {
             let mut file_type: i32 = do_file_type((*data).set.ssl.cert_type);
             if mesalink_SSL_CTX_use_certificate_chain_file(
@@ -509,36 +559,42 @@ extern "C" fn mesalink_connect_step1(
                 },
             );
         }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        let CURL_DISABLE_PROXY_cipher_list = if CURLPROXY_HTTPS as u32
-            == (*conn).http_proxy.proxytype as u32
-            && ssl_connection_complete as u32
-                != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+    }
+
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    let CURL_DISABLE_PROXY_cipher_list = if CURLPROXY_HTTPS as u32
+        == unsafe { (*conn).http_proxy.proxytype as u32 }
+        && ssl_connection_complete as u32
+            != unsafe {
+                (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                     0 as i32
                 } else {
                     1 as i32
                 }) as usize]
                     .state as u32
-        {
-            (*conn).proxy_ssl_config.cipher_list
-        } else {
-            (*conn).ssl_config.cipher_list
-        };
-        #[cfg(CURL_DISABLE_PROXY)]
-        let CURL_DISABLE_PROXY_cipher_list = (*conn).ssl_config.cipher_list;
+            } {
+        unsafe { (*conn).proxy_ssl_config.cipher_list }
+    } else {
+        unsafe { (*conn).ssl_config.cipher_list }
+    };
+    #[cfg(CURL_DISABLE_PROXY)]
+    let CURL_DISABLE_PROXY_cipher_list = unsafe { (*conn).ssl_config.cipher_list };
 
-        ciphers = CURL_DISABLE_PROXY_cipher_list;
-        if !ciphers.is_null() {
-            // TODO - 206
-            if cfg!(MESALINK_HAVE_CIPHER) {
-                // 选项：MESALINK_HAVE_CIPHER
-            }
+    ciphers = CURL_DISABLE_PROXY_cipher_list;
+    if !ciphers.is_null() {
+        // TODO - 206
+        if cfg!(MESALINK_HAVE_CIPHER) {
+            // 选项：MESALINK_HAVE_CIPHER
+        }
+        unsafe {
             Curl_infof(
                 data,
                 b"Cipher selection: %s\0" as *const u8 as *const i8,
                 ciphers,
             );
         }
+    }
+    unsafe {
         if !((*(*connssl).backend).mesalink_handle).is_null() {
             mesalink_SSL_free((*(*connssl).backend).mesalink_handle);
         }
@@ -551,44 +607,53 @@ extern "C" fn mesalink_connect_step1(
             );
             return CURLE_OUT_OF_MEMORY;
         }
-        // done - 225
-        #[cfg(ENABLE_IPV6)]
-        let ENABLE_IPV6_flag = 0 as i32
-            == inet_pton(
+    }
+    // done - 225
+    #[cfg(ENABLE_IPV6)]
+    let ENABLE_IPV6_flag = 0 as i32
+        == unsafe {
+            inet_pton(
                 10 as i32,
                 hostname,
                 &mut addr6 as *mut in6_addr as *mut libc::c_void,
-            );
-        #[cfg(not(ENABLE_IPV6))] // 如果没有ENABLE_IPV6这个选项，那就不要这个条件，那么一定是true
-        let ENABLE_IPV6_flag = true;
-        if hostname_len < (32767 as i32 * 2 as i32 + 1 as i32) as u64
-            && 0 as i32
-                == inet_pton(
+            )
+        };
+    #[cfg(not(ENABLE_IPV6))] // 如果没有ENABLE_IPV6这个选项，那就不要这个条件，那么一定是true
+    let ENABLE_IPV6_flag = true;
+    if hostname_len < (32767 as i32 * 2 as i32 + 1 as i32) as u64
+        && 0 as i32
+            == unsafe {
+                inet_pton(
                     2 as i32,
                     hostname,
                     &mut addr4 as *mut in_addr as *mut libc::c_void,
                 )
-            && ENABLE_IPV6_flag
+            }
+        && ENABLE_IPV6_flag
+    {
+        /* hostname is not a valid IP address */
+        if unsafe {
+            mesalink_SSL_set_tlsext_host_name((*(*connssl).backend).mesalink_handle, hostname)
+        } != MESALINK_SUCCESS as i32
         {
-            /* hostname is not a valid IP address */
-            if mesalink_SSL_set_tlsext_host_name((*(*connssl).backend).mesalink_handle, hostname)
-                != MESALINK_SUCCESS as i32
-            {
+            unsafe {
                 Curl_failf(
                     data,
                     b"WARNING: failed to configure server name indication (SNI) TLS extension\n\0"
                         as *const u8 as *const i8,
                 );
-                return CURLE_SSL_CONNECT_ERROR;
             }
-        } else {
-            /* Check if the hostname is 127.0.0.1 or [::1];
-             * otherwise reject because MesaLink always wants a valid DNS Name
-             * specified in RFC 5280 Section 7.2 */
-            // fixed me - 这里的判断条件需要添加宏定义，对应 c 文件的 242 行
-            // done - CURLDEBUG不加 238
-            #[cfg(CURLDEBUG)]
-            {
+            return CURLE_SSL_CONNECT_ERROR;
+        }
+    } else {
+        /* Check if the hostname is 127.0.0.1 or [::1];
+         * otherwise reject because MesaLink always wants a valid DNS Name
+         * specified in RFC 5280 Section 7.2 */
+        // fixed me - 这里的判断条件需要添加宏定义，对应 c 文件的 242 行
+        // done - CURLDEBUG不加 238
+        #[cfg(CURLDEBUG)]
+        {
+            unsafe {
                 if strncmp(
                     hostname,
                     b"127.0.0.1\0" as *const u8 as *const libc::c_char,
@@ -606,52 +671,64 @@ extern "C" fn mesalink_connect_step1(
                     );
                 }
             }
+        }
 
-            #[cfg(not(CURLDEBUG))]
-            {
+        #[cfg(not(CURLDEBUG))]
+        {
+            unsafe {
                 Curl_failf(
                     data,
                     b"ERROR: MesaLink does not accept an IP address as a hostname\n\0" as *const u8
                         as *const i8,
                 );
-                return CURLE_SSL_CONNECT_ERROR;
             }
-        }
-        // todo - 258 选项：MESALINK_HAVE_SESSION
-        // #[cfg(MESALINK_HAVE_SESSION)]
-        if mesalink_SSL_set_fd((*(*connssl).backend).mesalink_handle, sockfd)
-            != MESALINK_SUCCESS as i32
-        {
-            Curl_failf(data, b"SSL: SSL_set_fd failed\0" as *const u8 as *const i8);
             return CURLE_SSL_CONNECT_ERROR;
         }
-        (*connssl).connecting_state = ssl_connect_2;
-        return CURLE_OK;
     }
+    // todo - 258 选项：MESALINK_HAVE_SESSION
+    // #[cfg(MESALINK_HAVE_SESSION)]
+    if unsafe {
+        mesalink_SSL_set_fd((*(*connssl).backend).mesalink_handle, sockfd)
+            != MESALINK_SUCCESS as i32
+    } {
+        unsafe {
+            Curl_failf(data, b"SSL: SSL_set_fd failed\0" as *const u8 as *const i8);
+        }
+        return CURLE_SSL_CONNECT_ERROR;
+    }
+    unsafe {
+        (*connssl).connecting_state = ssl_connect_2;
+    }
+    return CURLE_OK;
 }
+
 // 内部没有宏
 extern "C" fn mesalink_connect_step2(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> CURLcode {
+    let mut ret: i32 = -(1 as i32);
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
     unsafe {
-        let mut ret: i32 = -(1 as i32);
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
         (*conn).recv[sockindex as usize] = Some(mesalink_recv as Curl_recv);
         (*conn).send[sockindex as usize] = Some(mesalink_send as Curl_send);
         ret = mesalink_SSL_connect((*(*connssl).backend).mesalink_handle);
-        if ret != MESALINK_SUCCESS as i32 {
-            let mut detail: i32 =
-                mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, ret);
-            if MESALINK_ERROR_WANT_CONNECT as i32 == detail
-                || MESALINK_ERROR_WANT_READ as i32 == detail
-            {
+    }
+    if ret != MESALINK_SUCCESS as i32 {
+        let mut detail: i32 =
+            unsafe { mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, ret) };
+        if MESALINK_ERROR_WANT_CONNECT as i32 == detail || MESALINK_ERROR_WANT_READ as i32 == detail
+        {
+            unsafe {
                 (*connssl).connecting_state = ssl_connect_2_reading;
-                return CURLE_OK;
-            } else {
-                let mut error_buffer: [i8; 80] = [0; 80];
+            }
+            return CURLE_OK;
+        } else {
+            let mut error_buffer: [i8; 80] = [0; 80];
+            unsafe {
                 Curl_failf(
                     data,
                     b"SSL_connect failed with error %d: %s\0" as *const u8 as *const i8,
@@ -663,33 +740,39 @@ extern "C" fn mesalink_connect_step2(
                     ),
                 );
                 mesalink_ERR_print_errors_fp(stderr);
-                #[cfg(not(CURL_DISABLE_PROXY))]
-                let CURL_DISABLE_PROXY_verifypeer_2 = (if CURLPROXY_HTTPS as u32
-                    == (*conn).http_proxy.proxytype as u32
-                    && ssl_connection_complete as u32
-                        != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
+            }
+            #[cfg(not(CURL_DISABLE_PROXY))]
+            let CURL_DISABLE_PROXY_verifypeer_2 = (if CURLPROXY_HTTPS as u32
+                == unsafe { (*conn).http_proxy.proxytype as u32 }
+                && ssl_connection_complete as u32
+                    != unsafe {
+                        (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
                             0 as i32
                         } else {
                             1 as i32
                         }) as usize]
                             .state as u32
-                {
-                    ((*conn).proxy_ssl_config).verifypeer() as i32
-                } else {
-                    ((*conn).ssl_config).verifypeer() as i32
-                }) != 0;
-                #[cfg(CURL_DISABLE_PROXY)]
-                let CURL_DISABLE_PROXY_verifypeer_2 = ((*conn).ssl_config).verifypeer() as i32 != 0;
-                if detail != 0 && CURL_DISABLE_PROXY_verifypeer_2 {
-                    detail &= !(0xff as i32);
-                    if detail == TLS_ERROR_WEBPKI_ERRORS as i32 {
+                    } {
+                unsafe { ((*conn).proxy_ssl_config).verifypeer() as i32 }
+            } else {
+                unsafe { ((*conn).ssl_config).verifypeer() as i32 }
+            }) != 0;
+            #[cfg(CURL_DISABLE_PROXY)]
+            let CURL_DISABLE_PROXY_verifypeer_2 =
+                unsafe { ((*conn).ssl_config).verifypeer() as i32 } != 0;
+            if detail != 0 && CURL_DISABLE_PROXY_verifypeer_2 {
+                detail &= !(0xff as i32);
+                if detail == TLS_ERROR_WEBPKI_ERRORS as i32 {
+                    unsafe {
                         Curl_failf(data, b"Cert verify failed\0" as *const u8 as *const i8);
-                        return CURLE_PEER_FAILED_VERIFICATION;
                     }
+                    return CURLE_PEER_FAILED_VERIFICATION;
                 }
-                return CURLE_SSL_CONNECT_ERROR;
             }
+            return CURLE_SSL_CONNECT_ERROR;
         }
+    }
+    unsafe {
         (*connssl).connecting_state = ssl_connect_3;
         Curl_infof(
             data,
@@ -697,22 +780,23 @@ extern "C" fn mesalink_connect_step2(
             mesalink_SSL_get_version((*(*connssl).backend).mesalink_handle),
             mesalink_SSL_get_cipher_name((*(*connssl).backend).mesalink_handle),
         );
-        return CURLE_OK;
     }
+    return CURLE_OK;
 }
 
 // todo - 有一个待翻译的宏：MESALINK_HAVE_SESSION
 extern "C" fn mesalink_connect_step3(mut conn: *mut connectdata, mut sockindex: i32) -> CURLcode {
-    unsafe {
-        let mut result: CURLcode = CURLE_OK;
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut result: CURLcode = CURLE_OK;
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
 
-        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if ssl_connect_3 as libc::c_int as libc::c_uint
-            == (*connssl).connecting_state as libc::c_uint
-        {
-        } else {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if ssl_connect_3 as libc::c_int as libc::c_uint
+        == unsafe { (*connssl).connecting_state as libc::c_uint }
+    {
+    } else {
+        unsafe {
             __assert_fail(
                 b"ssl_connect_3 == connssl->connecting_state\0" as *const u8 as *const libc::c_char,
                 b"vtls/mesalink.c\0" as *const u8 as *const libc::c_char,
@@ -723,12 +807,14 @@ extern "C" fn mesalink_connect_step3(mut conn: *mut connectdata, mut sockindex: 
                 .as_ptr(),
             );
         }
-
-        // todo - 344
-        // #[cfg(MESALINK_HAVE_SESSION)]
-        (*connssl).connecting_state = ssl_connect_done;
-        return result;
     }
+
+    // todo - 344
+    // #[cfg(MESALINK_HAVE_SESSION)]
+    unsafe {
+        (*connssl).connecting_state = ssl_connect_done;
+    }
+    return result;
 }
 
 // 内部没有宏
@@ -739,27 +825,32 @@ extern "C" fn mesalink_send(
     mut len: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
-    unsafe {
-        let mut conn: *mut connectdata = (*data).conn;
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
-        let mut error_buffer: [i8; 80] = [0; 80];
-        const int_max: size_t = 2147483647 as size_t;
-        let mut memlen: i32 = if len > int_max {
-            int_max as i32
-        } else {
-            len as i32
-        };
-        let mut rc: i32 = mesalink_SSL_write((*(*connssl).backend).mesalink_handle, mem, memlen);
-        if rc < 0 as i32 {
-            let mut err: i32 = mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, rc);
-            match err {
-                2 | 3 => {
-                    /* there's data pending, re-invoke SSL_write() */
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut connssl: *mut ssl_connect_data =
+        unsafe { &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) }
+            as *mut ssl_connect_data;
+    let mut error_buffer: [i8; 80] = [0; 80];
+    const int_max: size_t = 2147483647 as size_t;
+    let mut memlen: i32 = if len > int_max {
+        int_max as i32
+    } else {
+        len as i32
+    };
+    let mut rc: i32 =
+        unsafe { mesalink_SSL_write((*(*connssl).backend).mesalink_handle, mem, memlen) };
+    if rc < 0 as i32 {
+        let mut err: i32 =
+            unsafe { mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, rc) };
+        match err {
+            2 | 3 => {
+                /* there's data pending, re-invoke SSL_write() */
+                unsafe {
                     *curlcode = CURLE_AGAIN;
-                    return -(1 as i32) as ssize_t;
                 }
-                _ => {
+                return -(1 as i32) as ssize_t;
+            }
+            _ => {
+                unsafe {
                     Curl_failf(
                         data,
                         b"SSL write: %s, errno %d\0" as *const u8 as *const i8,
@@ -771,12 +862,12 @@ extern "C" fn mesalink_send(
                         *__errno_location(),
                     );
                     *curlcode = CURLE_SEND_ERROR;
-                    return -(1 as i32) as ssize_t;
                 }
+                return -(1 as i32) as ssize_t;
             }
         }
-        return rc as ssize_t;
     }
+    return rc as ssize_t;
 }
 
 // 内部没有宏
@@ -808,32 +899,37 @@ extern "C" fn mesalink_recv(
     mut buffersize: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
-    unsafe {
-        let mut conn: *mut connectdata = (*data).conn;
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(num as isize) as *mut ssl_connect_data;
-        let mut error_buffer: [i8; 80] = [0; 80];
-        const int_max: size_t = 2147483647 as size_t;
-        let mut buffsize: i32 = if buffersize > int_max {
-            int_max as i32
-        } else {
-            buffersize as i32
-        };
-        let mut nread: i32 = mesalink_SSL_read(
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut connssl: *mut ssl_connect_data =
+        unsafe { &mut *((*conn).ssl).as_mut_ptr().offset(num as isize) } as *mut ssl_connect_data;
+    let mut error_buffer: [i8; 80] = [0; 80];
+    const int_max: size_t = 2147483647 as size_t;
+    let mut buffsize: i32 = if buffersize > int_max {
+        int_max as i32
+    } else {
+        buffersize as i32
+    };
+    let mut nread: i32 = unsafe {
+        mesalink_SSL_read(
             (*(*connssl).backend).mesalink_handle,
             buf as *mut libc::c_void,
             buffsize,
-        );
-        if nread <= 0 as i32 {
-            let mut err: i32 = mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, nread);
-            match err {
-                1 | 33554437 => {}
-                2 | 3 => {
-                    /* there's data pending, re-invoke SSL_read() */
+        )
+    };
+    if nread <= 0 as i32 {
+        let mut err: i32 =
+            unsafe { mesalink_SSL_get_error((*(*connssl).backend).mesalink_handle, nread) };
+        match err {
+            1 | 33554437 => {}
+            2 | 3 => {
+                /* there's data pending, re-invoke SSL_read() */
+                unsafe {
                     *curlcode = CURLE_AGAIN;
-                    return -(1 as i32) as ssize_t;
                 }
-                _ => {
+                return -(1 as i32) as ssize_t;
+            }
+            _ => {
+                unsafe {
                     Curl_failf(
                         data,
                         b"SSL read: %s, errno %d\0" as *const u8 as *const i8,
@@ -845,12 +941,12 @@ extern "C" fn mesalink_recv(
                         *__errno_location(),
                     );
                     *curlcode = CURLE_RECV_ERROR;
-                    return -(1 as i32) as ssize_t;
                 }
+                return -(1 as i32) as ssize_t;
             }
         }
-        return nread as ssize_t;
     }
+    return nread as ssize_t;
 }
 
 // 内部没有宏
@@ -882,16 +978,16 @@ extern "C" fn mesalink_shutdown(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> i32 {
+    let mut retval: i32 = 0 as i32;
     unsafe {
-        let mut retval: i32 = 0 as i32;
         let mut connssl: *mut ssl_connect_data =
             &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
         if !((*(*connssl).backend).mesalink_handle).is_null() {
             mesalink_SSL_free((*(*connssl).backend).mesalink_handle);
             (*(*connssl).backend).mesalink_handle = 0 as *mut MESALINK_SSL;
         }
-        return retval;
     }
+    return retval;
 }
 
 // 内部没有宏
@@ -902,59 +998,65 @@ extern "C" fn mesalink_connect_common(
     mut nonblocking: bool,
     mut done: *mut bool,
 ) -> CURLcode {
-    unsafe {
-        let mut result: CURLcode = CURLE_OK;
-        let mut connssl: *mut ssl_connect_data =
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
-        let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
-        let mut timeout_ms: timediff_t = 0;
-        let mut what: i32 = 0;
-        /* check if the connection has already been established */
-        if ssl_connection_complete as i32 as u32 == (*connssl).state as u32 {
+    let mut result: CURLcode = CURLE_OK;
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
+    let mut sockfd: curl_socket_t = unsafe { (*conn).sock[sockindex as usize] };
+    let mut timeout_ms: timediff_t = 0;
+    let mut what: i32 = 0;
+    /* check if the connection has already been established */
+    if ssl_connection_complete as i32 as u32 == unsafe { (*connssl).state as u32 } {
+        unsafe {
             *done = 1 as i32 != 0;
-            return CURLE_OK;
         }
-        if ssl_connect_1 as u32 == (*connssl).connecting_state as u32 {
-            /* Find out how much more time we're allowed */
-            timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
-            if timeout_ms < 0 as i64 {
-                /* no need to continue if time already is up */
+        return CURLE_OK;
+    }
+    if ssl_connect_1 as u32 == unsafe { (*connssl).connecting_state as u32 } {
+        /* Find out how much more time we're allowed */
+        timeout_ms = unsafe { Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0) };
+        if timeout_ms < 0 as i64 {
+            /* no need to continue if time already is up */
+            unsafe {
                 Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
-                return CURLE_OPERATION_TIMEDOUT;
             }
-            result = mesalink_connect_step1(data, conn, sockindex);
-            if result as u64 != 0 {
-                return result;
-            }
+            return CURLE_OPERATION_TIMEDOUT;
         }
-        while ssl_connect_2 as u32 == (*connssl).connecting_state as u32
-            || ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32
-            || ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32
-        {
-            /* check allowed time left */
-            timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
-            if timeout_ms < 0 as i64 {
-                /* no need to continue if time already is up */
-                Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
-                return CURLE_OPERATION_TIMEDOUT;
-            }
-            /* if ssl is expecting something, check if it's available. */
-            if (*connssl).connecting_state as u32 == ssl_connect_2_reading as u32
+        result = mesalink_connect_step1(data, conn, sockindex);
+        if result as u64 != 0 {
+            return result;
+        }
+    }
+    while ssl_connect_2 as u32 == unsafe { (*connssl).connecting_state as u32 }
+        || ssl_connect_2_reading as u32 == unsafe { (*connssl).connecting_state as u32 }
+        || ssl_connect_2_writing as u32 == unsafe { (*connssl).connecting_state as u32 }
+    {
+        /* check allowed time left */
+        timeout_ms = unsafe { Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0) };
+        if timeout_ms < 0 as i64 {
+            /* no need to continue if time already is up */
+            unsafe { Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8) };
+            return CURLE_OPERATION_TIMEDOUT;
+        }
+        /* if ssl is expecting something, check if it's available. */
+        if unsafe {
+            (*connssl).connecting_state as u32 == ssl_connect_2_reading as u32
                 || (*connssl).connecting_state as u32 == ssl_connect_2_writing as u32
-            {
-                let mut writefd: curl_socket_t =
-                    if ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32 {
-                        sockfd
-                    } else {
-                        -(1 as i32)
-                    };
-                let mut readfd: curl_socket_t =
-                    if ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32 {
-                        sockfd
-                    } else {
-                        -(1 as i32)
-                    };
-                what = Curl_socket_check(
+        } {
+            let mut writefd: curl_socket_t =
+                if ssl_connect_2_writing as u32 == unsafe { (*connssl).connecting_state as u32 } {
+                    sockfd
+                } else {
+                    -(1 as i32)
+                };
+            let mut readfd: curl_socket_t =
+                if ssl_connect_2_reading as u32 == unsafe { (*connssl).connecting_state as u32 } {
+                    sockfd
+                } else {
+                    -(1 as i32)
+                };
+            what = unsafe {
+                Curl_socket_check(
                     readfd,
                     -(1 as i32),
                     writefd,
@@ -963,64 +1065,78 @@ extern "C" fn mesalink_connect_common(
                     } else {
                         timeout_ms
                     },
-                );
-                if what < 0 as i32 {
-                    /* fatal error */
+                )
+            };
+            if what < 0 as i32 {
+                /* fatal error */
+                unsafe {
                     Curl_failf(
                         data,
                         b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const i8,
                         *__errno_location(),
                     );
-                    return CURLE_SSL_CONNECT_ERROR;
-                } else {
-                    if 0 as i32 == what {
-                        if nonblocking {
+                }
+                return CURLE_SSL_CONNECT_ERROR;
+            } else {
+                if 0 as i32 == what {
+                    if nonblocking {
+                        unsafe {
                             *done = 0 as i32 != 0;
-                            return CURLE_OK;
-                        } else {
-                            /* timeout */
-                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
-                            return CURLE_OPERATION_TIMEDOUT;
                         }
+                        return CURLE_OK;
+                    } else {
+                        /* timeout */
+                        unsafe {
+                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
+                        }
+                        return CURLE_OPERATION_TIMEDOUT;
                     }
                 }
-                /* socket is readable or writable */
             }
-            /* Run transaction, and return to the caller if it failed or if
-             * this connection is part of a multi handle and this loop would
-             * execute again. This permits the owner of a multi handle to
-             * abort a connection attempt before step2 has completed while
-             * ensuring that a client using select() or epoll() will always
-             * have a valid fdset to wait on.
-             */
-            result = mesalink_connect_step2(data, conn, sockindex);
-            if result as u32 != 0
-                || nonblocking as i32 != 0
-                    && (ssl_connect_2 as u32 == (*connssl).connecting_state as u32
-                        || ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32
-                        || ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32)
-            {
-                return result;
-            }
-        } /* repeat step2 until all transactions are done. */
-        if ssl_connect_3 as i32 as u32 == (*connssl).connecting_state as u32 {
-            result = mesalink_connect_step3(conn, sockindex);
-            if result as u64 != 0 {
-                return result;
-            }
+            /* socket is readable or writable */
         }
-        if ssl_connect_done as u32 == (*connssl).connecting_state as u32 {
+        /* Run transaction, and return to the caller if it failed or if
+         * this connection is part of a multi handle and this loop would
+         * execute again. This permits the owner of a multi handle to
+         * abort a connection attempt before step2 has completed while
+         * ensuring that a client using select() or epoll() will always
+         * have a valid fdset to wait on.
+         */
+        result = mesalink_connect_step2(data, conn, sockindex);
+        if result as u32 != 0
+            || nonblocking as i32 != 0
+                && unsafe {
+                    ssl_connect_2 as u32 == (*connssl).connecting_state as u32
+                        || ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32
+                        || ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32
+                }
+        {
+            return result;
+        }
+    } /* repeat step2 until all transactions are done. */
+    if ssl_connect_3 as i32 as u32 == unsafe { (*connssl).connecting_state as u32 } {
+        result = mesalink_connect_step3(conn, sockindex);
+        if result as u64 != 0 {
+            return result;
+        }
+    }
+    if ssl_connect_done as u32 == unsafe { (*connssl).connecting_state as u32 } {
+        unsafe {
             (*connssl).state = ssl_connection_complete;
             (*conn).recv[sockindex as usize] = Some(mesalink_recv as Curl_recv);
             (*conn).send[sockindex as usize] = Some(mesalink_send as Curl_send);
             *done = 1 as i32 != 0;
-        } else {
+        }
+    } else {
+        unsafe {
             *done = 0 as i32 != 0;
         }
-        /* Reset our connect state machine */
-        (*connssl).connecting_state = ssl_connect_1;
-        return CURLE_OK;
     }
+    /* Reset our connect state machine */
+    unsafe {
+        (*connssl).connecting_state = ssl_connect_1;
+    }
+    return CURLE_OK;
 }
 
 // 内部没有宏
@@ -1030,9 +1146,7 @@ extern "C" fn mesalink_connect_nonblocking(
     mut sockindex: i32,
     mut done: *mut bool,
 ) -> CURLcode {
-    unsafe {
-        return mesalink_connect_common(data, conn, sockindex, 1 as i32 != 0, done);
-    }
+    return mesalink_connect_common(data, conn, sockindex, 1 as i32 != 0, done);
 }
 
 // 内部没有宏
@@ -1041,17 +1155,17 @@ extern "C" fn mesalink_connect(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> CURLcode {
-    unsafe {
-        let mut result: CURLcode = CURLE_OK;
-        let mut done: bool = 0 as i32 != 0;
-        result = mesalink_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
-        if result as u64 != 0 {
-            return result;
-        }
+    let mut result: CURLcode = CURLE_OK;
+    let mut done: bool = 0 as i32 != 0;
+    result = mesalink_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
+    if result as u64 != 0 {
+        return result;
+    }
 
-        #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if done {
-        } else {
+    #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+    if done {
+    } else {
+        unsafe {
             __assert_fail(
                 b"done\0" as *const u8 as *const libc::c_char,
                 b"vtls/mesalink.c\0" as *const u8 as *const libc::c_char,
@@ -1062,9 +1176,9 @@ extern "C" fn mesalink_connect(
                 .as_ptr(),
             );
         }
-
-        return CURLE_OK;
     }
+
+    return CURLE_OK;
 }
 
 // 内部没有宏
