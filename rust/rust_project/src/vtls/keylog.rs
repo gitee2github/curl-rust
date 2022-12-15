@@ -38,46 +38,48 @@ static mut keylog_file_fp: *mut FILE = 0 as *const FILE as *mut FILE;
 
 #[no_mangle]
 pub extern "C" fn Curl_tls_keylog_open() {
-    unsafe {
-        let mut keylog_file_name: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut keylog_file_name: *mut libc::c_char = 0 as *mut libc::c_char;
 
-        if keylog_file_fp.is_null() {
-            keylog_file_name = curl_getenv(b"SSLKEYLOGFILE\0" as *const u8 as *const libc::c_char);
-            if !keylog_file_name.is_null() {
-                match () {
-                    #[cfg(not(CURLDEBUG))]
-                    _ => {
-                        keylog_file_fp = fopen(keylog_file_name, FOPEN_APPENDTEXT);
-                    }
-                    #[cfg(CURLDEBUG)]
-                    _ => {
-                        keylog_file_fp = curl_dbg_fopen(
-                            keylog_file_name,
-                            b"a\0" as *const u8 as *const libc::c_char,
-                            53 as i32,
-                            b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
-                        );
-                    }
-                }
-                if !keylog_file_fp.is_null() {
-                    #[cfg(WIN32)]
-                    let flag: bool = setvbuf(
-                        keylog_file_fp,
-                        0 as *mut libc::c_char,
-                        _IONBF,
-                        0 as size_t,
-                    ) != 0;
-                    #[cfg(not(WIN32))]
-                    let flag: bool = setvbuf(
+    if unsafe { keylog_file_fp.is_null() } {
+        keylog_file_name =
+            unsafe { curl_getenv(b"SSLKEYLOGFILE\0" as *const u8 as *const libc::c_char) };
+        if !keylog_file_name.is_null() {
+            match () {
+                #[cfg(not(CURLDEBUG))]
+                _ => unsafe {
+                    keylog_file_fp = fopen(keylog_file_name, FOPEN_APPENDTEXT);
+                },
+                #[cfg(CURLDEBUG)]
+                _ => unsafe {
+                    keylog_file_fp = curl_dbg_fopen(
+                        keylog_file_name,
+                        b"a\0" as *const u8 as *const libc::c_char,
+                        53 as i32,
+                        b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
+                    );
+                },
+            }
+            if unsafe { !keylog_file_fp.is_null() } {
+                #[cfg(WIN32)]
+                let flag: bool = unsafe {
+                    setvbuf(keylog_file_fp, 0 as *mut libc::c_char, _IONBF, 0 as size_t) != 0
+                };
+                #[cfg(not(WIN32))]
+                let flag: bool = unsafe {
+                    setvbuf(
                         keylog_file_fp,
                         0 as *mut libc::c_char,
                         _IOLBF,
                         4096 as size_t,
-                    ) != 0;
-                    if flag {
-                        #[cfg(not(CURLDEBUG))]
+                    ) != 0
+                };
+                if flag {
+                    #[cfg(not(CURLDEBUG))]
+                    unsafe {
                         fclose(keylog_file_fp);
-                        #[cfg(CURLDEBUG)]
+                    }
+                    #[cfg(CURLDEBUG)]
+                    unsafe {
                         curl_dbg_fclose(
                             keylog_file_fp,
                             61,
@@ -86,6 +88,8 @@ pub extern "C" fn Curl_tls_keylog_open() {
                         keylog_file_fp = 0 as *mut FILE;
                     }
                 }
+            }
+            unsafe {
                 #[cfg(not(CURLDEBUG))]
                 Curl_cfree.expect("non-null function pointer")(
                     keylog_file_name as *mut libc::c_void,
@@ -96,16 +100,16 @@ pub extern "C" fn Curl_tls_keylog_open() {
                     65,
                     b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
                 );
-                keylog_file_name = 0 as *mut libc::c_char;
             }
+            keylog_file_name = 0 as *mut libc::c_char;
         }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn Curl_tls_keylog_close() {
-    unsafe {
-        if !keylog_file_fp.is_null() {
+    if unsafe { !keylog_file_fp.is_null() } {
+        unsafe {
             #[cfg(not(CURLDEBUG))]
             fclose(keylog_file_fp);
             #[cfg(CURLDEBUG)]
@@ -114,9 +118,12 @@ pub extern "C" fn Curl_tls_keylog_close() {
                 74,
                 b"vtls/keylog.c\0" as *const u8 as *const libc::c_char,
             );
+
             keylog_file_fp = 0 as *mut FILE;
         }
-        if !keylog_file_fp.is_null() {
+    }
+    if unsafe { !keylog_file_fp.is_null() } {
+        unsafe {
             #[cfg(not(CURLDEBUG))]
             fclose(keylog_file_fp);
             #[cfg(CURLDEBUG)]
@@ -139,41 +146,39 @@ pub extern "C" fn Curl_tls_keylog_enabled() -> bool {
 
 #[no_mangle]
 pub extern "C" fn Curl_tls_keylog_write_line(mut line: *const libc::c_char) -> bool {
+    /* The current maximum valid keylog line length LF and NUL is 195. */
+    let mut linelen: size_t = 0;
+    let mut buf: [libc::c_char; 256] = [0; 256];
+
+    if unsafe { keylog_file_fp.is_null() || line.is_null() } {
+        return false;
+    }
+
+    linelen = unsafe { strlen(line) };
+    if linelen == 0
+        || linelen > (::std::mem::size_of::<[libc::c_char; 256]>() as u64).wrapping_sub(2)
+    {
+        /* Empty line or too big to fit in a LF and NUL. */
+        return false;
+    }
+
     unsafe {
-        /* The current maximum valid keylog line length LF and NUL is 195. */
-        let mut linelen: size_t = 0;
-        let mut buf: [libc::c_char; 256] = [0; 256];
-
-        if keylog_file_fp.is_null() || line.is_null() {
-            return false;
-        }
-
-        linelen = strlen(line);
-        if linelen == 0
-            || linelen
-                > (::std::mem::size_of::<[libc::c_char; 256]>() as u64)
-                    .wrapping_sub(2)
-        {
-            /* Empty line or too big to fit in a LF and NUL. */
-            return false;
-        }
-
         memcpy(
             buf.as_mut_ptr() as *mut libc::c_void,
             line as *const libc::c_void,
             linelen,
         );
-        if *line.offset(linelen.wrapping_sub(1) as isize) as i32 != '\n' as i32 {
-            buf[linelen as usize] = '\n' as i32 as libc::c_char;
-            linelen = linelen.wrapping_add(1);
-        }
-        buf[linelen as usize] = '\0' as i32 as libc::c_char;
-
-        /* Using fputs here instead of fprintf since libcurl's fprintf replacement
-           may not be thread-safe. */
-        fputs(buf.as_mut_ptr(), keylog_file_fp);
-        return true;
     }
+    if unsafe { *line.offset(linelen.wrapping_sub(1) as isize) as i32 != '\n' as i32 } {
+        buf[linelen as usize] = '\n' as i32 as libc::c_char;
+        linelen = linelen.wrapping_add(1);
+    }
+    buf[linelen as usize] = '\0' as i32 as libc::c_char;
+
+    /* Using fputs here instead of fprintf since libcurl's fprintf replacement
+    may not be thread-safe. */
+    unsafe { fputs(buf.as_mut_ptr(), keylog_file_fp) };
+    return true;
 }
 
 #[no_mangle]
@@ -183,71 +188,73 @@ pub extern "C" fn Curl_tls_keylog_write(
     mut secret: *const u8,
     mut secretlen: size_t,
 ) -> bool {
+    let mut hex: *const libc::c_char = b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char;
+    let mut pos: size_t = 0;
+    let mut i: size_t = 0;
+    let mut line: [libc::c_char;
+        (KEYLOG_LABEL_MAXLEN + 1 + 2 * CLIENT_RANDOM_SIZE + 1 + 2 * SECRET_MAXLEN + 1 + 1)
+            as usize] =
+        [0; (KEYLOG_LABEL_MAXLEN + 1 + 2 * CLIENT_RANDOM_SIZE + 1 + 2 * SECRET_MAXLEN + 1 + 1)
+            as usize];
+
+    if unsafe { keylog_file_fp.is_null() } {
+        return false;
+    }
+
+    pos = unsafe { strlen(label) };
+    if pos > KEYLOG_LABEL_MAXLEN || secretlen == 0 || secretlen > 48 {
+        /* Should never happen - sanity check anyway. */
+        return false;
+    }
+
     unsafe {
-        let mut hex: *const libc::c_char =
-            b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char;
-        let mut pos: size_t = 0;
-        let mut i: size_t = 0;
-        let mut line: [libc::c_char;
-            (KEYLOG_LABEL_MAXLEN + 1 + 2 * CLIENT_RANDOM_SIZE + 1 + 2 * SECRET_MAXLEN + 1 + 1)
-                as usize] =
-            [0; (KEYLOG_LABEL_MAXLEN + 1 + 2 * CLIENT_RANDOM_SIZE + 1 + 2 * SECRET_MAXLEN + 1 + 1)
-                as usize];
-
-        if keylog_file_fp.is_null() {
-            return false;
-        }
-
-        pos = strlen(label);
-        if pos > KEYLOG_LABEL_MAXLEN || secretlen == 0 || secretlen > 48 {
-            /* Should never happen - sanity check anyway. */
-            return false;
-        }
-
         memcpy(
             line.as_mut_ptr() as *mut libc::c_void,
             label as *const libc::c_void,
             pos,
         );
-        line[pos as usize] = ' ' as i32 as libc::c_char;
-        pos = pos.wrapping_add(1);
-
-        /* Client Random */
-        i = 0 as size_t;
-        while i < CLIENT_RANDOM_SIZE {
-            line[pos as usize] =
-                *hex.offset((*client_random.offset(i as isize) >> 4) as isize);
-            pos = pos.wrapping_add(1);
-            
-            line[pos as usize] =
-                *hex.offset((*client_random.offset(i as isize) as i32 & 0xf as i32) as isize);
-            pos = pos.wrapping_add(1);
-            
-            i = i.wrapping_add(1);
-        }
-        line[pos as usize] = ' ' as i32 as libc::c_char;
-        pos = pos.wrapping_add(1);
-
-        /* Secret */
-        i = 0 as size_t;
-        while i < secretlen {
-            line[pos as usize] =
-                *hex.offset((*secret.offset(i as isize) as i32 >> 4 as i32) as isize);
-            pos = pos.wrapping_add(1);
-            line[pos as usize] =
-                *hex.offset((*secret.offset(i as isize) as i32 & 0xf as i32) as isize);
-            pos = pos.wrapping_add(1);
-            i = i.wrapping_add(1);
-        }
-        line[pos as usize] = '\n' as i32 as libc::c_char;
-        pos = pos.wrapping_add(1);
-        line[pos as usize] = '\0' as i32 as libc::c_char;
-
-        /* Using fputs here instead of fprintf since libcurl's fprintf replacement
-           may not be thread-safe. */
-        fputs(line.as_mut_ptr(), keylog_file_fp);
-        return true;
     }
+    line[pos as usize] = ' ' as i32 as libc::c_char;
+    pos = pos.wrapping_add(1);
+
+    /* Client Random */
+    i = 0 as size_t;
+    while i < CLIENT_RANDOM_SIZE {
+        line[pos as usize] =
+            unsafe { *hex.offset((*client_random.offset(i as isize) >> 4) as isize) };
+        pos = pos.wrapping_add(1);
+
+        line[pos as usize] = unsafe {
+            *hex.offset((*client_random.offset(i as isize) as i32 & 0xf as i32) as isize)
+        };
+        pos = pos.wrapping_add(1);
+
+        i = i.wrapping_add(1);
+    }
+    line[pos as usize] = ' ' as i32 as libc::c_char;
+    pos = pos.wrapping_add(1);
+
+    /* Secret */
+    i = 0 as size_t;
+    while i < secretlen {
+        line[pos as usize] =
+            unsafe { *hex.offset((*secret.offset(i as isize) as i32 >> 4 as i32) as isize) };
+        pos = pos.wrapping_add(1);
+        line[pos as usize] =
+            unsafe { *hex.offset((*secret.offset(i as isize) as i32 & 0xf as i32) as isize) };
+        pos = pos.wrapping_add(1);
+        i = i.wrapping_add(1);
+    }
+    line[pos as usize] = '\n' as i32 as libc::c_char;
+    pos = pos.wrapping_add(1);
+    line[pos as usize] = '\0' as i32 as libc::c_char;
+
+    /* Using fputs here instead of fprintf since libcurl's fprintf replacement
+    may not be thread-safe. */
+    unsafe {
+        fputs(line.as_mut_ptr(), keylog_file_fp);
+    }
+    return true;
 }
 
 #[cfg(test)]
