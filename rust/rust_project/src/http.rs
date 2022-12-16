@@ -170,13 +170,14 @@ pub static mut Curl_handler_https: Curl_handler = Curl_handler {
     flags: PROTOPT_SSL | PROTOPT_CREDSPERREQUEST | PROTOPT_ALPN_NPN | PROTOPT_USERPWDCTRL,
 };
 
-unsafe extern "C" fn http_setup_conn(
+ extern "C" fn http_setup_conn(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
 ) -> CURLcode {
     /* allocate the HTTP-specific struct for the Curl_easy, only to survive
     during this request */
     let mut http: *mut HTTP = 0 as *mut HTTP;
+    unsafe{
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if ((*data).req.p.http).is_null() {
     } else {
@@ -189,26 +190,26 @@ unsafe extern "C" fn http_setup_conn(
             ))
             .as_ptr(),
         );
-    }
+    }}
 
     #[cfg(not(CURLDEBUG))]
-    let mut new_http: *mut HTTP = Curl_ccalloc.expect("non-null function pointer")(
+    let mut new_http: *mut HTTP =  unsafe{Curl_ccalloc.expect("non-null function pointer")(
         1 as size_t,
         ::std::mem::size_of::<HTTP>() as u64,
-    ) as *mut HTTP;
+    ) as *mut HTTP};
     #[cfg(CURLDEBUG)]
-    let mut new_http: *mut HTTP = curl_dbg_calloc(
+    let mut new_http: *mut HTTP =  unsafe{curl_dbg_calloc(
         1 as size_t,
         ::std::mem::size_of::<HTTP>() as u64,
         181,
         b"http.c\0" as *const u8 as *const libc::c_char,
-    ) as *mut HTTP;
+    ) as *mut HTTP};
 
     http = new_http;
     if http.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
-
+    unsafe{
     #[cfg(any(
         all(not(CURL_DISABLE_HTTP), not(CURL_DISABLE_MIME)),
         not(CURL_DISABLE_SMTP),
@@ -234,7 +235,7 @@ unsafe extern "C" fn http_setup_conn(
             Curl_http2_setup_conn(conn);
         }
         Curl_http2_setup_req(data);
-    }
+    }}
     return CURLE_OK;
 }
 
@@ -249,28 +250,28 @@ unsafe extern "C" fn http_setup_conn(
  * prefix without colon!
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_checkProxyheaders(
+pub  extern "C" fn Curl_checkProxyheaders(
     mut data: *mut Curl_easy,
     mut conn: *const connectdata,
     mut thisheader: *const libc::c_char,
 ) -> *mut libc::c_char {
     let mut head: *mut curl_slist = 0 as *mut curl_slist;
-    let mut thislen: size_t = strlen(thisheader);
+    let mut thislen: size_t = unsafe{strlen(thisheader)};
 
-    head = if ((*conn).bits).proxy() as i32 != 0 && ((*data).set).sep_headers() as i32 != 0 {
+    head = unsafe{if ((*conn).bits).proxy() as i32 != 0 && ((*data).set).sep_headers() as i32 != 0 {
         (*data).set.proxyheaders
     } else {
         (*data).set.headers
-    };
+    }};
 
     while !head.is_null() {
-        if Curl_strncasecompare((*head).data, thisheader, thislen) != 0
+        if unsafe{Curl_strncasecompare((*head).data, thisheader, thislen) != 0
             && (*((*head).data).offset(thislen as isize) as i32 == ':' as i32
-                || *((*head).data).offset(thislen as isize) as i32 == ';' as i32)
+                || *((*head).data).offset(thislen as isize) as i32 == ';' as i32)}
         {
-            return (*head).data;
+            return unsafe{(*head).data};
         }
-        head = (*head).next;
+        head = unsafe{(*head).next};
     }
 
     return 0 as *mut libc::c_char;
@@ -279,7 +280,7 @@ pub unsafe extern "C" fn Curl_checkProxyheaders(
 /* disabled */
 #[cfg(CURL_DISABLE_PROXY)]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_checkProxyheaders(
+pub extern "C" fn Curl_checkProxyheaders(
     mut data: *mut Curl_easy,
     mut conn: *const connectdata,
     mut thisheader: *const libc::c_char,
@@ -294,7 +295,7 @@ pub unsafe extern "C" fn Curl_checkProxyheaders(
  * consists entirely of whitespace.
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_copy_header_value(
+pub  extern "C" fn Curl_copy_header_value(
     mut header: *const libc::c_char,
 ) -> *mut libc::c_char {
     let mut start: *const libc::c_char = 0 as *const libc::c_char;
@@ -303,61 +304,61 @@ pub unsafe extern "C" fn Curl_copy_header_value(
     let mut len: size_t = 0;
 
     /* Find the end of the header name */
-    while *header as i32 != 0 && *header as i32 != ':' as i32 {
-        header = header.offset(1);
+    while unsafe{*header as i32 != 0 && *header as i32 != ':' as i32} {
+        header = unsafe{header.offset(1)};
     }
 
-    if *header != 0 {
+    if unsafe{*header != 0 }{
         /* Skip over colon */
-        header = header.offset(1);
+        header = unsafe{header.offset(1)};
     }
 
     /* Find the first non-space letter */
     start = header;
-    while *start as i32 != 0 && Curl_isspace(*start as u8 as i32) != 0 {
-        start = start.offset(1);
+    while unsafe{*start as i32 != 0 && Curl_isspace(*start as u8 as i32) != 0} {
+        start = unsafe{start.offset(1)};
     }
 
     /* data is in the host encoding so
     use '\r' and '\n' instead of 0x0d and 0x0a */
-    end = strchr(start, '\r' as i32);
+    end = unsafe{strchr(start, '\r' as i32)};
     if end.is_null() {
-        end = strchr(start, '\n' as i32);
+        end = unsafe{strchr(start, '\n' as i32)};
     }
     if end.is_null() {
-        end = strchr(start, '\0' as i32);
+        end = unsafe{strchr(start, '\0' as i32)};
     }
     if end.is_null() {
         return 0 as *mut libc::c_char;
     }
 
     /* skip all trailing space letters */
-    while end > start && Curl_isspace(*end as u8 as i32) != 0 {
-        end = end.offset(-1);
+    while end > start && unsafe{Curl_isspace(*end as u8 as i32) != 0} {
+        end = unsafe{end.offset(-1)};
     }
 
     /* get length of the type */
-    len = (end.offset_from(start) as i64 + 1 as i64) as size_t;
+    len = unsafe{(end.offset_from(start) as i64 + 1 as i64) as size_t};
     #[cfg(not(CURLDEBUG))]
     let mut new_value: *mut libc::c_char =
-        Curl_cmalloc.expect("non-null function pointer")(len.wrapping_add(1 as i32 as u64))
-            as *mut libc::c_char;
+    unsafe{Curl_cmalloc.expect("non-null function pointer")(len.wrapping_add(1 as u64))
+            as *mut libc::c_char};
     #[cfg(CURLDEBUG)]
-    let mut new_value: *mut libc::c_char = curl_dbg_malloc(
+    let mut new_value: *mut libc::c_char = unsafe{curl_dbg_malloc(
         len.wrapping_add(1 as u64),
         282,
         b"http.c\0" as *const u8 as *const libc::c_char,
-    ) as *mut libc::c_char;
+    ) as *mut libc::c_char};
     value = new_value;
     if value.is_null() {
         return 0 as *mut libc::c_char;
     }
-    memcpy(
+    unsafe{ memcpy(
         value as *mut libc::c_void,
         start as *const libc::c_void,
         len,
     );
-    *value.offset(len as isize) = 0 as libc::c_char; /* null-terminate */
+    *value.offset(len as isize) = 0 as libc::c_char;} /* null-terminate */
     return value;
 }
 
@@ -368,7 +369,7 @@ pub unsafe extern "C" fn Curl_copy_header_value(
  *
  * Returns CURLcode.
  */
-unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool) -> CURLcode {
+ extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool) -> CURLcode {
     let mut size: size_t = 0 as size_t;
     let mut authorization: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut userp: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
@@ -383,9 +384,9 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {
-                userp = &mut (*data).state.aptr.proxyuserpwd;
-                user = (*data).state.aptr.proxyuser;
-                pwd = (*data).state.aptr.proxypasswd;
+                userp = unsafe{&mut (*data).state.aptr.proxyuserpwd};
+                user = unsafe{(*data).state.aptr.proxyuser};
+                pwd = unsafe{(*data).state.aptr.proxypasswd};
             }
             #[cfg(CURL_DISABLE_PROXY)]
             _ => {
@@ -393,12 +394,12 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
             }
         }
     } else {
-        userp = &mut (*data).state.aptr.userpwd;
-        user = (*data).state.aptr.user;
-        pwd = (*data).state.aptr.passwd;
+        userp = unsafe{&mut (*data).state.aptr.userpwd};
+        user = unsafe{(*data).state.aptr.user};
+        pwd = unsafe{(*data).state.aptr.passwd};
     }
 
-    out = curl_maprintf(
+    out =unsafe{ curl_maprintf(
         b"%s:%s\0" as *const u8 as *const libc::c_char,
         user,
         if !pwd.is_null() {
@@ -406,16 +407,16 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
         } else {
             b"\0" as *const u8 as *const libc::c_char
         },
-    );
+    )};
     if out.is_null() {
         return CURLE_OUT_OF_MEMORY;
     }
 
-    result = Curl_base64_encode(data, out, strlen(out), &mut authorization, &mut size);
+    result = unsafe{Curl_base64_encode(data, out, strlen(out), &mut authorization, &mut size)};
     if !(result as u64 != 0) {
         if authorization.is_null() {
             result = CURLE_REMOTE_ACCESS_DENIED;
-        } else {
+        } else {unsafe{
             #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(*userp as *mut libc::c_void);
             #[cfg(CURLDEBUG)]
@@ -443,9 +444,10 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
             );
             if (*userp).is_null() {
                 result = CURLE_OUT_OF_MEMORY;
-            }
+            }}
         }
     }
+    unsafe{
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(out as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
@@ -453,7 +455,7 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
         out as *mut libc::c_void,
         350 as i32,
         b"http.c\0" as *const u8 as *const libc::c_char,
-    );
+    );}
     return result;
 }
 
@@ -464,11 +466,12 @@ unsafe extern "C" fn http_output_basic(mut data: *mut Curl_easy, mut proxy: bool
  * Returns CURLcode.
  */
 #[cfg(not(CURL_DISABLE_HTTP_AUTH))]
-unsafe extern "C" fn http_output_bearer(mut data: *mut Curl_easy) -> CURLcode {
+ extern "C" fn http_output_bearer(mut data: *mut Curl_easy) -> CURLcode {
     let mut userp: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
     let mut result: CURLcode = CURLE_OK;
 
-    userp = &mut (*data).state.aptr.userpwd;
+    userp = unsafe{&mut (*data).state.aptr.userpwd};
+    unsafe{
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")(*userp as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
@@ -479,10 +482,10 @@ unsafe extern "C" fn http_output_bearer(mut data: *mut Curl_easy) -> CURLcode {
     );
     *userp = curl_maprintf(
         b"Authorization: Bearer %s\r\n\0" as *const u8 as *const libc::c_char,
-        (*data).set.str_0[STRING_BEARER as i32 as usize],
-    );
+        (*data).set.str_0[STRING_BEARER as usize],
+    );}
 
-    if (*userp).is_null() {
+    if unsafe{(*userp).is_null()} {
         result = CURLE_OUT_OF_MEMORY;
     }
 
@@ -494,15 +497,16 @@ unsafe extern "C" fn http_output_bearer(mut data: *mut Curl_easy) -> CURLcode {
  *
  * return TRUE if one was picked
  */
-unsafe extern "C" fn pickoneauth(mut pick: *mut auth, mut mask: u64) -> bool {
+ extern "C" fn pickoneauth(mut pick: *mut auth, mut mask: u64) -> bool {
     let mut picked: bool = false;
+    
     /* only deal with authentication we want */
-    let mut avail: u64 = (*pick).avail & (*pick).want & mask;
+    let mut avail: u64 = unsafe{(*pick).avail & (*pick).want & mask};
     picked = true;
 
     /* The order of these checks is highly relevant, as this will be the order
     of preference in case of the existence of multiple accepted types. */
-
+    unsafe{
     if avail & CURLAUTH_NEGOTIATE != 0 {
         (*pick).picked = CURLAUTH_NEGOTIATE;
     } else if avail & CURLAUTH_BEARER != 0 {
@@ -522,7 +526,7 @@ unsafe extern "C" fn pickoneauth(mut pick: *mut auth, mut mask: u64) -> bool {
         picked = false;
     }
     (*pick).avail = CURLAUTH_NONE; /* clear it here */
-
+    }
     return picked;
 }
 
@@ -549,11 +553,11 @@ unsafe extern "C" fn pickoneauth(mut pick: *mut auth, mut mask: u64) -> bool {
  *   }
  * }
  */
-unsafe extern "C" fn http_perhapsrewind(
+ extern "C" fn http_perhapsrewind(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
 ) -> CURLcode {
-    let mut http: *mut HTTP = (*data).req.p.http;
+    let mut http: *mut HTTP = unsafe{(*data).req.p.http};
     let mut bytessent: curl_off_t = 0;
     let mut expectsend: curl_off_t = -1 as curl_off_t; /* default is unknown */
 
@@ -563,16 +567,16 @@ unsafe extern "C" fn http_perhapsrewind(
         return CURLE_OK;
     }
 
-    match (*data).state.httpreq as u32 {
+    match unsafe{(*data).state.httpreq as u32} {
         // 0 | 5 => return CURLE_OK,
         HTTPREQ_GET | HTTPREQ_HEAD => return CURLE_OK,
         _ => {}
     }
 
-    bytessent = (*data).req.writebytecount;
+    bytessent = unsafe{(*data).req.writebytecount};
 
     // todo 解决clippy错误，代码通过测试后就可以删掉注释
-    if ((*conn).bits).authneg() != 0 || ((*conn).bits).protoconnstart() == 0 {
+    if unsafe{((*conn).bits).authneg() != 0 || ((*conn).bits).protoconnstart() == 0} {
         /* This is a state where we are known to be negotiating and we don't send
         any data then. */
         expectsend = 0 as curl_off_t;
@@ -580,35 +584,35 @@ unsafe extern "C" fn http_perhapsrewind(
     /* HTTP CONNECT in progress: there is no body */
     //     expectsend = 0 as curl_off_t;
     } else {
-        match (*data).state.httpreq as u32 {
+        match unsafe{(*data).state.httpreq as u32} {
             /* figure out how much data we are expected to send */
             HTTPREQ_POST | HTTPREQ_PUT => {
-                if (*data).state.infilesize != -1 as i64 {
-                    expectsend = (*data).state.infilesize;
+                if unsafe{(*data).state.infilesize != -1 as i64} {
+                    expectsend = unsafe{(*data).state.infilesize};
                 }
             }
             HTTPREQ_POST_FORM | HTTPREQ_POST_MIME => {
-                expectsend = (*http).postsize;
+                expectsend = unsafe{(*http).postsize};
             }
             _ => {}
         }
     }
 
-    (*conn).bits.set_rewindaftersend(0 as bit); /* default */
+    unsafe{ (*conn).bits.set_rewindaftersend(0 as bit); }/* default */
 
     if expectsend == -1 as i64 || expectsend > bytessent {
         match () {
             #[cfg(USE_NTLM)]
             /* There is still data left to send */
-            _ => {
+            _ => {unsafe{
                 if (*data).state.authproxy.picked == CURLAUTH_NTLM
                     || (*data).state.authhost.picked == CURLAUTH_NTLM
                     || (*data).state.authproxy.picked == CURLAUTH_NTLM_WB
                     || (*data).state.authhost.picked == CURLAUTH_NTLM_WB
                 {
                     if expectsend - bytessent < 2000 as i64
-                        || (*conn).http_ntlm_state as u32 != NTLMSTATE_NONE as i32 as u32
-                        || (*conn).proxy_ntlm_state as u32 != NTLMSTATE_NONE as i32 as u32
+                        || (*conn).http_ntlm_state as u32 != NTLMSTATE_NONE as u32
+                        || (*conn).proxy_ntlm_state as u32 != NTLMSTATE_NONE as u32
                     {
                         /* The NTLM-negotiation has started *OR* there is just a little (<2K)
                         data left to send, keep on sending. */
@@ -635,7 +639,7 @@ unsafe extern "C" fn http_perhapsrewind(
                             as *const libc::c_char,
                         expectsend - bytessent,
                     );
-                }
+                }}
             }
             #[cfg(not(USE_NTLM))]
             _ => {}
@@ -644,13 +648,13 @@ unsafe extern "C" fn http_perhapsrewind(
         match () {
             #[cfg(USE_SPNEGO)]
             /* There is still data left to send */
-            _ => {
+            _ => {unsafe{
                 if (*data).state.authproxy.picked == CURLAUTH_NEGOTIATE
                     || (*data).state.authhost.picked == CURLAUTH_NEGOTIATE
                 {
                     if expectsend - bytessent < 2000 as i64
-                        || (*conn).http_negotiate_state as u32 != GSS_AUTHNONE as i32 as u32
-                        || (*conn).proxy_negotiate_state as u32 != GSS_AUTHNONE as i32 as u32
+                        || (*conn).http_negotiate_state as u32 != GSS_AUTHNONE as u32
+                        || (*conn).proxy_negotiate_state as u32 != GSS_AUTHNONE as u32
                     {
                         /* The NEGOTIATE-negotiation has started *OR*
                         there is just a little (<2K) data left to send, keep on sending. */
@@ -674,12 +678,12 @@ unsafe extern "C" fn http_perhapsrewind(
                             as *const libc::c_char,
                         expectsend - bytessent,
                     );
-                }
+                }}
             }
             #[cfg(not(USE_SPNEGO))]
             _ => {}
         }
-
+        unsafe{
         /* This is not NEGOTIATE/NTLM or many bytes left to send: close */
         #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 2);
@@ -693,9 +697,10 @@ unsafe extern "C" fn http_perhapsrewind(
         /* There still is data left to send, but this connection is marked for
         closure so we can safely do the rewind right now */
     }
+    }
     if bytessent != 0 {
         /* we rewind now at once since if we already sent something */
-        return Curl_readrewind(data);
+        return unsafe{Curl_readrewind(data)};
     }
 
     return CURLE_OK;
@@ -708,42 +713,42 @@ unsafe extern "C" fn http_perhapsrewind(
  * picked.
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcode {
-    let mut conn: *mut connectdata = (*data).conn;
+pub  extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcode {
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
     let mut pickhost: bool = false;
     let mut pickproxy: bool = false;
     let mut result: CURLcode = CURLE_OK;
     let mut authmask: u64 = !(0 as u64);
 
-    if ((*data).set.str_0[STRING_BEARER as i32 as usize]).is_null() {
+    if unsafe{((*data).set.str_0[STRING_BEARER as usize]).is_null()} {
         authmask &= !CURLAUTH_BEARER;
     }
 
-    if 100 <= (*data).req.httpcode && 199 >= (*data).req.httpcode {
+    if unsafe{100 <= (*data).req.httpcode && 199 >= (*data).req.httpcode} {
         /* this is a transient response code, ignore */
         return CURLE_OK;
     }
 
-    if ((*data).state).authproblem() != 0 {
-        return (if ((*data).set).http_fail_on_error() as i32 != 0 {
+    if unsafe{((*data).state).authproblem() != 0} {
+        return (if unsafe{((*data).set).http_fail_on_error() as i32 != 0} {
             CURLE_HTTP_RETURNED_ERROR as i32
         } else {
             CURLE_OK as i32
         }) as CURLcode;
     }
 
-    if (((*conn).bits).user_passwd() as i32 != 0
-        || !((*data).set.str_0[STRING_BEARER as i32 as usize]).is_null())
+    if unsafe{(((*conn).bits).user_passwd() as i32 != 0
+        || !((*data).set.str_0[STRING_BEARER as usize]).is_null())
         && ((*data).req.httpcode == 401
-            || ((*conn).bits).authneg() as i32 != 0 && (*data).req.httpcode < 300)
+            || ((*conn).bits).authneg() as i32 != 0 && (*data).req.httpcode < 300)}
     {
-        pickhost = pickoneauth(&mut (*data).state.authhost, authmask);
+        pickhost = unsafe{pickoneauth(&mut (*data).state.authhost, authmask)};
         if !pickhost {
-            (*data).state.set_authproblem(1 as bit);
+            unsafe{ (*data).state.set_authproblem(1 as bit);}
         }
 
-        if (*data).state.authhost.picked == CURLAUTH_NTLM && (*conn).httpversion as i32 > 11 {
-            Curl_infof(
+        if unsafe{(*data).state.authhost.picked == CURLAUTH_NTLM && (*conn).httpversion as i32 > 11 }{
+            unsafe{Curl_infof(
                 data,
                 b"Forcing HTTP/1.1 for NTLM\0" as *const u8 as *const libc::c_char,
             );
@@ -756,10 +761,10 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
                 1,
                 b"Force HTTP/1.1 connection\0" as *const u8 as *const libc::c_char,
             );
-            (*data).state.httpwant = CURL_HTTP_VERSION_1_1 as i32 as u8;
+            (*data).state.httpwant = CURL_HTTP_VERSION_1_1 as u8;}
         }
     }
-
+    unsafe{
     #[cfg(not(CURL_DISABLE_PROXY))]
     if ((*conn).bits).proxy_user_passwd() as i32 != 0
         && ((*data).req.httpcode == 407
@@ -769,11 +774,11 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
         if !pickproxy {
             (*data).state.set_authproblem(1 as bit);
         }
-    }
+    }}
     if pickhost as i32 != 0 || pickproxy as i32 != 0 {
-        if (*data).state.httpreq as u32 != HTTPREQ_GET as u32
+        if unsafe{(*data).state.httpreq as u32 != HTTPREQ_GET as u32
             && (*data).state.httpreq as u32 != HTTPREQ_HEAD as u32
-            && ((*conn).bits).rewindaftersend() == 0
+            && ((*conn).bits).rewindaftersend() == 0}
         {
             result = http_perhapsrewind(data, conn);
             if result as u64 != 0 {
@@ -786,16 +791,17 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
                 /* In case this is GSS auth, the newurl field is already allocated so
                 we must make sure to free it before allocating a new one. As figured
                 out in bug #2284386 */
+                unsafe{
                 Curl_cfree.expect("non-null function pointer")(
                     (*data).req.newurl as *mut libc::c_void,
                 );
                 (*data).req.newurl = 0 as *mut libc::c_char;
                 /* clone URL */
                 (*data).req.newurl =
-                    Curl_cstrdup.expect("non-null function pointer")((*data).state.url);
+                    Curl_cstrdup.expect("non-null function pointer")((*data).state.url);}
             }
             #[cfg(CURLDEBUG)]
-            _ => {
+            _ => {unsafe{
                 /* In case this is GSS auth, the newurl field is already allocated so
                 we must make sure to free it before allocating a new one. As figured
                 out in bug #2284386 */
@@ -810,45 +816,45 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
                     (*data).state.url,
                     627,
                     b"http.c\0" as *const u8 as *const libc::c_char,
-                );
+                );}
             }
         }
-        if ((*data).req.newurl).is_null() {
+        if unsafe{((*data).req.newurl).is_null()} {
             return CURLE_OUT_OF_MEMORY;
         }
-    } else if (*data).req.httpcode < 300
+    } else if unsafe{(*data).req.httpcode < 300
         && ((*data).state.authhost).done() == 0
-        && ((*conn).bits).authneg() as i32 != 0
+        && ((*conn).bits).authneg() as i32 != 0}
     {
         /* no (known) authentication available,
         authentication is not "done" yet and
         no authentication seems to be required and
         we didn't try HEAD or GET */
-        if (*data).state.httpreq as u32 != HTTPREQ_GET as u32
-            && (*data).state.httpreq as u32 != HTTPREQ_HEAD as u32
+        if unsafe{(*data).state.httpreq as u32 != HTTPREQ_GET as u32
+            && (*data).state.httpreq as u32 != HTTPREQ_HEAD as u32}
         {
             #[cfg(not(CURLDEBUG))]
             let new_url: *mut libc::c_char =
-                Curl_cstrdup.expect("non-null function pointer")((*data).state.url);
+            unsafe{ Curl_cstrdup.expect("non-null function pointer")((*data).state.url)};
             #[cfg(CURLDEBUG)]
-            let new_url: *mut libc::c_char = curl_dbg_strdup(
+            let new_url: *mut libc::c_char = unsafe{curl_dbg_strdup(
                 (*data).state.url,
                 640,
                 b"http.c\0" as *const u8 as *const libc::c_char,
-            );
-            (*data).req.newurl = new_url; /* clone URL */
-            if ((*data).req.newurl).is_null() {
+            )};
+            unsafe{(*data).req.newurl = new_url;} /* clone URL */
+            if unsafe{((*data).req.newurl).is_null()} {
                 return CURLE_OUT_OF_MEMORY;
             }
-            (*data).state.authhost.set_done(1 as bit);
+            unsafe{ (*data).state.authhost.set_done(1 as bit)};
         }
     }
-    if http_should_fail(data) {
-        Curl_failf(
+    if unsafe{http_should_fail(data)} {
+        unsafe{Curl_failf(
             data,
             b"The requested URL returned error: %d\0" as *const u8 as *const libc::c_char,
             (*data).req.httpcode,
-        );
+        );}
         result = CURLE_HTTP_RETURNED_ERROR;
     }
     return result;
@@ -859,7 +865,7 @@ pub unsafe extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcod
  * Output the correct authentication header depending on the auth type
  * and whether or not it is to a proxy.
  */
-unsafe extern "C" fn output_auth_headers(
+ extern "C" fn output_auth_headers(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut authstatus: *mut auth,
@@ -871,63 +877,63 @@ unsafe extern "C" fn output_auth_headers(
     let mut result: CURLcode = CURLE_OK;
 
     let flag1: bool = if cfg!(not(CURL_DISABLE_CRYPTO_AUTH)) {
-        (*authstatus).picked == CURLAUTH_AWS_SIGV4
+        unsafe{(*authstatus).picked == CURLAUTH_AWS_SIGV4}
     } else {
         false
     };
     let flag2: bool = if cfg!(USE_SPNEGO) {
-        (*authstatus).picked == CURLAUTH_NEGOTIATE
+        unsafe{ (*authstatus).picked == CURLAUTH_NEGOTIATE}
     } else {
         false
     };
     let flag3: bool = if cfg!(USE_NTLM) {
-        (*authstatus).picked == CURLAUTH_NTLM
+        unsafe{(*authstatus).picked == CURLAUTH_NTLM}
     } else {
         false
     };
     let flag4: bool = if cfg!(all(USE_NTLM, NTLM_WB_ENABLED)) {
-        (*authstatus).picked == CURLAUTH_NTLM_WB
+        unsafe{(*authstatus).picked == CURLAUTH_NTLM_WB}
     } else {
         false
     };
     let flag5: bool = if cfg!(not(CURL_DISABLE_CRYPTO_AUTH)) {
-        (*authstatus).picked == CURLAUTH_DIGEST
+        unsafe{(*authstatus).picked == CURLAUTH_DIGEST}
     } else {
         false
     };
     if flag1 {
         auth = b"AWS_SIGV4\0" as *const u8 as *const libc::c_char;
-        result = Curl_output_aws_sigv4(data, proxy);
+        result = unsafe{Curl_output_aws_sigv4(data, proxy)};
         if result as u64 != 0 {
             return result;
         }
     } else if flag2 {
         auth = b"Negotiate\0" as *const u8 as *const libc::c_char;
-        result = Curl_output_negotiate(data, conn, proxy);
+        result = unsafe{Curl_output_negotiate(data, conn, proxy)};
         if result as u64 != 0 {
             return result;
         }
     } else if flag3 {
         auth = b"NTLM\0" as *const u8 as *const libc::c_char;
-        result = Curl_output_ntlm(data, proxy);
+        result = unsafe{Curl_output_ntlm(data, proxy)};
         if result as u64 != 0 {
             return result;
         }
     } else if flag4 {
         auth = b"NTLM_WB\0" as *const u8 as *const libc::c_char;
-        result = Curl_output_ntlm_wb(data, conn, proxy);
+        result = unsafe{Curl_output_ntlm_wb(data, conn, proxy)};
         if result as u64 != 0 {
             return result;
         }
     } else if flag5 {
         auth = b"Digest\0" as *const u8 as *const libc::c_char;
-        result = Curl_output_digest(data, proxy, request as *const u8, path as *const u8);
+        result = unsafe{Curl_output_digest(data, proxy, request as *const u8, path as *const u8)};
         if result as u64 != 0 {
             return result;
         }
-    } else if (*authstatus).picked == CURLAUTH_BASIC {
+    } else if unsafe{(*authstatus).picked == CURLAUTH_BASIC} {
         #[cfg(not(CURL_DISABLE_PROXY))]
-        let flag6: bool = proxy as i32 != 0
+        let flag6: bool = unsafe{proxy as i32 != 0
             && ((*conn).bits).proxy_user_passwd() as i32 != 0
             && (Curl_checkProxyheaders(
                 data,
@@ -941,12 +947,12 @@ unsafe extern "C" fn output_auth_headers(
                     data,
                     b"Authorization\0" as *const u8 as *const libc::c_char,
                 ))
-                .is_null();
+                .is_null()};
         #[cfg(CURL_DISABLE_PROXY)]
-        let flag6: bool = !proxy
+        let flag6: bool = unsafe{!proxy
             && ((*conn).bits).user_passwd() as i32 != 0
             && (Curl_checkheaders(data, b"Authorization\0" as *const u8 as *const libc::c_char))
-                .is_null();
+                .is_null()};
         if flag6 {
             auth = b"Basic\0" as *const u8 as *const libc::c_char;
             result = http_output_basic(data, proxy);
@@ -957,15 +963,15 @@ unsafe extern "C" fn output_auth_headers(
 
         /* NOTE: this function should set 'done' TRUE, as the other auth
         functions work that way */
-        (*authstatus).set_done(1 as bit);
+        unsafe{ (*authstatus).set_done(1 as bit);}
     }
 
-    if (*authstatus).picked == CURLAUTH_BEARER {
+    if unsafe{(*authstatus).picked == CURLAUTH_BEARER} {
         /* Bearer */
-        if !proxy
-            && !((*data).set.str_0[STRING_BEARER as i32 as usize]).is_null()
+        if unsafe{!proxy
+            && !((*data).set.str_0[STRING_BEARER as usize]).is_null()
             && (Curl_checkheaders(data, b"Authorization\0" as *const u8 as *const libc::c_char))
-                .is_null()
+                .is_null()}
         {
             auth = b"Bearer\0" as *const u8 as *const libc::c_char;
             result = http_output_bearer(data);
@@ -976,9 +982,9 @@ unsafe extern "C" fn output_auth_headers(
 
         /* NOTE: this function should set 'done' TRUE, as the other auth
         functions work that way */
-        (*authstatus).set_done(1 as bit);
+        unsafe{(*authstatus).set_done(1 as bit);}
     }
-    if !auth.is_null() {
+    if !auth.is_null() {unsafe{
         #[cfg(not(CURL_DISABLE_PROXY))]
         Curl_infof(
             data,
@@ -1002,7 +1008,7 @@ unsafe extern "C" fn output_auth_headers(
             },
         );
         #[cfg(CURL_DISABLE_PROXY)]
-        Curl_infof(
+       Curl_infof(
             data,
             b"Server auth using %s with user '%s'\0" as *const u8 as *const libc::c_char,
             auth,
@@ -1012,9 +1018,9 @@ unsafe extern "C" fn output_auth_headers(
                 b"\0" as *const u8 as *const libc::c_char
             },
         );
-        (*authstatus).set_multipass((if (*authstatus).done() == 0 { 1 } else { 0 }) as bit);
+        (*authstatus).set_multipass((if (*authstatus).done() == 0 { 1 } else { 0 }) as bit)};
     } else {
-        (*authstatus).set_multipass(0 as bit);
+        unsafe{ (*authstatus).set_multipass(0 as bit)};
     }
     return CURLE_OK;
 }
@@ -1035,7 +1041,7 @@ unsafe extern "C" fn output_auth_headers(
  */
 #[cfg(not(CURL_DISABLE_HTTP_AUTH))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_output_auth(
+pub  extern "C" fn Curl_http_output_auth(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut request: *const libc::c_char,
@@ -1048,10 +1054,10 @@ pub unsafe extern "C" fn Curl_http_output_auth(
     let mut authproxy: *mut auth = 0 as *mut auth;
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if !data.is_null() {} else {
-        __assert_fail(
+        unsafe{__assert_fail(
             b"data\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
-            805 as libc::c_int as libc::c_uint,
+            805 as u32,
             (*::std::mem::transmute::<
                 &[u8; 122],
                 &[libc::c_char; 122],
@@ -1059,49 +1065,49 @@ pub unsafe extern "C" fn Curl_http_output_auth(
                 b"CURLcode Curl_http_output_auth(struct Curl_easy *, struct connectdata *, const char *, Curl_HttpReq, const char *, _Bool)\0",
             ))
                 .as_ptr(),
-        );
+        );}
     }
-    authhost = &mut (*data).state.authhost;
-    authproxy = &mut (*data).state.authproxy;
+    authhost = unsafe{&mut (*data).state.authhost};
+    authproxy = unsafe{&mut (*data).state.authproxy};
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag1: bool = ((*conn).bits).httpproxy() as libc::c_int != 0
-        && ((*conn).bits).proxy_user_passwd() as libc::c_int != 0
-        || ((*conn).bits).user_passwd() as libc::c_int != 0
-        || !((*data).set.str_0[STRING_BEARER as libc::c_int as usize]).is_null();
+    let flag1: bool =unsafe{ ((*conn).bits).httpproxy() as i32 != 0
+        && ((*conn).bits).proxy_user_passwd() as i32 != 0
+        || ((*conn).bits).user_passwd() as i32 != 0
+        || !((*data).set.str_0[STRING_BEARER as usize]).is_null()};
     #[cfg(CURL_DISABLE_PROXY)]
-    let flag1: bool = ((*conn).bits).user_passwd() as libc::c_int != 0
-        || !((*data).set.str_0[STRING_BEARER as libc::c_int as usize]).is_null();
+    let flag1: bool = unsafe{((*conn).bits).user_passwd() as i32 != 0
+        || !((*data).set.str_0[STRING_BEARER as usize]).is_null()};
     if flag1 {
     } else {
-        (*authhost).set_done(1 as libc::c_int as bit);
-        (*authproxy).set_done(1 as libc::c_int as bit);
+        unsafe{ (*authhost).set_done(1 as bit);
+        (*authproxy).set_done(1 as bit);}
         return CURLE_OK;
     }
-    if (*authhost).want != 0 && (*authhost).picked == 0 {
+    if unsafe{(*authhost).want != 0 && (*authhost).picked == 0} {
         /* The app has selected one or more methods, but none has been picked
         so far by a server round-trip. Then we set the picked one to the
         want one, and if this is one single bit it'll be used instantly. */
-        (*authhost).picked = (*authhost).want;
+        unsafe{ (*authhost).picked = (*authhost).want;}
     }
-    if (*authproxy).want != 0 && (*authproxy).picked == 0 {
+    if unsafe{(*authproxy).want != 0 && (*authproxy).picked == 0} {
         /* The app has selected one or more methods, but none has been picked so
         far by a proxy round-trip. Then we set the picked one to the want one,
         and if this is one single bit it'll be used instantly. */
-        (*authproxy).picked = (*authproxy).want;
+        unsafe{ (*authproxy).picked = (*authproxy).want;}
     }
     match () {
         #[cfg(not(CURL_DISABLE_PROXY))]
         /* Send proxy authentication header if needed */
         _ => {
-    if ((*conn).bits).httpproxy() as libc::c_int != 0
-        && ((*conn).bits).tunnel_proxy() == proxytunnel as bit
+    if unsafe{((*conn).bits).httpproxy() as i32 != 0
+        && ((*conn).bits).tunnel_proxy() == proxytunnel as bit}
     {
-                result = output_auth_headers(data, conn, authproxy, request, path, 1 as libc::c_int != 0);
+                result = output_auth_headers(data, conn, authproxy, request, path, 1 as i32 != 0);
         if result as u64 != 0 {
             return result;
         }
     } else {
-        (*authproxy).set_done(1 as libc::c_int as bit);
+        unsafe{(*authproxy).set_done(1 as bit);}
     }
         }
         /* CURL_DISABLE_PROXY */
@@ -1109,38 +1115,38 @@ pub unsafe extern "C" fn Curl_http_output_auth(
         /* we have no proxy so let's pretend we're done authenticating
         with it */
         _ => {
-            (*authproxy).set_done(1 as libc::c_int as bit);
+            unsafe{ (*authproxy).set_done(1 as i32 as bit);}
         }
     }
     #[cfg(not(CURL_DISABLE_NETRC))]
-    let flag2: bool = ((*data).state).this_is_a_follow() == 0
-        || ((*conn).bits).netrc() as libc::c_int != 0
+    let flag2: bool = unsafe{((*data).state).this_is_a_follow() == 0
+        || ((*conn).bits).netrc() as i32 != 0
         || ((*data).state.first_host).is_null()
-        || ((*data).set).allow_auth_to_other_hosts() as libc::c_int != 0
-        || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0;
+        || ((*data).set).allow_auth_to_other_hosts() as i32 != 0
+        || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0};
 
     /* To prevent the user+password to get sent to other than the original
     host due to a location-follow, we do some weirdo checks here */
     #[cfg(CURL_DISABLE_NETRC)]
-    let flag2: bool = ((*data).state).this_is_a_follow() == 0
+    let flag2: bool = unsafe{((*data).state).this_is_a_follow() == 0
         || ((*data).state.first_host).is_null()
-        || ((*data).set).allow_auth_to_other_hosts() as libc::c_int != 0
-        || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0;
+        || ((*data).set).allow_auth_to_other_hosts() as i32 != 0
+        || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0};
     if flag2 {
-        result = output_auth_headers(data, conn, authhost, request, path, 0 as libc::c_int != 0);
+        result = output_auth_headers(data, conn, authhost, request, path, 0 as i32 != 0);
     } else {
-        (*authhost).set_done(1 as libc::c_int as bit);
+        unsafe{(*authhost).set_done(1 as bit);}
     }
-    if ((*authhost).multipass() as libc::c_int != 0 && (*authhost).done() == 0
-        || (*authproxy).multipass() as libc::c_int != 0 && (*authproxy).done() == 0)
-        && httpreq as libc::c_uint != HTTPREQ_GET as libc::c_int as libc::c_uint
-        && httpreq as libc::c_uint != HTTPREQ_HEAD as libc::c_int as libc::c_uint
+    if unsafe{ ((*authhost).multipass() as i32 != 0 && (*authhost).done() == 0
+        || (*authproxy).multipass() as i32 != 0 && (*authproxy).done() == 0)
+        && httpreq as u32 != HTTPREQ_GET as u32
+        && httpreq as u32 != HTTPREQ_HEAD as u32}
     {
-        let ref mut fresh8 = (*conn).bits;
-        (*fresh8).set_authneg(1 as libc::c_int as bit);
+        let ref mut fresh8 = unsafe{(*conn).bits};
+        (*fresh8).set_authneg(1 as bit);
     } else {
-        let ref mut fresh9 = (*conn).bits;
-        (*fresh9).set_authneg(0 as libc::c_int as bit);
+        let ref mut fresh9 = unsafe{(*conn).bits};
+        (*fresh9).set_authneg(0 as bit);
     }
     return result;
 }
@@ -1148,7 +1154,7 @@ pub unsafe extern "C" fn Curl_http_output_auth(
 /* when disabled */
 #[cfg(CURL_DISABLE_HTTP_AUTH)]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_output_auth(
+pub  extern "C" fn Curl_http_output_auth(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut request: *const libc::c_char,
@@ -1164,14 +1170,14 @@ pub unsafe extern "C" fn Curl_http_output_auth(
  * headers. They are dealt with both in the transfer.c main loop and in the
  * proxy CONNECT loop.
  */
-unsafe extern "C" fn is_valid_auth_separator(mut ch: libc::c_char) -> libc::c_int {
-    return (ch as libc::c_int == '\0' as i32
-        || ch as libc::c_int == ',' as i32
-        || Curl_isspace(ch as libc::c_uchar as libc::c_int) != 0) as libc::c_int;
+ extern "C" fn is_valid_auth_separator(mut ch: libc::c_char) -> i32 {
+    return (ch as i32 == '\0' as i32
+        || ch as i32 == ',' as i32
+        || unsafe{Curl_isspace(ch as i32) != 0}) as i32;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_input_auth(
+pub  extern "C" fn Curl_http_input_auth(
     mut data: *mut Curl_easy,
     mut proxy: bool,
     mut auth: *const libc::c_char,
@@ -1179,23 +1185,23 @@ pub unsafe extern "C" fn Curl_http_input_auth(
     /*
      * This resource requires authentication
      */
-    let mut conn: *mut connectdata = (*data).conn;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
 
     #[cfg(USE_SPNEGO)]
     let mut negstate: *mut curlnegotiate = if proxy as i32 != 0 {
-        &mut (*conn).proxy_negotiate_state
+        unsafe{ &mut (*conn).proxy_negotiate_state}
     } else {
-        &mut (*conn).http_negotiate_state
+        unsafe{ &mut (*conn).http_negotiate_state}
     };
     let mut availp: *mut u64 = 0 as *mut u64;
     let mut authp: *mut auth = 0 as *mut auth;
 
     if proxy {
-        availp = &mut (*data).info.proxyauthavail;
-        authp = &mut (*data).state.authproxy;
+        availp = unsafe{&mut (*data).info.proxyauthavail};
+        authp = unsafe{&mut (*data).state.authproxy};
     } else {
-        availp = &mut (*data).info.httpauthavail;
-        authp = &mut (*data).state.authhost;
+        availp =unsafe{ &mut (*data).info.httpauthavail};
+        authp = unsafe{&mut (*data).state.authhost};
     }
 
     /*
@@ -1213,38 +1219,38 @@ pub unsafe extern "C" fn Curl_http_input_auth(
      * headers have been received but then only to a single preferred method
      * (bit).
      */
-    while *auth != 0 {
+    while unsafe{*auth != 0 }{
         #[cfg(USE_SPNEGO)]
-        let flag1: bool = curl_strnequal(
+        let flag1: bool = unsafe{curl_strnequal(
             b"Negotiate\0" as *const u8 as *const libc::c_char,
             auth,
             strlen(b"Negotiate\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && is_valid_auth_separator(*auth.offset(9 as i32 as isize)) != 0;
+            && is_valid_auth_separator(*auth.offset(9 as i32 as isize)) != 0};
         #[cfg(not(USE_SPNEGO))]
         let flag1: bool = false;
         #[cfg(USE_NTLM)]
-        let flag2: bool = curl_strnequal(
+        let flag2: bool = unsafe{curl_strnequal(
             b"NTLM\0" as *const u8 as *const libc::c_char,
             auth,
             strlen(b"NTLM\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && is_valid_auth_separator(*auth.offset(4 as isize)) != 0;
+            && is_valid_auth_separator(*auth.offset(4 as isize)) != 0};
         #[cfg(not(USE_NTLM))]
         let flag2: bool = false;
         #[cfg(not(CURL_DISABLE_CRYPTO_AUTH))]
-        let flag3: bool = curl_strnequal(
+        let flag3: bool = unsafe{curl_strnequal(
             b"Digest\0" as *const u8 as *const libc::c_char,
             auth,
             strlen(b"Digest\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && is_valid_auth_separator(*auth.offset(6 as isize)) != 0;
+            && is_valid_auth_separator(*auth.offset(6 as isize)) != 0};
         #[cfg(CURL_DISABLE_CRYPTO_AUTH)]
         let flag3: bool = false;
         if flag1 {
             match () {
                 #[cfg(USE_SPNEGO)]
-                _ => {
+                _ => {unsafe{
                     if (*authp).avail & (1 as u64) << 2 != 0
                         || Curl_auth_is_spnego_supported() as i32 != 0
                     {
@@ -1267,7 +1273,7 @@ pub unsafe extern "C" fn Curl_http_input_auth(
                                 (*data).state.set_authproblem(1 as bit);
                             }
                         }
-                    }
+                    }}
                 }
                 #[cfg(not(USE_SPNEGO))]
                 _ => {}
@@ -1301,38 +1307,38 @@ pub unsafe extern "C" fn Curl_http_input_auth(
             //     }
             // }
         } else if flag2 {
-            if (*authp).avail & CURLAUTH_NTLM != 0
+            if unsafe{(*authp).avail & CURLAUTH_NTLM != 0
                 || (*authp).avail & CURLAUTH_NTLM_WB != 0
-                || Curl_auth_is_ntlm_supported() as i32 != 0
+                || Curl_auth_is_ntlm_supported() as i32 != 0}
             {
-                *availp |= CURLAUTH_NTLM;
-                (*authp).avail |= CURLAUTH_NTLM;
-                if (*authp).picked == CURLAUTH_NTLM || (*authp).picked == CURLAUTH_NTLM_WB {
-                    let mut result_0: CURLcode = Curl_input_ntlm(data, proxy, auth);
+                unsafe{*availp |= CURLAUTH_NTLM;
+                (*authp).avail |= CURLAUTH_NTLM;}
+                if unsafe{(*authp).picked == CURLAUTH_NTLM || (*authp).picked == CURLAUTH_NTLM_WB} {
+                    let mut result_0: CURLcode = unsafe{Curl_input_ntlm(data, proxy, auth)};
                     if result_0 as u64 == 0 {
-                        (*data).state.set_authproblem(0 as bit);
-                        if (*authp).picked == CURLAUTH_NTLM_WB {
-                            *availp &= !CURLAUTH_NTLM;
+                        unsafe{(*data).state.set_authproblem(0 as bit)};
+                        if unsafe{ (*authp).picked == CURLAUTH_NTLM_WB} {
+                            unsafe{ *availp &= !CURLAUTH_NTLM;
                             (*authp).avail &= !CURLAUTH_NTLM;
                             *availp |= CURLAUTH_NTLM_WB;
-                            (*authp).avail |= CURLAUTH_NTLM_WB;
-                            result_0 = Curl_input_ntlm_wb(data, conn, proxy, auth);
+                            (*authp).avail |= CURLAUTH_NTLM_WB;}
+                            result_0 = unsafe{Curl_input_ntlm_wb(data, conn, proxy, auth)};
                             if result_0 as u64 != 0 {
-                                Curl_infof(
+                                unsafe{Curl_infof(
                                     data,
                                     b"Authentication problem. Ignoring this.\0" as *const u8
                                         as *const libc::c_char,
                                 );
-                                (*data).state.set_authproblem(1 as bit);
+                                (*data).state.set_authproblem(1 as bit);}
                             }
                         }
                     } else {
-                        Curl_infof(
+                        unsafe{Curl_infof(
                             data,
                             b"Authentication problem. Ignoring this.\0" as *const u8
                                 as *const libc::c_char,
                         );
-                        (*data).state.set_authproblem(1 as bit);
+                        (*data).state.set_authproblem(1 as bit);}
                     }
                 }
             }
@@ -1340,88 +1346,88 @@ pub unsafe extern "C" fn Curl_http_input_auth(
             match () {
                 #[cfg(not(CURL_DISABLE_CRYPTO_AUTH))]
                 _ => {
-                    if (*authp).avail & CURLAUTH_DIGEST != 0 as u64 {
-                        Curl_infof(
+                    if unsafe{(*authp).avail & CURLAUTH_DIGEST != 0 as u64} {
+                        unsafe{Curl_infof(
                             data,
                             b"Ignoring duplicate digest auth header.\0" as *const u8
                                 as *const libc::c_char,
-                        );
-                    } else if Curl_auth_is_digest_supported() {
+                        );}
+                    } else if unsafe{Curl_auth_is_digest_supported()} {
                         let mut result: CURLcode = CURLE_OK;
 
-                        *availp |= CURLAUTH_DIGEST;
-                        (*authp).avail |= CURLAUTH_DIGEST;
+                        unsafe{*availp |= CURLAUTH_DIGEST;
+                        (*authp).avail |= CURLAUTH_DIGEST;}
 
                         /* We call this function on input Digest headers even if Digest
                          * authentication isn't activated yet, as we need to store the
                          * incoming data from this header in case we are going to use
                          * Digest */
-                        result = Curl_input_digest(data, proxy, auth);
+                        result = unsafe{Curl_input_digest(data, proxy, auth)};
                         if result as u64 != 0 {
-                            Curl_infof(
+                            unsafe{ Curl_infof(
                                 data,
                                 b"Authentication problem. Ignoring this.\0" as *const u8
                                     as *const libc::c_char,
                             );
-                            (*data).state.set_authproblem(1 as bit);
+                            (*data).state.set_authproblem(1 as bit);}
                         }
                     }
                 }
                 #[cfg(CURL_DISABLE_CRYPTO_AUTH)]
                 _ => {}
             }
-        } else if curl_strnequal(
+        } else if unsafe{curl_strnequal(
             b"Basic\0" as *const u8 as *const libc::c_char,
             auth,
             strlen(b"Basic\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && is_valid_auth_separator(*auth.offset(5 as isize)) != 0
+            && is_valid_auth_separator(*auth.offset(5 as isize)) != 0}
         {
-            *availp |= CURLAUTH_BASIC;
-            (*authp).avail |= CURLAUTH_BASIC;
-            if (*authp).picked == CURLAUTH_BASIC {
+            unsafe{ *availp |= CURLAUTH_BASIC;
+            (*authp).avail |= CURLAUTH_BASIC;}
+            if unsafe{(*authp).picked == CURLAUTH_BASIC }{
                 /* We asked for Basic authentication but got a 40X back
                 anyway, which basically means our name+password isn't
                 valid. */
-                (*authp).avail = CURLAUTH_NONE;
+                unsafe{ (*authp).avail = CURLAUTH_NONE;
                 Curl_infof(
                     data,
                     b"Authentication problem. Ignoring this.\0" as *const u8 as *const libc::c_char,
                 );
-                (*data).state.set_authproblem(1 as bit);
+                (*data).state.set_authproblem(1 as bit);}
             }
-        } else if curl_strnequal(
+        } else if unsafe{curl_strnequal(
             b"Bearer\0" as *const u8 as *const libc::c_char,
             auth,
             strlen(b"Bearer\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && is_valid_auth_separator(*auth.offset(6 as isize)) != 0
+            && is_valid_auth_separator(*auth.offset(6 as isize)) != 0}
         {
-            *availp |= CURLAUTH_BEARER;
-            (*authp).avail |= CURLAUTH_BEARER;
-            if (*authp).picked == CURLAUTH_BEARER {
+            unsafe{*availp |= CURLAUTH_BEARER;
+            (*authp).avail |= CURLAUTH_BEARER;}
+            if unsafe{ (*authp).picked == CURLAUTH_BEARER} {
                 /* We asked for Bearer authentication but got a 40X back
                 anyway, which basically means our token isn't valid. */
-                (*authp).avail = CURLAUTH_NONE;
+                unsafe{(*authp).avail = CURLAUTH_NONE;
                 Curl_infof(
                     data,
                     b"Authentication problem. Ignoring this.\0" as *const u8 as *const libc::c_char,
                 );
-                (*data).state.set_authproblem(1 as bit);
+                (*data).state.set_authproblem(1 as bit);}
             }
         }
 
         /* there may be multiple methods on one line, so keep reading */
-        while *auth as i32 != 0 && *auth as i32 != ',' as i32 {
+        while unsafe{ *auth as i32 != 0 && *auth as i32 != ',' as i32} {
             /* read up to the next comma */
-            auth = auth.offset(1);
+            auth = unsafe{auth.offset(1)};
         }
-        if *auth as i32 == ',' as i32 {
+        if unsafe{*auth as i32 == ',' as i32} {
             /* if we're on a comma, skip it */
-            auth = auth.offset(1);
+            auth = unsafe{auth.offset(1)};
         }
-        while *auth as i32 != 0 && Curl_isspace(*auth as u8 as i32) != 0 {
-            auth = auth.offset(1);
+        while unsafe{*auth as i32 != 0 && Curl_isspace(*auth as u8 as i32) != 0} {
+            auth = unsafe{auth.offset(1)};
         }
     }
 
@@ -1438,13 +1444,13 @@ pub unsafe extern "C" fn Curl_http_input_auth(
  *
  * @retval TRUE communications should not continue
  */
-unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
+ extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
     let mut httpcode: i32 = 0;
 
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if !data.is_null() {
     } else {
-        __assert_fail(
+        unsafe{ __assert_fail(
             b"data\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1090 as u32,
@@ -1452,13 +1458,13 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
                 b"_Bool http_should_fail(struct Curl_easy *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
     
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !((*data).conn).is_null() {
+    if unsafe{!((*data).conn).is_null() }{
     } else {
-        __assert_fail(
+        unsafe{ __assert_fail(
             b"data->conn\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1091 as u32,
@@ -1466,16 +1472,16 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
                 b"_Bool http_should_fail(struct Curl_easy *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
 
-    httpcode = (*data).req.httpcode;
+    httpcode = unsafe{(*data).req.httpcode};
 
     /*
      ** If we haven't been asked to fail on error,
      ** don't fail.
      */
-    if ((*data).set).http_fail_on_error() == 0 {
+    if unsafe{((*data).set).http_fail_on_error() == 0} {
         return false;
     }
 
@@ -1490,9 +1496,9 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
      ** A 416 response to a resume request is presumably because the file is
      ** already completely downloaded and thus not actually a fail.
      */
-    if (*data).state.resume_from != 0
+    if unsafe{(*data).state.resume_from != 0
         && (*data).state.httpreq as u32 == HTTPREQ_GET
-        && httpcode == 416
+        && httpcode == 416}
     {
         return false;
     }
@@ -1511,7 +1517,7 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if httpcode == 401 || httpcode == 407 {
     } else {
-        __assert_fail(
+        unsafe{ __assert_fail(
             b"(httpcode == 401) || (httpcode == 407)\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1126 as u32,
@@ -1519,7 +1525,7 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
                 b"_Bool http_should_fail(struct Curl_easy *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
 
     /*
@@ -1540,14 +1546,14 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
      ** Either we're not authenticating, or we're supposed to
      ** be authenticating something else.  This is an error.
      */
-    if httpcode == 401 && ((*(*data).conn).bits).user_passwd() == 0 {
+    if httpcode == 401 && unsafe{((*(*data).conn).bits).user_passwd() == 0} {
         return true;
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
-    if httpcode == 407 && ((*(*data).conn).bits).proxy_user_passwd() == 0 {
+    if httpcode == 407 && unsafe{((*(*data).conn).bits).proxy_user_passwd() == 0 }{
         return true;
     }
-    return ((*data).state).authproblem() != 0;
+    return unsafe{((*data).state).authproblem() != 0};
 }
 
 /*
@@ -1559,69 +1565,69 @@ unsafe extern "C" fn http_should_fail(mut data: *mut Curl_easy) -> bool {
  * Returns the amount of bytes it filled the buffer with.
  */
 #[cfg(not(USE_HYPER))]
-unsafe extern "C" fn readmoredata(
+ extern "C" fn readmoredata(
     mut buffer: *mut libc::c_char,
     mut size: size_t,
     mut nitems: size_t,
     mut userp: *mut libc::c_void,
 ) -> size_t {
     let mut data: *mut Curl_easy = userp as *mut Curl_easy;
-    let mut http: *mut HTTP = (*data).req.p.http;
+    let mut http: *mut HTTP = unsafe{(*data).req.p.http};
     let mut fullsize: size_t = size.wrapping_mul(nitems);
 
-    if (*http).postsize == 0 {
+    if unsafe{(*http).postsize == 0 }{
         /* nothing to return */
         return 0 as size_t;
     }
 
     /* make sure that a HTTP request is never sent away chunked! */
-    (*data).req.set_forbidchunk(
+    unsafe{ (*data).req.set_forbidchunk(
         (if (*http).sending as u32 == HTTPSEND_REQUEST {
             1
         } else {
             0
         }) as bit,
-    );
+    );}
 
     /* speed limit */
-    if (*data).set.max_send_speed != 0
+    if unsafe{(*data).set.max_send_speed != 0
         && (*data).set.max_send_speed < fullsize as curl_off_t
-        && (*data).set.max_send_speed < (*http).postsize
+        && (*data).set.max_send_speed < (*http).postsize}
     {
-        fullsize = (*data).set.max_send_speed as size_t;
-    } else if (*http).postsize <= fullsize as curl_off_t {
-        memcpy(
+        fullsize =unsafe{ (*data).set.max_send_speed as size_t};
+    } else if unsafe{(*http).postsize <= fullsize as curl_off_t }{
+        unsafe{memcpy(
             buffer as *mut libc::c_void,
             (*http).postdata as *const libc::c_void,
             (*http).postsize as size_t,
-        );
-        fullsize = (*http).postsize as size_t;
+        );}
+        fullsize = unsafe{(*http).postsize as size_t};
 
-        if (*http).backup.postsize != 0 {
+        if unsafe{(*http).backup.postsize != 0} {
             /* move backup data into focus and continue on that */
-            (*http).postdata = (*http).backup.postdata;
+            unsafe{(*http).postdata = (*http).backup.postdata;
             (*http).postsize = (*http).backup.postsize;
             (*data).state.fread_func = (*http).backup.fread_func;
             (*data).state.in_0 = (*http).backup.fread_in;
 
             (*http).sending += 1; /* move one step up */
 
-            (*http).backup.postsize = 0 as curl_off_t;
+            (*http).backup.postsize = 0 as curl_off_t;}
         } else {
-            (*http).postsize = 0 as curl_off_t;
+            unsafe{ (*http).postsize = 0 as curl_off_t;}
         }
 
         return fullsize;
     }
 
-    memcpy(
+    unsafe{memcpy(
         buffer as *mut libc::c_void,
         (*http).postdata as *const libc::c_void,
         fullsize,
     );
 
     (*http).postdata = (*http).postdata.offset(fullsize as isize);
-    (*http).postsize = ((*http).postsize as u64).wrapping_sub(fullsize) as curl_off_t as curl_off_t;
+    (*http).postsize = ((*http).postsize as u64).wrapping_sub(fullsize) as curl_off_t;}
 
     return fullsize;
 }
@@ -1634,7 +1640,7 @@ unsafe extern "C" fn readmoredata(
  */
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_buffer_send(
+pub  extern "C" fn Curl_buffer_send(
     mut in_0: *mut dynbuf,
     mut data: *mut Curl_easy,
     /* add the number of sent bytes to this
@@ -1648,8 +1654,8 @@ pub unsafe extern "C" fn Curl_buffer_send(
     let mut result: CURLcode = CURLE_OK;
     let mut ptr: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut size: size_t = 0;
-    let mut conn: *mut connectdata = (*data).conn;
-    let mut http: *mut HTTP = (*data).req.p.http;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
+    let mut http: *mut HTTP =unsafe{ (*data).req.p.http};
     let mut sendsize: size_t = 0;
     let mut sockfd: curl_socket_t = 0;
     let mut headersize: size_t = 0;
@@ -1657,7 +1663,7 @@ pub unsafe extern "C" fn Curl_buffer_send(
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if socketindex <= 1 {
     } else {
-        __assert_fail(
+        unsafe{ __assert_fail(
             b"socketindex <= 1\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1240 as u32,
@@ -1668,16 +1674,16 @@ pub unsafe extern "C" fn Curl_buffer_send(
                 b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
             ))
                 .as_ptr(),
-        );
+        );}
     }
 
-    sockfd = (*conn).sock[socketindex as usize];
+    sockfd = unsafe{(*conn).sock[socketindex as usize]};
 
     /* The looping below is required since we use non-blocking sockets, but due
     to the circumstances we will just loop and try again and again etc */
 
-    ptr = Curl_dyn_ptr(in_0);
-    size = Curl_dyn_len(in_0);
+    ptr = unsafe{Curl_dyn_ptr(in_0)};
+    size = unsafe{Curl_dyn_len(in_0)};
 
     headersize = size.wrapping_sub(included_body_bytes as size_t); /* the initial part that
                                                                    isn't body is header */
@@ -1685,7 +1691,7 @@ pub unsafe extern "C" fn Curl_buffer_send(
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if size > included_body_bytes as size_t {
     } else {
-        __assert_fail(
+        unsafe{ __assert_fail(
             b"size > (size_t)included_body_bytes\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1253 as u32,
@@ -1696,34 +1702,34 @@ pub unsafe extern "C" fn Curl_buffer_send(
                 b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
             ))
                 .as_ptr(),
-        );
+        );}
     }
     result = CURLE_OK;
 
     /* Curl_convert_to_network calls failf if unsuccessful */
     if result as u64 != 0 {
         /* conversion failed, free memory and return to the caller */
-        Curl_dyn_free(in_0);
+        unsafe{Curl_dyn_free(in_0);}
         return result;
     }
 
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag: bool = ((*(*conn).handler).flags & PROTOPT_SSL != 0
+    let flag: bool = unsafe{((*(*conn).handler).flags & PROTOPT_SSL != 0
         || (*conn).http_proxy.proxytype as u32 == CURLPROXY_HTTPS as u32)
-        && (*conn).httpversion as i32 != 20;
+        && (*conn).httpversion as i32 != 20};
     #[cfg(CURL_DISABLE_PROXY)]
-    let flag: bool = (*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0
-        && (*conn).httpversion as i32 != 20;
+    let flag: bool =unsafe{ (*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0
+        && (*conn).httpversion as i32 != 20};
     /* Make sure this doesn't send more body bytes than what the max send
        speed says. The request bytes do not count to the max speed.
     */
     if flag {
-        if (*data).set.max_send_speed != 0 && included_body_bytes > (*data).set.max_send_speed {
-            let mut overflow: curl_off_t = included_body_bytes - (*data).set.max_send_speed;
+        if unsafe{(*data).set.max_send_speed != 0 && included_body_bytes > (*data).set.max_send_speed} {
+            let mut overflow: curl_off_t = unsafe{included_body_bytes - (*data).set.max_send_speed};
             #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
             if (overflow as size_t) < size {
             } else {
-                __assert_fail(
+                unsafe{ __assert_fail(
                     b"(size_t)overflow < size\0" as *const u8 as *const libc::c_char,
                     b"http.c\0" as *const u8 as *const libc::c_char,
                     1275 as u32,
@@ -1734,7 +1740,7 @@ pub unsafe extern "C" fn Curl_buffer_send(
                         b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
                     ))
                         .as_ptr(),
-                );
+                );}
             }
             sendsize = size.wrapping_sub(overflow as size_t);
         } else {
@@ -1747,10 +1753,10 @@ pub unsafe extern "C" fn Curl_buffer_send(
            must copy the data to the uploadbuffer first, since that is the buffer
            we will be using if this send is retried later.
         */
-        result = Curl_get_upload_buffer(data);
+        result = unsafe{Curl_get_upload_buffer(data)};
         if result as u64 != 0 {
             /* malloc failed, free memory and return to the caller */
-            Curl_dyn_free(in_0);
+            unsafe{Curl_dyn_free(in_0);}
             return result;
         }
         /* We never send more than upload_buffer_size bytes in one single chunk
@@ -1758,16 +1764,16 @@ pub unsafe extern "C" fn Curl_buffer_send(
            needs to fit into the normal read-callback buffer later on and that
            buffer is using this size.
         */
-        if sendsize > (*data).set.upload_buffer_size as size_t {
-            sendsize = (*data).set.upload_buffer_size as size_t;
+        if unsafe{sendsize > (*data).set.upload_buffer_size as size_t} {
+            sendsize = unsafe{(*data).set.upload_buffer_size as size_t};
         }
 
-        memcpy(
+        unsafe{memcpy(
             (*data).state.ulbuf as *mut libc::c_void,
             ptr as *const libc::c_void,
             sendsize,
-        );
-        ptr = (*data).state.ulbuf;
+        );}
+        ptr = unsafe{(*data).state.ulbuf};
     } else {
         #[cfg(CURLDEBUG)]
         {
@@ -1775,21 +1781,21 @@ pub unsafe extern "C" fn Curl_buffer_send(
                sends
             */
             let mut p: *mut libc::c_char =
-                getenv(b"CURL_SMALLREQSEND\0" as *const u8 as *const libc::c_char);
+            unsafe{getenv(b"CURL_SMALLREQSEND\0" as *const u8 as *const libc::c_char)};
             if !p.is_null() {
-                let mut altsize: size_t = strtoul(p, 0 as *mut *mut libc::c_char, 10);
+                let mut altsize: size_t = unsafe{strtoul(p, 0 as *mut *mut libc::c_char, 10)};
                 if altsize != 0 {
                     sendsize = if size < altsize { size } else { altsize };
                 } else {
                     sendsize = size;
                 }
-            } else if (*data).set.max_send_speed != 0
-                && included_body_bytes > (*data).set.max_send_speed
+            } else if unsafe{(*data).set.max_send_speed != 0
+                && included_body_bytes > (*data).set.max_send_speed}
             {
-                let mut overflow_0: curl_off_t = included_body_bytes - (*data).set.max_send_speed;
+                let mut overflow_0: curl_off_t = unsafe{included_body_bytes - (*data).set.max_send_speed};
                 if (overflow_0 as size_t) < size {
                 } else {
-                    __assert_fail(
+                    unsafe{  __assert_fail(
                         b"(size_t)overflow < size\0" as *const u8 as *const libc::c_char,
                         b"http.c\0" as *const u8 as *const libc::c_char,
                         1326 as u32,
@@ -1800,7 +1806,7 @@ pub unsafe extern "C" fn Curl_buffer_send(
                             b"CURLcode Curl_buffer_send(struct dynbuf *, struct Curl_easy *, curl_off_t *, curl_off_t, int)\0",
                         ))
                             .as_ptr(),
-                    );
+                    );}
                 }
                 sendsize = size.wrapping_sub(overflow_0 as size_t);
             } else {
@@ -1812,8 +1818,8 @@ pub unsafe extern "C" fn Curl_buffer_send(
             /* Make sure this doesn't send more body bytes than what the max send
                speed says. The request bytes do not count to the max speed.
             */
-            if (*data).set.max_send_speed != 0 && included_body_bytes > (*data).set.max_send_speed {
-                let mut overflow_0: curl_off_t = included_body_bytes - (*data).set.max_send_speed;
+            if unsafe{(*data).set.max_send_speed != 0 && included_body_bytes > (*data).set.max_send_speed} {
+                let mut overflow_0: curl_off_t = unsafe{included_body_bytes - (*data).set.max_send_speed};
                 sendsize = size.wrapping_sub(overflow_0 as size_t);
             } else {
                 sendsize = size;
@@ -1821,13 +1827,13 @@ pub unsafe extern "C" fn Curl_buffer_send(
         }
     }
 
-    result = Curl_write(
+    result = unsafe{Curl_write(
         data,
         sockfd,
         ptr as *const libc::c_void,
         sendsize,
         &mut amount,
-    );
+    )};
 
     if result as u64 == 0 {
         /*
@@ -1844,41 +1850,41 @@ pub unsafe extern "C" fn Curl_buffer_send(
 
         /* this data _may_ contain binary stuff */
         let mut bodylen: size_t = (amount as u64).wrapping_sub(headlen);
-        Curl_debug(data, CURLINFO_HEADER_OUT, ptr, headlen);
+        unsafe{ Curl_debug(data, CURLINFO_HEADER_OUT, ptr, headlen);}
         if bodylen != 0 {
             /* there was body data sent beyond the initial header part, pass that on
             to the debug callback too */
-            Curl_debug(
+            unsafe{ Curl_debug(
                 data,
                 CURLINFO_DATA_OUT,
                 ptr.offset(headlen as isize),
                 bodylen,
-            );
+            );}
         }
 
         /* 'amount' can never be a very large value here so typecasting it so a
         signed 31 bit value should not cause problems even if ssize_t is
         64bit */
-        *bytes_written += amount;
+        unsafe{ *bytes_written += amount;}
 
         if !http.is_null() {
             /* if we sent a piece of the body here, up the byte counter for it
             accordingly */
-            (*data).req.writebytecount = ((*data).req.writebytecount as u64).wrapping_add(bodylen)
+            unsafe{ (*data).req.writebytecount = ((*data).req.writebytecount as u64).wrapping_add(bodylen)
                 as curl_off_t as curl_off_t;
-            Curl_pgrsSetUploadCounter(data, (*data).req.writebytecount);
+            Curl_pgrsSetUploadCounter(data, (*data).req.writebytecount);}
 
             if amount as size_t != size {
                 /* The whole request could not be sent in one system call. We must
                 queue it up and send it later when we get the chance. We must not
                 loop here and wait until it might work again. */
 
-                size = (size as u64).wrapping_sub(amount as u64) as size_t as size_t;
+                size = (size as u64).wrapping_sub(amount as u64) as size_t;
 
-                ptr = (Curl_dyn_ptr(in_0)).offset(amount as isize);
+                ptr = unsafe{(Curl_dyn_ptr(in_0)).offset(amount as isize)};
 
                 /* backup the currently set pointers */
-                (*http).backup.fread_func = (*data).state.fread_func;
+                unsafe{(*http).backup.fread_func = (*data).state.fread_func;
                 (*http).backup.fread_in = (*data).state.in_0;
                 (*http).backup.postdata = (*http).postdata;
                 (*http).backup.postsize = (*http).postsize;
@@ -1910,11 +1916,11 @@ pub unsafe extern "C" fn Curl_buffer_send(
                 /* this much data is remaining header: */
                 (*data).req.pendingheader = headersize.wrapping_sub(headlen) as curl_off_t;
                 (*http).send_buffer = *in_0; /* copy the whole struct */
-                (*http).sending = HTTPSEND_REQUEST;
+                (*http).sending = HTTPSEND_REQUEST;}
 
                 return CURLE_OK;
             }
-            (*http).sending = HTTPSEND_BODY;
+            unsafe{ (*http).sending = HTTPSEND_BODY;}
         } else if amount as size_t != size {
             /* We have no continue-send mechanism now, fail. This can only happen
                when this function is used from the CONNECT sending function. We
@@ -1926,10 +1932,10 @@ pub unsafe extern "C" fn Curl_buffer_send(
             return CURLE_SEND_ERROR;
         }
     }
-    Curl_dyn_free(in_0);
+    unsafe{ Curl_dyn_free(in_0);
 
     /* no remaining header data */
-    (*data).req.pendingheader = 0 as curl_off_t;
+    (*data).req.pendingheader = 0 as curl_off_t;}
     return result;
 }
 
@@ -1952,7 +1958,7 @@ pub extern "C" fn Curl_buffer_send(
  * Pass headers WITH the colon.
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_compareheader(
+pub  extern "C" fn Curl_compareheader(
     mut headerline: *const libc::c_char, /* line to check */
     mut header: *const libc::c_char,     /* header keyword _with_ colon */
     mut content: *const libc::c_char,    /* content string to find */
@@ -1962,46 +1968,46 @@ pub unsafe extern "C" fn Curl_compareheader(
      * The field value MAY be preceded by any amount of LWS, though a single SP
      * is preferred." */
 
-    let mut hlen: size_t = strlen(header);
+    let mut hlen: size_t = unsafe{strlen(header)};
     let mut clen: size_t = 0;
     let mut len: size_t = 0;
     let mut start: *const libc::c_char = 0 as *const libc::c_char;
     let mut end: *const libc::c_char = 0 as *const libc::c_char;
 
-    if Curl_strncasecompare(headerline, header, hlen) == 0 {
+    if unsafe{Curl_strncasecompare(headerline, header, hlen) == 0} {
         return false; /* doesn't start with header */
     }
 
     /* pass the header */
-    start = &*headerline.offset(hlen as isize) as *const libc::c_char;
+    start = unsafe{&*headerline.offset(hlen as isize) as *const libc::c_char};
 
     /* pass all whitespace */
-    while *start as i32 != 0 && Curl_isspace(*start as u8 as i32) != 0 {
-        start = start.offset(1);
+    while unsafe{*start as i32 != 0 && Curl_isspace(*start as u8 as i32) != 0} {
+        start = unsafe{start.offset(1)};
     }
 
     /* find the end of the header line */
-    end = strchr(start, '\r' as i32); /* lines end with CRLF */
+    end = unsafe{strchr(start, '\r' as i32)}; /* lines end with CRLF */
     if end.is_null() {
         /* in case there's a non-standard compliant line here */
-        end = strchr(start, '\n' as i32);
+        end = unsafe{strchr(start, '\n' as i32)};
 
         if end.is_null() {
             /* hm, there's no line ending here, use the zero byte! */
-            end = strchr(start, '\0' as i32);
+            end = unsafe{strchr(start, '\0' as i32)};
         }
     }
 
-    len = end.offset_from(start) as i64 as size_t; /* length of the content part of the input line */
-    clen = strlen(content); /* length of the word to find */
+    len = unsafe{end.offset_from(start) as size_t}; /* length of the content part of the input line */
+    clen = unsafe{strlen(content)}; /* length of the word to find */
 
     /* find the content string in the rest of the line */
     while len >= clen {
-        if Curl_strncasecompare(start, content, clen) != 0 {
+        if unsafe{Curl_strncasecompare(start, content, clen) != 0} {
             return true; /* match! */
         }
         len = len.wrapping_sub(1);
-        start = start.offset(1);
+        start = unsafe{start.offset(1)};
     }
     return false; /* no match */
 }
@@ -2011,47 +2017,47 @@ pub unsafe extern "C" fn Curl_compareheader(
  * the generic Curl_connect().
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_connect(
+pub  extern "C" fn Curl_http_connect(
     mut data: *mut Curl_easy,
     mut done: *mut bool,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    let mut conn: *mut connectdata = (*data).conn;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
 
     /* We default to persistent connections. We set this already in this connect
     function to make the re-use checks properly be able to check this bit. */
-    #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+    unsafe{ #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
     Curl_conncontrol(conn, FIRSTSOCKET);
     #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
     Curl_conncontrol(
         conn,
         FIRSTSOCKET,
         b"HTTP default\0" as *const u8 as *const libc::c_char,
-    );
+    );}
     match () {
         #[cfg(not(CURL_DISABLE_PROXY))]
         _ => {
             /* the CONNECT procedure might not have been completed */
-            result = Curl_proxy_connect(data, 0 as i32);
+            result = unsafe{Curl_proxy_connect(data, 0 as i32)};
             if result as u64 != 0 {
                 return result;
             }
 
-            if ((*conn).bits).proxy_connect_closed() != 0 {
+            if unsafe{ ((*conn).bits).proxy_connect_closed() != 0} {
                 /* this is not an error, just part of the connection negotiation */
                 return CURLE_OK;
             }
 
-            if (*conn).http_proxy.proxytype as u32 == CURLPROXY_HTTPS as i32 as u32
-                && !(*conn).bits.proxy_ssl_connected[0 as i32 as usize]
+            if unsafe{(*conn).http_proxy.proxytype as u32 == CURLPROXY_HTTPS as u32
+                && !(*conn).bits.proxy_ssl_connected[0 as usize]}
             {
                 return CURLE_OK; /* wait for HTTPS proxy SSL initialization to complete */
             }
-            if Curl_connect_ongoing(conn) {
+            if unsafe{Curl_connect_ongoing(conn)} {
                 /* nothing else to do except wait right now - we're not done here. */
                 return CURLE_OK;
             }
-            if ((*data).set).haproxyprotocol() != 0 {
+            if unsafe{((*data).set).haproxyprotocol() != 0 }{
                 /* add HAProxy PROXY protocol header */
                 result = add_haproxy_protocol_header(data);
                 if result as u64 != 0 {
@@ -2062,14 +2068,14 @@ pub unsafe extern "C" fn Curl_http_connect(
         #[cfg(CURL_DISABLE_PROXY)]
         _ => {}
     }
-    if (*(*conn).given).protocol & CURLPROTO_HTTPS != 0 {
+    if unsafe{(*(*conn).given).protocol & CURLPROTO_HTTPS != 0} {
         /* perform SSL initialization */
         result = https_connecting(data, done);
         if result as u64 != 0 {
             return result;
         }
     } else {
-        *done = true;
+        unsafe{  *done = true;}
     }
     return CURLE_OK;
 }
@@ -2077,18 +2083,18 @@ pub unsafe extern "C" fn Curl_http_connect(
 /* this returns the socket to wait for in the DO and DOING state for the multi
 interface and then we're always _sending_ a request and thus we wait for
 the single socket to become writable only */
-unsafe extern "C" fn http_getsock_do(
+ extern "C" fn http_getsock_do(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut socks: *mut curl_socket_t,
 ) -> i32 {
     /* write mode */
-    *socks.offset(0 as isize) = (*conn).sock[FIRSTSOCKET as usize];
+    unsafe{*socks.offset(0 as isize) = (*conn).sock[FIRSTSOCKET as usize];}
     return GETSOCK_WRITESOCK(0);
 }
 
 #[cfg(not(CURL_DISABLE_PROXY))]
-unsafe extern "C" fn add_haproxy_protocol_header(mut data: *mut Curl_easy) -> CURLcode {
+ extern "C" fn add_haproxy_protocol_header(mut data: *mut Curl_easy) -> CURLcode {
     let mut req: dynbuf = dynbuf {
         bufr: 0 as *mut libc::c_char,
         leng: 0,
@@ -2101,9 +2107,9 @@ unsafe extern "C" fn add_haproxy_protocol_header(mut data: *mut Curl_easy) -> CU
     let mut tcp_version: *const libc::c_char = 0 as *const libc::c_char;
 
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !((*data).conn).is_null() {
+    if unsafe{!((*data).conn).is_null()} {
     } else {
-        __assert_fail(
+        unsafe{__assert_fail(
             b"data->conn\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
             1546 as u32,
@@ -2111,27 +2117,27 @@ unsafe extern "C" fn add_haproxy_protocol_header(mut data: *mut Curl_easy) -> CU
                 b"CURLcode add_haproxy_protocol_header(struct Curl_easy *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
-    Curl_dyn_init(&mut req, 2048 as size_t);
+    unsafe{Curl_dyn_init(&mut req, 2048 as size_t);}
     #[cfg(USE_UNIX_SOCKETS)]
-    let flag: bool = !((*(*data).conn).unix_domain_socket).is_null();
+    let flag: bool = unsafe{!((*(*data).conn).unix_domain_socket).is_null()};
     #[cfg(not(USE_UNIX_SOCKETS))]
     let flag: bool = false;
     if flag {
         /* the buffer is large enough to hold this! */
-        result = Curl_dyn_add(
+        result = unsafe{Curl_dyn_add(
             &mut req,
             b"PROXY UNKNOWN\r\n\0" as *const u8 as *const libc::c_char,
-        );
+        )};
     } else {
         /* Emit the correct prefix for IPv6 */
-        tcp_version = if ((*(*data).conn).bits).ipv6() as i32 != 0 {
+        tcp_version = if unsafe{((*(*data).conn).bits).ipv6() as i32 != 0 }{
             b"TCP6\0" as *const u8 as *const libc::c_char
         } else {
             b"TCP4\0" as *const u8 as *const libc::c_char
         };
-        result = Curl_dyn_addf(
+        result = unsafe{Curl_dyn_addf(
             &mut req as *mut dynbuf,
             b"PROXY %s %s %s %i %i\r\n\0" as *const u8 as *const libc::c_char,
             tcp_version,
@@ -2139,30 +2145,30 @@ unsafe extern "C" fn add_haproxy_protocol_header(mut data: *mut Curl_easy) -> CU
             ((*data).info.conn_primary_ip).as_mut_ptr(),
             (*data).info.conn_local_port,
             (*data).info.conn_primary_port,
-        );
+        )};
     }
 
     if result as u64 == 0 {
-        result = Curl_buffer_send(
+        result = unsafe{Curl_buffer_send(
             &mut req,
             data,
             &mut (*data).info.request_size,
             0 as curl_off_t,
             FIRSTSOCKET,
-        );
+        )};
     }
     return result;
 }
 
 #[cfg(USE_SSL)]
-unsafe extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
+ extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    let mut conn: *mut connectdata = (*data).conn;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
 
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if !data.is_null() && (*(*(*data).conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0 {
+    if unsafe{!data.is_null() && (*(*(*data).conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0} {
     } else {
-        __assert_fail(
+        unsafe{__assert_fail(
             b"(data) && (data->conn->handler->flags & (1<<0))\0" as *const u8
                 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
@@ -2171,17 +2177,17 @@ unsafe extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut b
                 b"CURLcode https_connecting(struct Curl_easy *, _Bool *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
     #[cfg(ENABLE_QUIC)]
-    if (*conn).transport as u32 == TRNSPRT_QUIC as i32 as u32 {
-        *done = true;
+    if unsafe{(*conn).transport as u32 == TRNSPRT_QUIC as u32} {
+        unsafe{ *done = true;}
         return CURLE_OK;
     }
 
     /* perform SSL initialization for this socket */
-    result = Curl_ssl_connect_nonblocking(data, conn, false, 0, done);
-    if result as u64 != 0 {
+    result = unsafe{Curl_ssl_connect_nonblocking(data, conn, false, 0, done)};
+    if result as u64 != 0 {unsafe{
         #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 1);
         #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
@@ -2189,40 +2195,40 @@ unsafe extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut b
             conn,
             1,
             b"Failed HTTPS connection\0" as *const u8 as *const libc::c_char,
-        );
+        );}
     }
     return result;
 }
 
 #[cfg(not(USE_SSL))]
-unsafe extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
+ extern "C" fn https_connecting(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
     return CURLE_COULDNT_CONNECT;
 }
 
 #[cfg(USE_SSL)]
-unsafe extern "C" fn https_getsock(
+ extern "C" fn https_getsock(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut socks: *mut curl_socket_t,
 ) -> i32 {
-    if (*(*conn).handler).flags & PROTOPT_SSL != 0 {
-        return ((*Curl_ssl).getsock).expect("non-null function pointer")(conn, socks);
+    if unsafe{(*(*conn).handler).flags & PROTOPT_SSL != 0} {
+        return unsafe{((*Curl_ssl).getsock).expect("non-null function pointer")(conn, socks)};
     }
     return 0;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_done(
+pub  extern "C" fn Curl_http_done(
     mut data: *mut Curl_easy,
     mut status: CURLcode,
     mut premature: bool,
 ) -> CURLcode {
-    let mut conn: *mut connectdata = (*data).conn;
-    let mut http: *mut HTTP = (*data).req.p.http;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
+    let mut http: *mut HTTP = unsafe{(*data).req.p.http};
 
     /* Clear multipass flag. If authentication isn't done yet, then it will get
    * a chance to be set back to true when we output the next auth header */
-    (*data).state.authhost.set_multipass(0 as bit);
+   unsafe{(*data).state.authhost.set_multipass(0 as bit);
     (*data).state.authproxy.set_multipass(0 as bit);
 
     Curl_unencode_cleanup(data);
@@ -2230,11 +2236,11 @@ pub unsafe extern "C" fn Curl_http_done(
     /* set the proper values (possibly modified on POST) */
     (*conn).seek_func = (*data).set.seek_func; /* restore */
     (*conn).seek_client = (*data).set.seek_client; /* restore */
-    
+   }
     if http.is_null() {
         return CURLE_OK;
     }
-
+    unsafe{
     Curl_dyn_free(&mut (*http).send_buffer);
     Curl_http2_done(data, premature);
     #[cfg(any(
@@ -2245,23 +2251,23 @@ pub unsafe extern "C" fn Curl_http_done(
     Curl_mime_cleanpart(&mut (*http).form);
     Curl_dyn_reset(&mut (*data).state.headerb);
     #[cfg(all(not(CURL_DISABLE_HTTP), USE_HYPER))]
-    Curl_hyper_done(data);
+    Curl_hyper_done(data);}
 
     if status as u64 != 0 {
         return status;
     }
 
-    if !premature /* this check is pointless when DONE is called before the
+    if unsafe{!premature /* this check is pointless when DONE is called before the
     entire operation is complete */
         && ((*conn).bits).retry() == 0
         && ((*data).set).connect_only() == 0
         && (*data).req.bytecount + (*data).req.headerbytecount - (*data).req.deductheadercount
-            <= 0 as i64
+            <= 0 as i64}
     {
         /* If this connection isn't simply closed to be retried, AND nothing was
            read from the HTTP server (that counts), this can't be right so we
            return an error here */
-        Curl_failf(
+           unsafe{Curl_failf(
             data,
             b"Empty reply from server\0" as *const u8 as *const libc::c_char,
         );
@@ -2273,7 +2279,7 @@ pub unsafe extern "C" fn Curl_http_done(
             conn,
             2,
             b"Empty reply from server\0" as *const u8 as *const libc::c_char,
-        );
+        );}
         return CURLE_GOT_NOTHING;
     }
     return CURLE_OK;
@@ -2289,35 +2295,35 @@ pub unsafe extern "C" fn Curl_http_done(
  * 1.0.
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_use_http_1_1plus(
+pub  extern "C" fn Curl_use_http_1_1plus(
     mut data: *const Curl_easy,
     mut conn: *const connectdata,
 ) -> bool {
-    if (*data).state.httpversion as i32 == 10 || (*conn).httpversion as i32 == 10 {
+    if unsafe{(*data).state.httpversion as i32 == 10 || (*conn).httpversion as i32 == 10} {
         return false;
     }
-    if (*data).state.httpwant as i32 == CURL_HTTP_VERSION_1_0 as i32
-        && (*conn).httpversion as i32 <= 10
+    if unsafe{(*data).state.httpwant as i32 == CURL_HTTP_VERSION_1_0 as i32
+        && (*conn).httpversion as i32 <= 10}
     {
         return false;
     }
-    return (*data).state.httpwant as i32 == CURL_HTTP_VERSION_NONE as i32
-        || (*data).state.httpwant as i32 >= CURL_HTTP_VERSION_1_1 as i32;
+    return unsafe{(*data).state.httpwant as i32 == CURL_HTTP_VERSION_NONE as i32
+        || (*data).state.httpwant as i32 >= CURL_HTTP_VERSION_1_1 as i32};
 }
 
 #[cfg(not(USE_HYPER))]
-unsafe extern "C" fn get_http_string(
+ extern "C" fn get_http_string(
     mut data: *const Curl_easy,
     mut conn: *const connectdata,
 ) -> *const libc::c_char {
     #[cfg(ENABLE_QUIC)]
-    if (*data).state.httpwant as i32 == CURL_HTTP_VERSION_3 as i32
-        || (*conn).httpversion as i32 == 30
+    if unsafe{(*data).state.httpwant as i32 == CURL_HTTP_VERSION_3 as i32
+        || (*conn).httpversion as i32 == 30}
     {
         return b"3\0" as *const u8 as *const libc::c_char;
     }
     #[cfg(USE_NGHTTP2)]
-    if !((*conn).proto.httpc.h2).is_null() {
+    if !(unsafe{(*conn).proto.httpc.h2}).is_null() {
         return b"2\0" as *const u8 as *const libc::c_char;
     }
     if Curl_use_http_1_1plus(data, conn) {
@@ -2327,36 +2333,36 @@ unsafe extern "C" fn get_http_string(
 }
 
 /* check and possibly add an Expect: header */
-unsafe extern "C" fn expect100(
+ extern "C" fn expect100(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut req: *mut dynbuf,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    (*data).state.set_expect100header(0 as bit); /* default to false unless it is set
+    unsafe{(*data).state.set_expect100header(0 as bit);} /* default to false unless it is set
     to TRUE below */
-    if ((*data).state).disableexpect() == 0
+    if unsafe{((*data).state).disableexpect() == 0
         && Curl_use_http_1_1plus(data, conn) as i32 != 0
-        && ((*conn).httpversion as i32) < 20
+        && ((*conn).httpversion as i32) < 20}
     {
         /* if not doing HTTP 1.0 or version 2, or disabled explicitly, we add an
        Expect: 100-continue to the headers which actually speeds up post
        operations (as there is one packet coming back from the web server) */
         let mut ptr: *const libc::c_char =
-            Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char);
+        unsafe{Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char)};
         if !ptr.is_null() {
-            (*data).state.set_expect100header(Curl_compareheader(
+            unsafe{(*data).state.set_expect100header(Curl_compareheader(
                 ptr,
                 b"Expect:\0" as *const u8 as *const libc::c_char,
                 b"100-continue\0" as *const u8 as *const libc::c_char,
-            ) as bit);
+            ) as bit);}
         } else {
-            result = Curl_dyn_add(
+            result = unsafe{Curl_dyn_add(
                 req,
                 b"Expect: 100-continue\r\n\0" as *const u8 as *const libc::c_char,
-            );
+            )};
             if result as u64 == 0 {
-                (*data).state.set_expect100header(1 as bit);
+                unsafe{(*data).state.set_expect100header(1 as bit);}
             }
         }
     }
@@ -2364,7 +2370,7 @@ unsafe extern "C" fn expect100(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_compile_trailers(
+pub  extern "C" fn Curl_http_compile_trailers(
     mut trailers: *mut curl_slist,
     mut b: *mut dynbuf,
     mut handle: *mut Curl_easy,
@@ -2376,9 +2382,9 @@ pub unsafe extern "C" fn Curl_http_compile_trailers(
     
     // TODO 测试通过后，把注释删掉
     let flag: bool = if cfg!(CURL_DO_LINEEND_CONV) {
-        ((*handle).state).prefer_ascii() as i32 != 0 || ((*handle).set).crlf() as i32 != 0
+        unsafe{ ((*handle).state).prefer_ascii() as i32 != 0 || ((*handle).set).crlf() as i32 != 0}
     } else {
-        ((*handle).set).crlf() as i32 != 0
+        unsafe{ ((*handle).set).crlf() as i32 != 0}
         /* \n will become \r\n later on */
     };
     if flag {
@@ -2390,37 +2396,37 @@ pub unsafe extern "C" fn Curl_http_compile_trailers(
     }
     while !trailers.is_null() {
         /* only add correctly formatted trailers */
-        ptr = strchr((*trailers).data, ':' as i32);
-        if !ptr.is_null() && *ptr.offset(1 as isize) as i32 == ' ' as i32 {
-            result = Curl_dyn_add(b, (*trailers).data);
+        ptr = unsafe{strchr((*trailers).data, ':' as i32)};
+        if unsafe{!ptr.is_null() && *ptr.offset(1 as isize) as i32 == ' ' as i32} {
+            result = unsafe{Curl_dyn_add(b, (*trailers).data)};
             if result as u64 != 0 {
                 return result;
             }
-            result = Curl_dyn_add(b, endofline_native);
+            result = unsafe{Curl_dyn_add(b, endofline_native)};
             if result as u64 != 0 {
                 return result;
             }
         } else {
-            Curl_infof(
+            unsafe{Curl_infof(
                 handle,
                 b"Malformatted trailing header ! Skipping trailer.\0" as *const u8
                     as *const libc::c_char,
-            );
+            );}
         }
-        trailers = (*trailers).next;
+        trailers =unsafe{ (*trailers).next};
     }
-    result = Curl_dyn_add(b, endofline_network);
+    result = unsafe{Curl_dyn_add(b, endofline_network)};
     return result;
 }
 
 #[cfg(USE_HYPER)]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_add_custom_headers(
+pub  extern "C" fn Curl_add_custom_headers(
     mut data: *mut Curl_easy,
     mut is_connect: bool,
     mut req: *mut dynbuf,
 ) -> CURLcode {
-    let mut conn: *mut connectdata = (*data).conn;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
     let mut ptr: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut h: [*mut curl_slist; 2] = [0 as *mut curl_slist; 2];
     let mut headers: *mut curl_slist = 0 as *mut curl_slist;
@@ -2430,7 +2436,7 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
     if is_connect {
         proxy = HEADER_CONNECT;
     } else {
-        proxy = (if ((*conn).bits).httpproxy() as i32 != 0 && ((*conn).bits).tunnel_proxy() == 0 {
+        proxy = (if unsafe{((*conn).bits).httpproxy() as i32 != 0 && ((*conn).bits).tunnel_proxy() == 0} {
             HEADER_PROXY as i32
         } else {
             HEADER_SERVER as i32
@@ -2438,20 +2444,20 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
     }
     match proxy as u32 {
         0 => {
-            h[0 as usize] = (*data).set.headers;
+            h[0 as usize] = unsafe{(*data).set.headers};
         }
         1 => {
-            h[0 as usize] = (*data).set.headers;
-            if ((*data).set).sep_headers() != 0 {
-                h[1 as usize] = (*data).set.proxyheaders;
+            h[0 as usize] = unsafe{(*data).set.headers};
+            if unsafe{((*data).set).sep_headers() != 0} {
+                h[1 as usize] = unsafe{(*data).set.proxyheaders};
                 numlists += 1;
             }
         }
         2 => {
-            if ((*data).set).sep_headers() != 0 {
-                h[0 as usize] = (*data).set.proxyheaders;
+            if unsafe{((*data).set).sep_headers() != 0 }{
+                h[0 as usize] = unsafe{(*data).set.proxyheaders};
             } else {
-                h[0 as usize] = (*data).set.headers;
+                h[0 as usize] = unsafe{(*data).set.headers};
             }
         }
         _ => {}
@@ -2461,85 +2467,85 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
         headers = h[i as usize];
         while !headers.is_null() {
             let mut semicolonp: *mut libc::c_char = 0 as *mut libc::c_char;
-            ptr = strchr((*headers).data, ':' as i32);
+            ptr = unsafe{strchr((*headers).data, ':' as i32)};
             if ptr.is_null() {
                 let mut optr: *mut libc::c_char = 0 as *mut libc::c_char;
-                ptr = strchr((*headers).data, ';' as i32);
+                ptr = unsafe{strchr((*headers).data, ';' as i32)};
                 if !ptr.is_null() {
                     optr = ptr;
-                    ptr = ptr.offset(1);
-                    while *ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0 {
-                        ptr = ptr.offset(1);
+                    ptr = unsafe{ptr.offset(1)};
+                    while unsafe{*ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0} {
+                        ptr = unsafe{ptr.offset(1)};
                     }
-                    if *ptr != 0 {
+                    if unsafe{*ptr != 0} {
                         optr = 0 as *mut libc::c_char;
                     } else {
-                        ptr = ptr.offset(-1);
-                        if *ptr as i32 == ';' as i32 {
+                        ptr = unsafe{ptr.offset(-1)};
+                        if unsafe{*ptr as i32 == ';' as i32 }{
                             match () {
                                 #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
                                 _ => {
-                                    semicolonp = Curl_cstrdup.expect("non-null function pointer")(
+                                    semicolonp =unsafe{ Curl_cstrdup.expect("non-null function pointer")(
                                         (*headers).data,
-                                    );
+                                    )};
                                 }
                                 #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
                                 _ => {
-                                    semicolonp = curl_dbg_strdup(
+                                    semicolonp = unsafe{curl_dbg_strdup(
                                         (*headers).data,
                                         1857 as i32,
                                         b"http.c\0" as *const u8 as *const libc::c_char,
-                                    );
+                                    )};
                                 }
                             }
                             if semicolonp.is_null() {
-                                Curl_dyn_free(req);
+                                unsafe{Curl_dyn_free(req);}
                                 return CURLE_OUT_OF_MEMORY;
                             }
-                            *semicolonp.offset(ptr.offset_from((*headers).data) as i64 as isize) =
-                                ':' as i32 as libc::c_char;
-                            optr = &mut *semicolonp
+                            unsafe{ *semicolonp.offset(ptr.offset_from((*headers).data) as i64 as isize) =
+                                ':' as i32 as libc::c_char;}
+                            optr =unsafe{ &mut *semicolonp
                                 .offset(ptr.offset_from((*headers).data) as i64 as isize)
-                                as *mut libc::c_char;
+                                as *mut libc::c_char};
                         }
                     }
                     ptr = optr;
                 }
             }
             if !ptr.is_null() {
-                ptr = ptr.offset(1);
-                while *ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0 {
-                    ptr = ptr.offset(1);
+                ptr =unsafe{ ptr.offset(1)};
+                while unsafe{*ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0 }{
+                    ptr = unsafe{ptr.offset(1)};
                 }
-                if *ptr as i32 != 0 || !semicolonp.is_null() {
+                if unsafe{*ptr as i32 != 0 || !semicolonp.is_null()} {
                     let mut result: CURLcode = CURLE_OK;
                     let mut compare: *mut libc::c_char = if !semicolonp.is_null() {
                         semicolonp
                     } else {
-                        (*headers).data
+                        unsafe{(*headers).data}
                     };
-                    if !(!((*data).state.aptr.host).is_null()
+                    if unsafe{!(!((*data).state.aptr.host).is_null()
                         && curl_strnequal(
                             b"Host:\0" as *const u8 as *const libc::c_char,
                             compare,
                             strlen(b"Host:\0" as *const u8 as *const libc::c_char),
-                        ) != 0)
+                        ) != 0)}
                     {
-                        if !((*data).state.httpreq as u32 == HTTPREQ_POST_FORM as i32 as u32
+                        if unsafe{!((*data).state.httpreq as u32 == HTTPREQ_POST_FORM as i32 as u32
                             && curl_strnequal(
                                 b"Content-Type:\0" as *const u8 as *const libc::c_char,
                                 compare,
                                 strlen(b"Content-Type:\0" as *const u8 as *const libc::c_char),
-                            ) != 0)
+                            ) != 0)}
                         {
-                            if !((*data).state.httpreq as u32 == HTTPREQ_POST_MIME as i32 as u32
+                            if unsafe{!((*data).state.httpreq as u32 == HTTPREQ_POST_MIME as i32 as u32
                                 && curl_strnequal(
                                     b"Content-Type:\0" as *const u8 as *const libc::c_char,
                                     compare,
                                     strlen(b"Content-Type:\0" as *const u8 as *const libc::c_char),
-                                ) != 0)
+                                ) != 0)}
                             {
-                                if !(((*conn).bits).authneg() as i32 != 0
+                                if unsafe{!(((*conn).bits).authneg() as i32 != 0
                                     && curl_strnequal(
                                         b"Content-Length:\0" as *const u8 as *const libc::c_char,
                                         compare,
@@ -2547,9 +2553,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                             b"Content-Length:\0" as *const u8
                                                 as *const libc::c_char,
                                         ),
-                                    ) != 0)
+                                    ) != 0)}
                                 {
-                                    if !(!((*data).state.aptr.te).is_null()
+                                    if unsafe{!(!((*data).state.aptr.te).is_null()
                                         && curl_strnequal(
                                             b"Connection:\0" as *const u8 as *const libc::c_char,
                                             compare,
@@ -2557,9 +2563,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                 b"Connection:\0" as *const u8
                                                     as *const libc::c_char,
                                             ),
-                                        ) != 0)
+                                        ) != 0)}
                                     {
-                                        if !((*conn).httpversion as i32 >= 20 as i32
+                                        if unsafe{!((*conn).httpversion as i32 >= 20 as i32
                                             && curl_strnequal(
                                                 b"Transfer-Encoding:\0" as *const u8
                                                     as *const libc::c_char,
@@ -2568,9 +2574,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                     b"Transfer-Encoding:\0" as *const u8
                                                         as *const libc::c_char,
                                                 ),
-                                            ) != 0)
+                                            ) != 0)}
                                         {
-                                            if !((curl_strnequal(
+                                            if unsafe{!((curl_strnequal(
                                                 b"Authorization:\0" as *const u8
                                                     as *const libc::c_char,
                                                 compare,
@@ -2595,13 +2601,13 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                     && Curl_strcasecompare(
                                                         (*data).state.first_host,
                                                         (*conn).host.name,
-                                                    ) == 0))
+                                                    ) == 0))}
                                             {
-                                                result = Curl_hyper_header(
+                                                result = unsafe{Curl_hyper_header(
                                                     data,
                                                     req as *mut hyper_headers,
                                                     compare,
-                                                );
+                                                )};
                                             }
                                         }
                                     }
@@ -2611,22 +2617,22 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                     }
                     if !semicolonp.is_null() {
                         #[cfg(not(CURLDEBUG))]
-                        Curl_cfree.expect("non-null function pointer")(
+                        unsafe{ Curl_cfree.expect("non-null function pointer")(
                             semicolonp as *mut libc::c_void,
-                        );
+                        );}
                         #[cfg(CURLDEBUG)]
-                        curl_dbg_free(
+                        unsafe{ curl_dbg_free(
                             semicolonp as *mut libc::c_void,
                             1929 as i32,
                             b"http.c\0" as *const u8 as *const libc::c_char,
-                        );
+                        );}
                     }
                     if result as u64 != 0 {
                         return result;
                     }
                 }
             }
-            headers = (*headers).next;
+            headers = unsafe{(*headers).next};
         }
         i += 1;
     }
@@ -2639,12 +2645,12 @@ const HEADER_CONNECT: u32 = 2; /* sending CONNECT to a proxy */
 
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_add_custom_headers(
+pub  extern "C" fn Curl_add_custom_headers(
     mut data: *mut Curl_easy,
     mut is_connect: bool,
     mut req: *mut dynbuf,
 ) -> CURLcode {
-    let mut conn: *mut connectdata = (*data).conn;
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
     let mut ptr: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut h: [*mut curl_slist; 2] = [0 as *mut curl_slist; 2];
     let mut headers: *mut curl_slist = 0 as *mut curl_slist;
@@ -2658,8 +2664,8 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
             if is_connect {
                 proxy = HEADER_CONNECT;
             } else {
-                proxy = (if ((*conn).bits).httpproxy() as i32 != 0
-                    && ((*conn).bits).tunnel_proxy() == 0
+                proxy = (if unsafe{((*conn).bits).httpproxy() as i32 != 0
+                    && ((*conn).bits).tunnel_proxy() == 0}
                 {
                     HEADER_PROXY as i32
                 } else {
@@ -2668,20 +2674,20 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
             }
             match proxy as u32 {
                 HEADER_SERVER => {
-                    h[0 as usize] = (*data).set.headers;
+                    h[0 as usize] = unsafe{(*data).set.headers};
                 }
                 HEADER_PROXY => {
-                    h[0 as usize] = (*data).set.headers;
-                    if ((*data).set).sep_headers() != 0 {
-                        h[1 as usize] = (*data).set.proxyheaders;
+                    h[0 as usize] = unsafe{(*data).set.headers};
+                    if unsafe{((*data).set).sep_headers() != 0} {
+                        h[1 as usize] =unsafe{ (*data).set.proxyheaders};
                         numlists += 1;
                     }
                 }
                 HEADER_CONNECT => {
-                    if ((*data).set).sep_headers() != 0 {
-                        h[0 as usize] = (*data).set.proxyheaders;
+                    if unsafe{((*data).set).sep_headers() != 0} {
+                        h[0 as usize] = unsafe{(*data).set.proxyheaders};
                     } else {
-                        h[0 as usize] = (*data).set.headers;
+                        h[0 as usize] = unsafe{(*data).set.headers};
                     }
                 }
                 _ => {}
@@ -2689,7 +2695,7 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
         }
         #[cfg(CURL_DISABLE_PROXY)]
         _ => {
-            h[0 as usize] = (*data).set.headers;
+            h[0 as usize] = unsafe{(*data).set.headers};
         }
     }
 
@@ -2700,53 +2706,53 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
 
         while !headers.is_null() {
             let mut semicolonp: *mut libc::c_char = 0 as *mut libc::c_char;
-            ptr = strchr((*headers).data, ':' as i32);
+            ptr = unsafe{strchr((*headers).data, ':' as i32)};
             if ptr.is_null() {
                 let mut optr: *mut libc::c_char = 0 as *mut libc::c_char;
                 /* no colon, semicolon? */
-                ptr = strchr((*headers).data, ';' as i32);
+                ptr = unsafe{strchr((*headers).data, ';' as i32)};
                 if !ptr.is_null() {
                     optr = ptr;
-                    ptr = ptr.offset(1); /* pass the semicolon */
-                    while *ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0 {
-                        ptr = ptr.offset(1);
+                    ptr = unsafe{ptr.offset(1)}; /* pass the semicolon */
+                    while unsafe{*ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0} {
+                        ptr = unsafe{ptr.offset(1)};
                     }
 
-                    if *ptr != 0 {
+                    if unsafe{*ptr != 0} {
                         optr = 0 as *mut libc::c_char;
                     } else {
-                        ptr = ptr.offset(-1);
-                        if *ptr as i32 == ';' as i32 {
+                        ptr = unsafe{ptr.offset(-1)};
+                        if unsafe{*ptr as i32 == ';' as i32} {
                             /* this may be used for something else in the future */
                             match () {
                                 #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
                                 _ => {
-                                    semicolonp = Curl_cstrdup.expect("non-null function pointer")(
+                                    semicolonp = unsafe{Curl_cstrdup.expect("non-null function pointer")(
                                         (*headers).data,
-                                    );
+                                    )};
                                 }
                                 #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
                                 _ => {
-                                    semicolonp = curl_dbg_strdup(
+                                    semicolonp = unsafe{curl_dbg_strdup(
                                         (*headers).data,
                                         1857,
                                         b"http.c\0" as *const u8 as *const libc::c_char,
-                                    );
+                                    )};
                                 }
                             }
                             if semicolonp.is_null() {
                                 /* copy the source */
                                 #[cfg(not(USE_HYPER))]
-                                Curl_dyn_free(req);
+                                unsafe{Curl_dyn_free(req);}
                                 return CURLE_OUT_OF_MEMORY;
                             }
                             /* put a colon where the semicolon is */
-                            *semicolonp.offset(ptr.offset_from((*headers).data) as i64 as isize) =
-                                ':' as i32 as libc::c_char;
+                            unsafe{ *semicolonp.offset(ptr.offset_from((*headers).data) as i64 as isize) =
+                                ':' as i32 as libc::c_char;}
                             /* point at the colon */
-                                optr = &mut *semicolonp
+                                optr = unsafe{&mut *semicolonp
                                 .offset(ptr.offset_from((*headers).data) as i64 as isize)
-                                as *mut libc::c_char;
+                                as *mut libc::c_char};
                         }
                     }
                     ptr = optr;
@@ -2754,44 +2760,44 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
             }
             if !ptr.is_null() {
                 /* we require a colon for this to be a true header */
-                ptr = ptr.offset(1);
-                while *ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0 {
-                    ptr = ptr.offset(1);
+                ptr = unsafe{ptr.offset(1)};
+                while unsafe{*ptr as i32 != 0 && Curl_isspace(*ptr as u8 as i32) != 0} {
+                    ptr = unsafe{ptr.offset(1)};
                 }
-                if *ptr as i32 != 0 || !semicolonp.is_null() {
+                if unsafe{*ptr as i32 != 0 || !semicolonp.is_null()} {
                     /* only send this if the contents was non-blank or done special */
                     let mut result: CURLcode = CURLE_OK;
                     let mut compare: *mut libc::c_char = if !semicolonp.is_null() {
                         semicolonp
                     } else {
-                        (*headers).data
+                        unsafe{(*headers).data}
                     };
-                    if !(!((*data).state.aptr.host).is_null() && 
+                    if unsafe{!(!((*data).state.aptr.host).is_null() && 
                         /* a Host: header was sent already, don't pass on any custom Host:
                 header as that will produce *two* in the same request! */
                         curl_strnequal(
                             b"Host:\0" as *const u8 as *const libc::c_char,
                             compare,
                             strlen(b"Host:\0" as *const u8 as *const libc::c_char),
-                        ) != 0)
+                        ) != 0)}
                     {
-                        if !((*data).state.httpreq as u32 == HTTPREQ_POST_FORM
+                        if unsafe{!((*data).state.httpreq as u32 == HTTPREQ_POST_FORM
                           /* this header (extended by formdata.c) is sent later */
                         && curl_strnequal(
                                 b"Content-Type:\0" as *const u8 as *const libc::c_char,
                                 compare,
                                 strlen(b"Content-Type:\0" as *const u8 as *const libc::c_char),
-                            ) != 0)
+                            ) != 0)}
                         {
-                            if !((*data).state.httpreq as u32 == HTTPREQ_POST_MIME
+                            if unsafe{!((*data).state.httpreq as u32 == HTTPREQ_POST_MIME
                             /* this header is sent later */
                                 && curl_strnequal(
                                     b"Content-Type:\0" as *const u8 as *const libc::c_char,
                                     compare,
                                     strlen(b"Content-Type:\0" as *const u8 as *const libc::c_char),
-                                ) != 0)
+                                ) != 0)}
                             {
-                                if !(((*conn).bits).authneg() as i32 != 0
+                                if unsafe{!(((*conn).bits).authneg() as i32 != 0
                                     && 
                                     /* while doing auth neg, don't allow the custom length since
                      we will force length zero then */
@@ -2802,9 +2808,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                             b"Content-Length:\0" as *const u8
                                                 as *const libc::c_char,
                                         ),
-                                    ) != 0)
+                                    ) != 0)}
                                 {
-                                    if !(!((*data).state.aptr.te).is_null()
+                                    if unsafe{!(!((*data).state.aptr.te).is_null()
                                         && 
                                         /* when asking for Transfer-Encoding, don't pass on a custom
                      Connection: */
@@ -2815,9 +2821,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                 b"Connection:\0" as *const u8
                                                     as *const libc::c_char,
                                             ),
-                                        ) != 0)
+                                        ) != 0)}
                                     {
-                                        if !((*conn).httpversion as i32 >= 20
+                                        if unsafe{!((*conn).httpversion as i32 >= 20
                                             && 
                                             /* HTTP/2 doesn't support chunked requests */
                                             curl_strnequal(
@@ -2828,9 +2834,9 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                     b"Transfer-Encoding:\0" as *const u8
                                                         as *const libc::c_char,
                                                 ),
-                                            ) != 0)
+                                            ) != 0)}
                                         {
-                                            if !((curl_strnequal(
+                                            if unsafe{!((curl_strnequal(
                                                 b"Authorization:\0" as *const u8
                                                     as *const libc::c_char,
                                                 compare,
@@ -2857,22 +2863,22 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                                                     && Curl_strcasecompare(
                                                         (*data).state.first_host,
                                                         (*conn).host.name,
-                                                    ) == 0))
+                                                    ) == 0))}
                                             {
                                                 match () {
                                                     #[cfg(USE_HYPER)]
                                                     _ => {
                                                         result =
-                                                            Curl_hyper_header(data, req, compare);
+                                                        unsafe{Curl_hyper_header(data, req, compare)};
                                                     }
                                                     #[cfg(not(USE_HYPER))]
                                                     _ => {
-                                                        result = Curl_dyn_addf(
+                                                        result =unsafe{ Curl_dyn_addf(
                                                             req,
                                                             b"%s\r\n\0" as *const u8
                                                                 as *const libc::c_char,
                                                             compare,
-                                                        );
+                                                        )};
                                                     }
                                                 }
                                             }
@@ -2884,22 +2890,22 @@ pub unsafe extern "C" fn Curl_add_custom_headers(
                     }
                     if !semicolonp.is_null() {
                         #[cfg(not(CURLDEBUG))]
-                        Curl_cfree.expect("non-null function pointer")(
+                        unsafe{ Curl_cfree.expect("non-null function pointer")(
                             semicolonp as *mut libc::c_void,
-                        );
+                        );}
                         #[cfg(CURLDEBUG)]
-                        curl_dbg_free(
+                        unsafe{ curl_dbg_free(
                             semicolonp as *mut libc::c_void,
                             1929 as i32,
                             b"http.c\0" as *const u8 as *const libc::c_char,
-                        );
+                        );}
                     }
                     if result as u64 != 0 {
                         return result;
                     }
                 }
             }
-            headers = (*headers).next;
+            headers = unsafe{(*headers).next};
         }
         i += 1;
     }
@@ -2913,7 +2919,7 @@ const CURL_TIMECOND_LASTMOD: u32 = 3;
 
 #[cfg(all(not(CURL_DISABLE_PARSEDATE), USE_HYPER))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_add_timecondition(
+pub  extern "C" fn Curl_add_timecondition(
     mut data: *mut Curl_easy,
     mut req: *mut dynbuf,
 ) -> CURLcode {
@@ -2934,21 +2940,21 @@ pub unsafe extern "C" fn Curl_add_timecondition(
     let mut result: CURLcode = CURLE_OK;
     let mut datestr: [libc::c_char; 80] = [0; 80];
     let mut condp: *const libc::c_char = 0 as *const libc::c_char;
-    if (*data).set.timecondition as u32 == CURL_TIMECOND_NONE as i32 as u32 {
+    if unsafe{(*data).set.timecondition as u32 == CURL_TIMECOND_NONE as u32} {
         /* no condition was asked for */
         return CURLE_OK;
     }
-    result = Curl_gmtime((*data).set.timevalue, &mut keeptime);
+    result = unsafe{Curl_gmtime((*data).set.timevalue, &mut keeptime)};
     if result as u64 != 0 {
-        Curl_failf(
+        unsafe{Curl_failf(
             data,
             b"Invalid TIMEVALUE\0" as *const u8 as *const libc::c_char,
-        );
+        );}
         return result;
     }
     tm = &mut keeptime;
 
-    match (*data).set.timecondition as u32 {
+    match unsafe{(*data).set.timecondition as u32} {
         CURL_TIMECOND_IFMODSINCE => {
             condp = b"If-Modified-Since\0" as *const u8 as *const libc::c_char;
         }
@@ -2960,7 +2966,7 @@ pub unsafe extern "C" fn Curl_add_timecondition(
         }
         _ => return CURLE_BAD_FUNCTION_ARGUMENT,
     }
-    if !(Curl_checkheaders(data, condp)).is_null() {
+    if unsafe{!(Curl_checkheaders(data, condp)).is_null()} {
         /* A custom header was specified; it will be sent instead. */
         return CURLE_OK;
     }
@@ -2973,7 +2979,7 @@ pub unsafe extern "C" fn Curl_add_timecondition(
      */
 
     /* format: "Tue, 15 Nov 1994 12:45:26 GMT" */
-    curl_msnprintf(
+    unsafe{curl_msnprintf(
         datestr.as_mut_ptr(),
         ::std::mem::size_of::<[libc::c_char; 80]>() as u64,
         b"%s: %s, %02d %s %4d %02d:%02d:%02d GMT\r\n\0" as *const u8 as *const libc::c_char,
@@ -2989,15 +2995,15 @@ pub unsafe extern "C" fn Curl_add_timecondition(
         (*tm).tm_hour,
         (*tm).tm_min,
         (*tm).tm_sec,
-    );
+    );}
 
-    result = Curl_hyper_header(data, req as *mut hyper_headers, datestr.as_mut_ptr());
+    result = unsafe{Curl_hyper_header(data, req as *mut hyper_headers, datestr.as_mut_ptr())};
     return result;
 }
 
 #[cfg(all(not(CURL_DISABLE_PARSEDATE), not(USE_HYPER)))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_add_timecondition(
+pub  extern "C" fn Curl_add_timecondition(
     mut data: *mut Curl_easy,
     mut req: *mut dynbuf,
 ) -> CURLcode {
@@ -3018,19 +3024,19 @@ pub unsafe extern "C" fn Curl_add_timecondition(
     let mut result: CURLcode = CURLE_OK;
     let mut datestr: [libc::c_char; 80] = [0; 80];
     let mut condp: *const libc::c_char = 0 as *const libc::c_char;
-    if (*data).set.timecondition as u32 == CURL_TIMECOND_NONE as i32 as u32 {
+    if unsafe{(*data).set.timecondition as u32 == CURL_TIMECOND_NONE as u32 }{
         return CURLE_OK;
     }
-    result = Curl_gmtime((*data).set.timevalue, &mut keeptime);
+    result =unsafe{ Curl_gmtime((*data).set.timevalue, &mut keeptime)};
     if result as u64 != 0 {
-        Curl_failf(
+        unsafe{ Curl_failf(
             data,
             b"Invalid TIMEVALUE\0" as *const u8 as *const libc::c_char,
-        );
+        );}
         return result;
     }
     tm = &mut keeptime;
-    match (*data).set.timecondition as u32 {
+    match unsafe{(*data).set.timecondition as u32} {
         CURL_TIMECOND_IFMODSINCE => {
             condp = b"If-Modified-Since\0" as *const u8 as *const libc::c_char;
         }
@@ -3042,10 +3048,10 @@ pub unsafe extern "C" fn Curl_add_timecondition(
         }
         _ => return CURLE_BAD_FUNCTION_ARGUMENT,
     }
-    if !(Curl_checkheaders(data, condp)).is_null() {
+    if unsafe{!(Curl_checkheaders(data, condp)).is_null()} {
         return CURLE_OK;
     }
-    curl_msnprintf(
+    unsafe{ curl_msnprintf(
         datestr.as_mut_ptr(),
         ::std::mem::size_of::<[libc::c_char; 80]>() as u64,
         b"%s: %s, %02d %s %4d %02d:%02d:%02d GMT\r\n\0" as *const u8 as *const libc::c_char,
@@ -3061,14 +3067,14 @@ pub unsafe extern "C" fn Curl_add_timecondition(
         (*tm).tm_hour,
         (*tm).tm_min,
         (*tm).tm_sec,
-    );
-    result = Curl_dyn_add(req, datestr.as_mut_ptr());
+    );}
+    result = unsafe{Curl_dyn_add(req, datestr.as_mut_ptr())};
     return result;
 }
 
 /* disabled */
 #[cfg(CURL_DISABLE_PARSEDATE)]
-pub unsafe extern "C" fn Curl_add_timecondition(
+pub  extern "C" fn Curl_add_timecondition(
     mut data: *mut Curl_easy,
     mut req: *mut dynbuf,
 ) -> CURLcode {
@@ -3079,38 +3085,38 @@ const PROTO_FAMILY_HTTP: u32 = 1 << 0 | 1 << 1;
 const CURLPROTO_FTP: u32 = 1 << 2;
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_method(
+pub  extern "C" fn Curl_http_method(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut method: *mut *const libc::c_char,
     mut reqp: *mut Curl_HttpReq,
 ) {
-    let mut httpreq: Curl_HttpReq = (*data).state.httpreq;
+    let mut httpreq: Curl_HttpReq = unsafe{(*data).state.httpreq};
     let mut request: *const libc::c_char = 0 as *const libc::c_char;
-    if (*(*conn).handler).protocol
+    if unsafe{(*(*conn).handler).protocol
         & (PROTO_FAMILY_HTTP | CURLPROTO_FTP)
         != 0
-        && ((*data).set).upload() as i32 != 0
+        && ((*data).set).upload() as i32 != 0}
     {
         httpreq = HTTPREQ_PUT;
     }
 
     /* Now set the 'request' pointer to the proper request string */
-    if !((*data).set.str_0[STRING_CUSTOMREQUEST as i32 as usize]).is_null() {
-        request = (*data).set.str_0[STRING_CUSTOMREQUEST as i32 as usize];
-    } else if ((*data).set).opt_no_body() != 0 {
+    if unsafe{!((*data).set.str_0[STRING_CUSTOMREQUEST as usize]).is_null()} {
+        request = unsafe{(*data).set.str_0[STRING_CUSTOMREQUEST as usize]};
+    } else if unsafe{((*data).set).opt_no_body() != 0} {
         request = b"HEAD\0" as *const u8 as *const libc::c_char;
     } else {
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-        if httpreq as u32 >= HTTPREQ_GET as i32 as u32
-            && httpreq as u32 <= HTTPREQ_HEAD as i32 as u32
+        if httpreq as u32 >= HTTPREQ_GET as u32
+            && httpreq as u32 <= HTTPREQ_HEAD as u32
         {
-        } else {
+        } else {unsafe{
             __assert_fail(
                 b"(httpreq >= HTTPREQ_GET) && (httpreq <= HTTPREQ_HEAD)\0" as *const u8
                     as *const libc::c_char,
                 b"http.c\0" as *const u8 as *const libc::c_char,
-                2041 as i32 as u32,
+                2041 as u32,
                 (*::std::mem::transmute::<
                     &[u8; 95],
                     &[libc::c_char; 95],
@@ -3118,7 +3124,7 @@ pub unsafe extern "C" fn Curl_http_method(
                     b"void Curl_http_method(struct Curl_easy *, struct connectdata *, const char **, Curl_HttpReq *)\0",
                 ))
                     .as_ptr(),
-            );
+            );}
         }
         match httpreq as u32 {
             HTTPREQ_POST | HTTPREQ_POST_FORM | HTTPREQ_POST_MIME => {
@@ -3135,17 +3141,18 @@ pub unsafe extern "C" fn Curl_http_method(
             }
         }
     }
-    *method = request;
-    *reqp = httpreq;
+    unsafe{*method = request;
+    *reqp = httpreq;}
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_useragent(mut data: *mut Curl_easy) -> CURLcode {
+pub  extern "C" fn Curl_http_useragent(mut data: *mut Curl_easy) -> CURLcode {
       /* The User-Agent string might have been allocated in url.c already, because
      it might have been used in the proxy connect, but if we have got a header
      with the user-agent string specified, we erase the previously made string
      here. */
-    if !(Curl_checkheaders(data, b"User-Agent\0" as *const u8 as *const libc::c_char)).is_null() {
+    if unsafe{!(Curl_checkheaders(data, b"User-Agent\0" as *const u8 as *const libc::c_char)).is_null()} {
+        unsafe{
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(
             (*data).state.aptr.uagent as *mut libc::c_void,
@@ -3156,19 +3163,20 @@ pub unsafe extern "C" fn Curl_http_useragent(mut data: *mut Curl_easy) -> CURLco
             2072,
             b"http.c\0" as *const u8 as *const libc::c_char,
         );
-        (*data).state.aptr.uagent = 0 as *mut libc::c_char;
+        (*data).state.aptr.uagent = 0 as *mut libc::c_char;}
     }
     return CURLE_OK;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_host(
+pub  extern "C" fn Curl_http_host(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
 ) -> CURLcode {
     let mut ptr: *const libc::c_char = 0 as *const libc::c_char;
-    if ((*data).state).this_is_a_follow() == 0 {
+    if unsafe{((*data).state).this_is_a_follow() == 0} {
         /* Free to avoid leaking memory on multiple requests*/
+        unsafe{
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(
             (*data).state.first_host as *mut libc::c_void,
@@ -3178,27 +3186,28 @@ pub unsafe extern "C" fn Curl_http_host(
             (*data).state.first_host as *mut libc::c_void,
             2084,
             b"http.c\0" as *const u8 as *const libc::c_char,
-        );
+        );}
         match () {
             #[cfg(not(CURLDEBUG))]
             _ => {
-                (*data).state.first_host =
-                    Curl_cstrdup.expect("non-null function pointer")((*conn).host.name);
+                unsafe{(*data).state.first_host =
+                    Curl_cstrdup.expect("non-null function pointer")((*conn).host.name);}
             }
             #[cfg(CURLDEBUG)]
             _ => {
-                (*data).state.first_host = curl_dbg_strdup(
+                unsafe{ (*data).state.first_host = curl_dbg_strdup(
                     (*conn).host.name,
                     2086 as i32,
                     b"http.c\0" as *const u8 as *const libc::c_char,
-                );
+                );}
             }
         }
-        if ((*data).state.first_host).is_null() {
+        if unsafe{((*data).state.first_host).is_null()} {
             return CURLE_OUT_OF_MEMORY;
         }
-        (*data).state.first_remote_port = (*conn).remote_port;
+        unsafe{  (*data).state.first_remote_port = (*conn).remote_port;}
     }
+    unsafe{
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*data).state.aptr.host as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
@@ -3207,11 +3216,11 @@ pub unsafe extern "C" fn Curl_http_host(
         2092 as i32,
         b"http.c\0" as *const u8 as *const libc::c_char,
     );
-    (*data).state.aptr.host = 0 as *mut libc::c_char;
-    ptr = Curl_checkheaders(data, b"Host\0" as *const u8 as *const libc::c_char);
-    if !ptr.is_null()
+    (*data).state.aptr.host = 0 as *mut libc::c_char;}
+    ptr = unsafe{Curl_checkheaders(data, b"Host\0" as *const u8 as *const libc::c_char)};
+    if unsafe{!ptr.is_null()
         && (((*data).state).this_is_a_follow() == 0
-            || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0)
+            || Curl_strcasecompare((*data).state.first_host, (*conn).host.name) != 0)}
     {
         match () {
             #[cfg(not(CURL_DISABLE_COOKIES))]
@@ -3225,7 +3234,7 @@ pub unsafe extern "C" fn Curl_http_host(
                 if cookiehost.is_null() {
                     return CURLE_OUT_OF_MEMORY;
                 }
-                if *cookiehost == 0 {
+                if unsafe{*cookiehost == 0 }{unsafe{
                     /* ignore empty data */
                     #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(cookiehost as *mut libc::c_void);
@@ -3234,31 +3243,31 @@ pub unsafe extern "C" fn Curl_http_host(
                         cookiehost as *mut libc::c_void,
                         2108,
                         b"http.c\0" as *const u8 as *const libc::c_char,
-                    );
+                    );}
                 } else {
                     /* If the host begins with '[', we start searching for the port after
          the bracket has been closed */
-                    if *cookiehost as i32 == '[' as i32 {
+                    if unsafe{*cookiehost as i32 == '[' as i32} {
                         let mut closingbracket: *mut libc::c_char = 0 as *mut libc::c_char;
                         /* since the 'cookiehost' is an allocated memory area that will be
            freed later we cannot simply increment the pointer */
-                        memmove(
+           unsafe{ memmove(
                             cookiehost as *mut libc::c_void,
-                            cookiehost.offset(1 as i32 as isize) as *const libc::c_void,
+                            cookiehost.offset(1 as isize) as *const libc::c_void,
                             (strlen(cookiehost)).wrapping_sub(1 as u64),
                         );
                         closingbracket = strchr(cookiehost, ']' as i32);
                         if !closingbracket.is_null() {
                             *closingbracket = 0 as libc::c_char;
-                        }
+                        }}
                     } else {
                         let mut startsearch: i32 = 0;
                         let mut colon: *mut libc::c_char =
-                            strchr(cookiehost.offset(startsearch as isize), ':' as i32);
+                        unsafe{strchr(cookiehost.offset(startsearch as isize), ':' as i32)};
                         if !colon.is_null() {
-                            *colon = 0 as i32 as libc::c_char; /* The host must not include an embedded port number */
+                            unsafe{ *colon = 0 as libc::c_char; }/* The host must not include an embedded port number */
                         }
-                    }
+                    }unsafe{
                     #[cfg(not(CURLDEBUG))]
                     Curl_cfree.expect("non-null function pointer")(
                         (*data).state.aptr.cookiehost as *mut libc::c_void,
@@ -3270,36 +3279,36 @@ pub unsafe extern "C" fn Curl_http_host(
                         b"http.c\0" as *const u8 as *const libc::c_char,
                     );
                     (*data).state.aptr.cookiehost = 0 as *mut libc::c_char;
-                    (*data).state.aptr.cookiehost = cookiehost;
+                    (*data).state.aptr.cookiehost = cookiehost;}
                 }
             }
             #[cfg(CURL_DISABLE_COOKIES)]
             _ => {}
         }
-        if strcmp(b"Host:\0" as *const u8 as *const libc::c_char, ptr) != 0 {
-            (*data).state.aptr.host = curl_maprintf(
+        if unsafe{strcmp(b"Host:\0" as *const u8 as *const libc::c_char, ptr) != 0 }{
+            unsafe{ (*data).state.aptr.host = curl_maprintf(
                 b"Host:%s\r\n\0" as *const u8 as *const libc::c_char,
-                &*ptr.offset(5 as i32 as isize) as *const libc::c_char,
+                &*ptr.offset(5 as isize) as *const libc::c_char,
             );
             if ((*data).state.aptr.host).is_null() {
                 return CURLE_OUT_OF_MEMORY;
-            }
+            }}
         } else {
             /* when clearing the header */
-            (*data).state.aptr.host = 0 as *mut libc::c_char;
+            unsafe{(*data).state.aptr.host = 0 as *mut libc::c_char;}
         }
     } else {
         /* When building Host: headers, we must put the host name within
        [brackets] if the host name is a plain IPv6-address. RFC2732-style. */
-        let mut host: *const libc::c_char = (*conn).host.name;
-        if (*(*conn).given).protocol & CURLPROTO_HTTPS != 0
+        let mut host: *const libc::c_char = unsafe{(*conn).host.name};
+        if unsafe{(*(*conn).given).protocol & CURLPROTO_HTTPS != 0
             && (*conn).remote_port == PORT_HTTPS
             || (*(*conn).given).protocol & CURLPROTO_HTTP != 0
-                && (*conn).remote_port == PORT_HTTP
+                && (*conn).remote_port == PORT_HTTP}
         {
             /* if(HTTPS on port 443) OR (HTTP on port 80) then don't include
          the port number in the host string */
-            (*data).state.aptr.host = curl_maprintf(
+         unsafe{(*data).state.aptr.host = curl_maprintf(
                 b"Host: %s%s%s\r\n\0" as *const u8 as *const libc::c_char,
                 if ((*conn).bits).ipv6_ip() as i32 != 0 {
                     b"[\0" as *const u8 as *const libc::c_char
@@ -3312,9 +3321,9 @@ pub unsafe extern "C" fn Curl_http_host(
                 } else {
                     b"\0" as *const u8 as *const libc::c_char
                 },
-            );
+            );}
         } else {
-            (*data).state.aptr.host = curl_maprintf(
+            unsafe{(*data).state.aptr.host = curl_maprintf(
                 b"Host: %s%s%s:%d\r\n\0" as *const u8 as *const libc::c_char,
                 if ((*conn).bits).ipv6_ip() as i32 != 0 {
                     b"[\0" as *const u8 as *const libc::c_char
@@ -3328,10 +3337,10 @@ pub unsafe extern "C" fn Curl_http_host(
                     b"\0" as *const u8 as *const libc::c_char
                 },
                 (*conn).remote_port,
-            );
+            );}
         }
         /* without Host: we can't make a nice request */
-        if ((*data).state.aptr.host).is_null() {
+        if unsafe{((*data).state.aptr.host).is_null()} {
             return CURLE_OUT_OF_MEMORY;
         }
     }
@@ -3342,23 +3351,23 @@ pub unsafe extern "C" fn Curl_http_host(
  * Append the request-target to the HTTP request
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_target(
+pub  extern "C" fn Curl_http_target(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut r: *mut dynbuf,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    let mut path: *const libc::c_char = (*data).state.up.path;
-    let mut query: *const libc::c_char = (*data).state.up.query;
+    let mut path: *const libc::c_char = unsafe{(*data).state.up.path};
+    let mut query: *const libc::c_char = unsafe{ (*data).state.up.query};
     
-    if !((*data).set.str_0[STRING_TARGET as i32 as usize]).is_null() {
-        path = (*data).set.str_0[STRING_TARGET as i32 as usize];
+    if unsafe{!((*data).set.str_0[STRING_TARGET as usize]).is_null()} {
+        path = unsafe{(*data).set.str_0[STRING_TARGET as usize]};
         query = 0 as *const libc::c_char;
     }
     match () {
         #[cfg(not(CURL_DISABLE_PROXY))]
         _ => {
-            if ((*conn).bits).httpproxy() as i32 != 0 && ((*conn).bits).tunnel_proxy() == 0 {
+            if unsafe{((*conn).bits).httpproxy() as i32 != 0 && ((*conn).bits).tunnel_proxy() == 0} {
                 /* Using a proxy but does not tunnel through it */
 
     /* The path sent to the proxy is in fact the entire URL. But if the remote
@@ -3368,69 +3377,69 @@ pub unsafe extern "C" fn Curl_http_target(
     /* and no fragment part */
                 let mut uc: CURLUcode = CURLUE_OK;
                 let mut url: *mut libc::c_char = 0 as *mut libc::c_char;
-                let mut h: *mut CURLU = curl_url_dup((*data).state.uh);
+                let mut h: *mut CURLU = unsafe{curl_url_dup((*data).state.uh)};
                 if h.is_null() {
                     return CURLE_OUT_OF_MEMORY;
                 }
 
-                if (*conn).host.dispname != (*conn).host.name as *const libc::c_char {
-                    uc = curl_url_set(h, CURLUPART_HOST, (*conn).host.name, 0 as i32 as u32);
+                if unsafe{(*conn).host.dispname != (*conn).host.name as *const libc::c_char} {
+                    uc = unsafe{curl_url_set(h, CURLUPART_HOST, (*conn).host.name, 0 as u32)};
                     if uc as u64 != 0 {
-                        curl_url_cleanup(h);
+                        unsafe{ curl_url_cleanup(h);}
                         return CURLE_OUT_OF_MEMORY;
                     }
                 }
-                uc = curl_url_set(
+                uc = unsafe{curl_url_set(
                     h,
                     CURLUPART_FRAGMENT,
                     0 as *const libc::c_char,
                     0 as u32,
-                );
+                )};
                 if uc as u64 != 0 {
-                    curl_url_cleanup(h);
+                    unsafe{ curl_url_cleanup(h);}
                     return CURLE_OUT_OF_MEMORY;
                 }
 
-                if Curl_strcasecompare(
+                if unsafe{Curl_strcasecompare(
                     b"http\0" as *const u8 as *const libc::c_char,
                     (*data).state.up.scheme,
-                ) != 0
+                ) != 0}
                 {
                     /* when getting HTTP, we don't want the userinfo the URL */
-                    uc = curl_url_set(h, CURLUPART_USER, 0 as *const libc::c_char, 0 as i32 as u32);
+                    uc = unsafe{curl_url_set(h, CURLUPART_USER, 0 as *const libc::c_char, 0 as u32)};
                     if uc as u64 != 0 {
-                        curl_url_cleanup(h);
+                        unsafe{curl_url_cleanup(h);}
                         return CURLE_OUT_OF_MEMORY;
                     }
-                    uc = curl_url_set(
+                    uc = unsafe{curl_url_set(
                         h,
                         CURLUPART_PASSWORD,
                         0 as *const libc::c_char,
                         0 as u32,
-                    );
+                    )};
                     if uc as u64 != 0 {
-                        curl_url_cleanup(h);
+                        unsafe{curl_url_cleanup(h);}
                         return CURLE_OUT_OF_MEMORY;
                     }
                 }
                 /* Extract the URL to use in the request. Store in STRING_TEMP_URL for
        clean-up reasons if the function returns before the free() further
        down. */
-                uc = curl_url_get(h, CURLUPART_URL, &mut url, ((1 as i32) << 1 as i32) as u32);
+                uc = unsafe{curl_url_get(h, CURLUPART_URL, &mut url, ((1 as i32) << 1 as i32) as u32)};
                 if uc as u64 != 0 {
-                    curl_url_cleanup(h);
+                    unsafe{ curl_url_cleanup(h);}
                     return CURLE_OUT_OF_MEMORY;
                 }
-                curl_url_cleanup(h);
-                result = Curl_dyn_add(
+                unsafe{  curl_url_cleanup(h);}
+                result = unsafe{Curl_dyn_add(
                     r,
-                    if !((*data).set.str_0[STRING_TARGET as i32 as usize]).is_null() {
-                        (*data).set.str_0[STRING_TARGET as i32 as usize]
+                    if !((*data).set.str_0[STRING_TARGET as usize]).is_null() {
+                        (*data).set.str_0[STRING_TARGET as usize]
                     } else {
                         url
                     },
-                );
-
+                )};
+                unsafe{
                 #[cfg(not(CURLDEBUG))]
                 Curl_cfree.expect("non-null function pointer")(url as *mut libc::c_void);
                 #[cfg(CURLDEBUG)]
@@ -3439,25 +3448,25 @@ pub unsafe extern "C" fn Curl_http_target(
                     2241,
                     b"http.c\0" as *const u8 as *const libc::c_char,
                 );
-
+            }
                 /* target or url */
                 if result as u64 != 0 {
                     return result;
                 }
-                if Curl_strcasecompare(
+                if unsafe{Curl_strcasecompare(
                     b"ftp\0" as *const u8 as *const libc::c_char,
                     (*data).state.up.scheme,
-                ) != 0
+                ) != 0}
                 {
-                    if ((*data).set).proxy_transfer_mode() != 0 {
+                    if unsafe{((*data).set).proxy_transfer_mode() != 0} {
                         /* when doing ftp, append ;type=<a|i> if not present */
                         let mut type_0: *mut libc::c_char =
-                            strstr(path, b";type=\0" as *const u8 as *const libc::c_char);
-                        if !type_0.is_null()
+                        unsafe{ strstr(path, b";type=\0" as *const u8 as *const libc::c_char)};
+                        if unsafe{!type_0.is_null()
                             && *type_0.offset(6 as isize) as i32 != 0
-                            && *type_0.offset(7 as isize) as i32 == 0
+                            && *type_0.offset(7 as isize) as i32 == 0}
                         {
-                            match Curl_raw_toupper(*type_0.offset(6 as isize)) as i32 {
+                            match unsafe{Curl_raw_toupper(*type_0.offset(6 as isize)) as i32} {
                                 65 | 68 | 73 => {}
                                 _ => {
                                     type_0 = 0 as *mut libc::c_char;
@@ -3465,7 +3474,7 @@ pub unsafe extern "C" fn Curl_http_target(
                             }
                         }
                         if type_0.is_null() {
-                            result = Curl_dyn_addf(
+                            result = unsafe{Curl_dyn_addf(
                                 r,
                                 b";type=%c\0" as *const u8 as *const libc::c_char,
                                 if ((*data).state).prefer_ascii() as i32 != 0 {
@@ -3473,7 +3482,7 @@ pub unsafe extern "C" fn Curl_http_target(
                                 } else {
                                     'i' as i32
                                 },
-                            );
+                            )};
                             if result as u64 != 0 {
                                 return result;
                             }
@@ -3481,23 +3490,23 @@ pub unsafe extern "C" fn Curl_http_target(
                     }
                 }
             } else {
-                result = Curl_dyn_add(r, path);
+                result = unsafe{Curl_dyn_add(r, path)};
                 if result as u64 != 0 {
                     return result;
                 }
                 if !query.is_null() {
-                    result = Curl_dyn_addf(r, b"?%s\0" as *const u8 as *const libc::c_char, query);
+                    result = unsafe{Curl_dyn_addf(r, b"?%s\0" as *const u8 as *const libc::c_char, query)};
                 }
             }
         }
         #[cfg(CURL_DISABLE_PROXY)]
         _ => {
-            result = Curl_dyn_add(r, path);
+            result = unsafe{Curl_dyn_add(r, path)};
             if result as u64 != 0 {
                 return result;
             }
             if !query.is_null() {
-                result = Curl_dyn_addf(r, b"?%s\0" as *const u8 as *const libc::c_char, query);
+                result = unsafe{Curl_dyn_addf(r, b"?%s\0" as *const u8 as *const libc::c_char, query)};
             }
         }
     }
@@ -3505,7 +3514,7 @@ pub unsafe extern "C" fn Curl_http_target(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_body(
+pub  extern "C" fn Curl_http_body(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut httpreq: Curl_HttpReq,
@@ -3513,14 +3522,15 @@ pub unsafe extern "C" fn Curl_http_body(
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
     let mut ptr: *const libc::c_char = 0 as *const libc::c_char;
-    let mut http: *mut HTTP = (*data).req.p.http;
-    (*http).postsize = 0 as curl_off_t;
+    let mut http: *mut HTTP = unsafe{(*data).req.p.http};
+    unsafe{(*http).postsize = 0 as curl_off_t;}
     
     match httpreq as u32 {
         HTTPREQ_POST_MIME => {
-            (*http).sendit = &mut (*data).set.mimepost;
+            unsafe{(*http).sendit = &mut (*data).set.mimepost;}
         }
         HTTPREQ_POST_FORM => {
+            unsafe{
             /* Convert the form structure into a mime structure. */
             #[cfg(any(
                 all(not(CURL_DISABLE_HTTP), not(CURL_DISABLE_MIME)),
@@ -3553,30 +3563,30 @@ pub unsafe extern "C" fn Curl_http_body(
             if result as u64 != 0 {
                 return result;
             }
-            (*http).sendit = &mut (*http).form;
+            (*http).sendit = &mut (*http).form;}
         }
         _ => {
-            (*http).sendit = 0 as *mut curl_mimepart;
+            unsafe{(*http).sendit = 0 as *mut curl_mimepart;}
         }
     }
     #[cfg(not(CURL_DISABLE_MIME))]
-    if !((*http).sendit).is_null() {
+    if !(unsafe{(*http).sendit}).is_null(){
         let mut cthdr: *const libc::c_char =
-            Curl_checkheaders(data, b"Content-Type\0" as *const u8 as *const libc::c_char);
+        unsafe{Curl_checkheaders(data, b"Content-Type\0" as *const u8 as *const libc::c_char)};
         
         /* Read and seek body only. */
-        (*(*http).sendit).flags |= MIME_BODY_ONLY;
+        unsafe{(*(*http).sendit).flags |= MIME_BODY_ONLY;}
 
         /* Prepare the mime structure headers & set content type. */
         if !cthdr.is_null() {
-            cthdr = cthdr.offset(13 as i32 as isize);
-            while *cthdr as i32 == ' ' as i32 {
-                cthdr = cthdr.offset(1);
+            cthdr = unsafe{cthdr.offset(13 as isize)};
+            while unsafe{*cthdr as i32 == ' ' as i32} {
+                cthdr = unsafe{cthdr.offset(1)};
             }
-        } else if (*(*http).sendit).kind as u32 == MIMEKIND_MULTIPART as i32 as u32 {
+        } else if unsafe{(*(*http).sendit).kind as u32 == MIMEKIND_MULTIPART as u32} {
             cthdr = b"multipart/form-data\0" as *const u8 as *const libc::c_char;
         }
-        curl_mime_headers((*http).sendit, (*data).set.headers, 0 as i32);
+        unsafe{ curl_mime_headers((*http).sendit, (*data).set.headers, 0 as i32);}
         // 好像这里其实可以不要条件编译
         match () {
             #[cfg(any(
@@ -3585,12 +3595,12 @@ pub unsafe extern "C" fn Curl_http_body(
                 not(CURL_DISABLE_IMAP)
             ))]
             _ => {
-                result = Curl_mime_prepare_headers(
+                result = unsafe{Curl_mime_prepare_headers(
                     (*http).sendit,
                     cthdr,
                     0 as *const libc::c_char,
                     MIMESTRATEGY_FORM,
-                );
+                )};
             }
             _ => {
                 result = CURLE_NOT_BUILT_IN;
@@ -3602,36 +3612,36 @@ pub unsafe extern "C" fn Curl_http_body(
         //     0 as *const libc::c_char,
         //     MIMESTRATEGY_FORM,
         // );
-        curl_mime_headers((*http).sendit, 0 as *mut curl_slist, 0 as i32);
+        unsafe{ curl_mime_headers((*http).sendit, 0 as *mut curl_slist, 0 as i32);}
         if result as u64 == 0 {
-            result = Curl_mime_rewind((*http).sendit);
+            result =unsafe{ Curl_mime_rewind((*http).sendit)};
         }
         if result as u64 != 0 {
             return result;
         }
-        (*http).postsize = Curl_mime_size((*http).sendit);
+        unsafe{(*http).postsize = Curl_mime_size((*http).sendit);}
     }
-    ptr = Curl_checkheaders(
+    ptr = unsafe{Curl_checkheaders(
         data,
         b"Transfer-Encoding\0" as *const u8 as *const libc::c_char,
-    );
+    )};
     if !ptr.is_null() {
         /* Some kind of TE is requested, check if 'chunked' is chosen */
-        (*data).req.set_upload_chunky(Curl_compareheader(
+        unsafe{ (*data).req.set_upload_chunky(Curl_compareheader(
             ptr,
             b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
             b"chunked\0" as *const u8 as *const libc::c_char,
-        ) as bit);
+        ) as bit);}
     } else {
-        if (*(*conn).handler).protocol & ((1 as i32) << 0 as i32 | (1 as i32) << 1 as i32) as u32
+        if unsafe{(*(*conn).handler).protocol & ((1 as i32) << 0 as i32 | (1 as i32) << 1 as i32) as u32
             != 0
-            && ((httpreq as u32 == HTTPREQ_POST_MIME as i32 as u32
-                || httpreq as u32 == HTTPREQ_POST_FORM as i32 as u32)
+            && ((httpreq as u32 == HTTPREQ_POST_MIME as u32
+                || httpreq as u32 == HTTPREQ_POST_FORM as u32)
                 && (*http).postsize < 0 as i32 as i64
                 || (((*data).set).upload() as i32 != 0
-                    || httpreq as u32 == HTTPREQ_POST as i32 as u32)
-                    && (*data).state.infilesize == -(1 as i32) as i64)
-        {
+                    || httpreq as u32 == HTTPREQ_POST as u32)
+                    && (*data).state.infilesize == -(1 as i32) as i64)}
+        {unsafe{
             if !(((*conn).bits).authneg() != 0) {
                 if Curl_use_http_1_1plus(data, conn) {
                     if ((*conn).httpversion as i32) < 20 {
@@ -3645,19 +3655,19 @@ pub unsafe extern "C" fn Curl_http_body(
                     );
                     return CURLE_UPLOAD_FAILED;
                 }
-            }
+            }}
         } else {
-            (*data).req.set_upload_chunky(0 as i32 as bit);
+            unsafe{ (*data).req.set_upload_chunky(0 as bit);}
         }
-        if ((*data).req).upload_chunky() != 0 {
-            *tep = b"Transfer-Encoding: chunked\r\n\0" as *const u8 as *const libc::c_char;
+        if unsafe{ ((*data).req).upload_chunky() != 0 }{
+            unsafe{*tep = b"Transfer-Encoding: chunked\r\n\0" as *const u8 as *const libc::c_char;}
         }
     }
     return result;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_bodysend(
+pub  extern "C" fn Curl_http_bodysend(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut r: *mut dynbuf,
@@ -3665,9 +3675,9 @@ pub unsafe extern "C" fn Curl_http_bodysend(
 ) -> CURLcode {
     /* Hyper always handles the body separately */
     #[cfg(not(USE_HYPER))]
-    let mut included_body: curl_off_t = 0 as i32 as curl_off_t;
+    let mut included_body: curl_off_t = 0 as curl_off_t;
     let mut result: CURLcode = CURLE_OK;
-    let mut http: *mut HTTP = (*data).req.p.http;
+    let mut http: *mut HTTP = unsafe{(*data).req.p.http};
     let mut ptr: *const libc::c_char = 0 as *const libc::c_char;
     
     /* If 'authdone' is FALSE, we must not set the write socket index to the
@@ -3676,60 +3686,60 @@ pub unsafe extern "C" fn Curl_http_bodysend(
     
     match httpreq as u32 {
         HTTPREQ_PUT => { /* Let's PUT the data to the server! */
-            if ((*conn).bits).authneg() != 0 {
-                (*http).postsize = 0 as curl_off_t;
+            if unsafe{((*conn).bits).authneg() != 0 }{
+                unsafe{ (*http).postsize = 0 as curl_off_t;}
             } else {
-                (*http).postsize = (*data).state.infilesize;
+                unsafe{  (*http).postsize = (*data).state.infilesize;}
             }
-            if (*http).postsize != -1 as i64
+            if unsafe{(*http).postsize != -1 as i64
                 && ((*data).req).upload_chunky() == 0
                 && (((*conn).bits).authneg() as i32 != 0
                     || (Curl_checkheaders(
                         data,
                         b"Content-Length\0" as *const u8 as *const libc::c_char,
                     ))
-                    .is_null())
+                    .is_null())}
             {
                 /* only add Content-Length if not uploading chunked */
-                result = Curl_dyn_addf(
+                result = unsafe{Curl_dyn_addf(
                     r,
                     b"Content-Length: %ld\r\n\0" as *const u8 as *const libc::c_char,
                     (*http).postsize,
-                );
+                )};
                 if result as u64 != 0 {
                     return result;
                 }
             }
-            if (*http).postsize != 0 {
-                result = expect100(data, conn, r);
+            if unsafe{(*http).postsize != 0 }{
+                result = unsafe{expect100(data, conn, r)};
                 if result as u64 != 0 {
                     return result;
                 }
             }
-            result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+            result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
             if result as u64 != 0 {
                 return result;
             }
             /* set the upload size to the progress meter */
-            Curl_pgrsSetUploadSize(data, (*http).postsize);
+            unsafe{Curl_pgrsSetUploadSize(data, (*http).postsize);}
 
             /* this sends the buffer and frees all the buffer resources */
-            result = Curl_buffer_send(
+            result = unsafe{Curl_buffer_send(
                 r,
                 data,
                 &mut (*data).info.request_size,
                 0 as curl_off_t,
                 0,
-            );
+            )};
             /* this sends the buffer and frees all the buffer resources */
             if result as u64 != 0 {
-                Curl_failf(
+                unsafe{ Curl_failf(
                     data,
                     b"Failed sending PUT request\0" as *const u8 as *const libc::c_char,
-                );
+                )};
             } else {
                 /* prepare for transfer */
-                Curl_setup_transfer(
+                unsafe{ Curl_setup_transfer(
                     data,
                     0,
                     -1 as curl_off_t,
@@ -3739,7 +3749,7 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                     } else {
                         -1
                     },
-                );
+                );}
             }
             if result as u64 != 0 {
                 return result;
@@ -3747,60 +3757,60 @@ pub unsafe extern "C" fn Curl_http_bodysend(
         }
         HTTPREQ_POST_FORM | HTTPREQ_POST_MIME => {
             /* This is form posting using mime data. */
-            if ((*conn).bits).authneg() != 0 {
+            if unsafe{((*conn).bits).authneg() != 0 }{
                 /* nothing to post! */
-                result = Curl_dyn_add(
+                result = unsafe{Curl_dyn_add(
                     r,
                     b"Content-Length: 0\r\n\r\n\0" as *const u8 as *const libc::c_char,
-                );
+                )};
 
                 if result as u64 != 0 {
                     return result;
                 }
 
-                result = Curl_buffer_send(
+                result = unsafe{Curl_buffer_send(
                     r,
                     data,
                     &mut (*data).info.request_size,
                     0 as curl_off_t,
                     0,
-                );
+                )};
                 if result as u64 != 0 {
-                    Curl_failf(
+                    unsafe{Curl_failf(
                         data,
                         b"Failed sending POST request\0" as *const u8 as *const libc::c_char,
-                    );
+                    );}
                 } else {
-                    Curl_setup_transfer(
+                    unsafe{Curl_setup_transfer(
                         data,
                         0,
                         -1 as curl_off_t,
                         true,
                         -1,
-                    );
+                    );}
                 }
             } else {
-                (*data).state.infilesize = (*http).postsize;
+                unsafe{ (*data).state.infilesize = (*http).postsize;}
                 
                 /* We only set Content-Length and allow a custom Content-Length if
        we don't upload data chunked, as RFC2616 forbids us to set both
        kinds of headers (Transfer-Encoding: chunked and Content-Length) */
-                if (*http).postsize != -1 as i64
+                if unsafe{(*http).postsize != -1 as i64
                     && ((*data).req).upload_chunky() == 0
                     && (((*conn).bits).authneg() as i32 != 0
                         || (Curl_checkheaders(
                             data,
                             b"Content-Length\0" as *const u8 as *const libc::c_char,
                         ))
-                        .is_null())
+                        .is_null())}
                 {
                     /* we allow replacing this header if not during auth negotiation,
          although it isn't very wise to actually set your own */
-                    result = Curl_dyn_addf(
+                    result = unsafe{Curl_dyn_addf(
                         r,
                         b"Content-Length: %ld\r\n\0" as *const u8 as *const libc::c_char,
                         (*http).postsize,
-                    );
+                    )};
                     if result as u64 != 0 {
                         return result;
                     }
@@ -3808,17 +3818,17 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                 // TODO 测试过了就把注释删咯
                 if cfg!(not(CURL_DISABLE_MIME)) {
                     let mut hdr: *mut curl_slist = 0 as *mut curl_slist;
-                    hdr = (*(*http).sendit).curlheaders;
+                    hdr =unsafe{ (*(*http).sendit).curlheaders};
                     while !hdr.is_null() {
-                        result = Curl_dyn_addf(
+                        result = unsafe{Curl_dyn_addf(
                             r,
                             b"%s\r\n\0" as *const u8 as *const libc::c_char,
                             (*hdr).data,
-                        );
+                        )};
                         if result as u64 != 0 {
                             return result;
                         }
-                        hdr = (*hdr).next;
+                        hdr = unsafe{(*hdr).next};
                     }
                 }
                 // #[cfg(not(CURL_DISABLE_MIME))]
@@ -3842,33 +3852,33 @@ pub unsafe extern "C" fn Curl_http_bodysend(
        sure that the expect100header is always set to the preferred value
        here. */
 
-                ptr = Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char);
+                ptr = unsafe{Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char)};
                 if !ptr.is_null() {
-                    (*data).state.set_expect100header(Curl_compareheader(
+                    unsafe{ (*data).state.set_expect100header(Curl_compareheader(
                         ptr,
                         b"Expect:\0" as *const u8 as *const libc::c_char,
                         b"100-continue\0" as *const u8 as *const libc::c_char,
-                    ) as bit);
+                    ) as bit);}
 
-                } else if (*http).postsize > EXPECT_100_THRESHOLD
-                    || (*http).postsize < 0 as i64
+                } else if unsafe{(*http).postsize > EXPECT_100_THRESHOLD
+                    || (*http).postsize < 0 as i64}
                 {
                     /* make the request end in a true CRLF */
-                    result = expect100(data, conn, r);
+                    result = unsafe{expect100(data, conn, r)};
                     if result as u64 != 0 {
                         return result;
                     }
                 } else {
-                    (*data).state.set_expect100header(0 as bit);
+                    unsafe{(*data).state.set_expect100header(0 as bit);}
                 }
-                result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+                result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
                 if result as u64 != 0 {
                     return result;
                 }
 
                 /* set the upload size to the progress meter */
-                Curl_pgrsSetUploadSize(data, (*http).postsize);
-                let ref mut fresh51 = (*data).state.fread_func;
+                unsafe{  Curl_pgrsSetUploadSize(data, (*http).postsize);}
+                let ref mut fresh51 = unsafe{(*data).state.fread_func};
                 // TODO 这里也有条件编译
                 match () {
                     #[cfg(any(
@@ -3877,7 +3887,7 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                         not(CURL_DISABLE_IMAP)
                     ))]
                     _ => {
-                        *fresh51 = ::std::mem::transmute::<
+                        *fresh51 = unsafe{::std::mem::transmute::<
                             Option<
                                 unsafe extern "C" fn(
                                     *mut libc::c_char,
@@ -3895,7 +3905,7 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                                     size_t,
                                     *mut libc::c_void,
                                 ) -> size_t,
-                        ));
+                        ))};
                     }
                     _ => {
                         // TODO
@@ -3922,26 +3932,26 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                 // ));
 
                 /* Read from mime structure. */
-                (*data).state.in_0 = (*http).sendit as *mut libc::c_void;
-                (*http).sending = HTTPSEND_BODY;
+                unsafe{(*data).state.in_0 = (*http).sendit as *mut libc::c_void;
+                (*http).sending = HTTPSEND_BODY;}
                 
                 /* this sends the buffer and frees all the buffer resources */
-                result = Curl_buffer_send(
+                result =unsafe{ Curl_buffer_send(
                     r,
                     data,
                     &mut (*data).info.request_size,
                     0 as curl_off_t,
                     0,
-                );
+                )};
 
                 if result as u64 != 0 {
-                    Curl_failf(
+                    unsafe{ Curl_failf(
                         data,
                         b"Failed sending POST request\0" as *const u8 as *const libc::c_char,
-                    );
+                    )};
                 } else {
                     /* prepare for transfer */
-                    Curl_setup_transfer(
+                    unsafe{ Curl_setup_transfer(
                         data,
                         FIRSTSOCKET,
                         -1 as curl_off_t,
@@ -3951,7 +3961,7 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                         } else {
                             -1
                         },
-                    );
+                    );}
                 }
                 if result as u64 != 0 {
                     return result;
@@ -3961,44 +3971,44 @@ pub unsafe extern "C" fn Curl_http_bodysend(
         HTTPREQ_POST => {
             /* this is the simple POST, using x-www-form-urlencoded style */
 
-            if ((*conn).bits).authneg() != 0 {
-                (*http).postsize = 0 as curl_off_t;
+            if unsafe{((*conn).bits).authneg() != 0} {
+                unsafe{(*http).postsize = 0 as curl_off_t;}
             } else {
                 /* the size of the post body */
-                (*http).postsize = (*data).state.infilesize;
+                unsafe{(*http).postsize = (*data).state.infilesize;}
             }
 
             /* We only set Content-Length and allow a custom Content-Length if
        we don't upload data chunked, as RFC2616 forbids us to set both
        kinds of headers (Transfer-Encoding: chunked and Content-Length) */
-            if (*http).postsize != -1 as i64
+            if unsafe{(*http).postsize != -1 as i64
                 && ((*data).req).upload_chunky() == 0
                 && (((*conn).bits).authneg() as i32 != 0
                     || (Curl_checkheaders(
                         data,
                         b"Content-Length\0" as *const u8 as *const libc::c_char,
                     ))
-                    .is_null())
+                    .is_null())}
             {
                 /* we allow replacing this header if not during auth negotiation,
          although it isn't very wise to actually set your own */
-                result = Curl_dyn_addf(
+                result = unsafe{Curl_dyn_addf(
                     r,
                     b"Content-Length: %ld\r\n\0" as *const u8 as *const libc::c_char,
                     (*http).postsize,
-                );
+                )};
                 if result as u64 != 0 {
                     return result;
                 }
             }
-            if (Curl_checkheaders(data, b"Content-Type\0" as *const u8 as *const libc::c_char))
-                .is_null()
+            if unsafe{(Curl_checkheaders(data, b"Content-Type\0" as *const u8 as *const libc::c_char))
+                .is_null()}
             {
-                result = Curl_dyn_add(
+                result =unsafe{ Curl_dyn_add(
                     r,
                     b"Content-Type: application/x-www-form-urlencoded\r\n\0" as *const u8
                         as *const libc::c_char,
-                );
+                )};
                 if result as u64 != 0 {
                     return result;
                 }
@@ -4008,75 +4018,75 @@ pub unsafe extern "C" fn Curl_http_bodysend(
        the somewhat bigger ones we allow the app to disable it. Just make
        sure that the expect100header is always set to the preferred value
        here. */
-            ptr = Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char);
-            if !ptr.is_null() {
+            ptr =unsafe{ Curl_checkheaders(data, b"Expect\0" as *const u8 as *const libc::c_char)};
+            if !ptr.is_null() {unsafe{
                 (*data).state.set_expect100header(Curl_compareheader(
                     ptr,
                     b"Expect:\0" as *const u8 as *const libc::c_char,
                     b"100-continue\0" as *const u8 as *const libc::c_char,
-                ) as bit);
-            } else if (*http).postsize > EXPECT_100_THRESHOLD
-                || (*http).postsize < 0 as i64
+                ) as bit);}
+            } else if unsafe{(*http).postsize > EXPECT_100_THRESHOLD
+                || (*http).postsize < 0 as i64}
             {
-                result = expect100(data, conn, r);
+                result = unsafe{expect100(data, conn, r)};
                 if result as u64 != 0 {
                     return result;
                 }
             } else {
-                (*data).state.set_expect100header(0 as bit);
+                unsafe{(*data).state.set_expect100header(0 as bit);}
             }
             // TODO 测试通过了就把match删咯
             let flag: bool = if cfg!(not(USE_HYPER)) {
-                !((*data).set.postfields).is_null()
+                unsafe{!((*data).set.postfields).is_null()}
             } else {
                 false
             };
             if flag {
-                if (*conn).httpversion as i32 != 20
+                if unsafe{(*conn).httpversion as i32 != 20
                     && ((*data).state).expect100header() == 0
-                    && (*http).postsize < (64 * 1024) as i64
+                    && (*http).postsize < (64 * 1024) as i64}
                 {
                     /* make the request end in a true CRLF */
-                    result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+                    result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
                     if result as u64 != 0 {
                         return result;
                     }
-                    if ((*data).req).upload_chunky() == 0 {
+                    if unsafe{((*data).req).upload_chunky() == 0 }{
                         result =
-                            Curl_dyn_addn(r, (*data).set.postfields, (*http).postsize as size_t);
-                        included_body = (*http).postsize;
+                        unsafe{Curl_dyn_addn(r, (*data).set.postfields, (*http).postsize as size_t)};
+                        included_body = unsafe{(*http).postsize};
                     } else {
-                        if (*http).postsize != 0 {
+                        if unsafe{(*http).postsize != 0} {
                             let mut chunk: [libc::c_char; 16] = [0; 16];
-                            curl_msnprintf(
+                            unsafe{curl_msnprintf(
                                 chunk.as_mut_ptr(),
                                 ::std::mem::size_of::<[libc::c_char; 16]>() as u64,
                                 b"%x\r\n\0" as *const u8 as *const libc::c_char,
                                 (*http).postsize as i32,
-                            );
-                            result = Curl_dyn_add(r, chunk.as_mut_ptr());
+                            );}
+                            result = unsafe{Curl_dyn_add(r, chunk.as_mut_ptr())};
                             if result as u64 == 0 {
-                                included_body = ((*http).postsize as u64)
+                                included_body = unsafe{((*http).postsize as u64)
                                     .wrapping_add(strlen(chunk.as_mut_ptr()))
-                                    as curl_off_t;
-                                result = Curl_dyn_addn(
+                                    as curl_off_t};
+                                result =unsafe{Curl_dyn_addn(
                                     r,
                                     (*data).set.postfields,
                                     (*http).postsize as size_t,
-                                );
+                                )};
                                 if result as u64 == 0 {
-                                    result = Curl_dyn_add(
+                                    result = unsafe{Curl_dyn_add(
                                         r,
                                         b"\r\n\0" as *const u8 as *const libc::c_char,
-                                    );
+                                    )};
                                 }
-                                included_body += 2 as i32 as i64;
+                                included_body += 2 as i64;
                             }
                         }
                         if result as u64 == 0 {
                             result =
-                                Curl_dyn_add(r, b"0\r\n\r\n\0" as *const u8 as *const libc::c_char);
-                            included_body += 5 as i32 as i64;
+                            unsafe{Curl_dyn_add(r, b"0\r\n\r\n\0" as *const u8 as *const libc::c_char)};
+                            included_body += 5 as i64;
                         }
                     }
                     if result as u64 != 0 {
@@ -4084,9 +4094,9 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                     }
 
                     /* set the upload size to the progress meter */
-                    Curl_pgrsSetUploadSize(data, (*http).postsize);
+                    unsafe{ Curl_pgrsSetUploadSize(data, (*http).postsize);}
                 } else {
-                    (*http).postdata = (*data).set.postfields as *const libc::c_char;
+                    unsafe{  (*http).postdata = (*data).set.postfields as *const libc::c_char;
                     (*http).sending = HTTPSEND_BODY;
                     (*data).state.fread_func = ::std::mem::transmute::<
                         Option<
@@ -4108,39 +4118,39 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                             ) -> size_t,
                     ));
                     (*data).state.in_0 = data as *mut libc::c_void;
-                    Curl_pgrsSetUploadSize(data, (*http).postsize);
-                    result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+                    Curl_pgrsSetUploadSize(data, (*http).postsize);}
+                    result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
                     if result as u64 != 0 {
                         return result;
                     }
                 }
             } else {
                 /* make the request end in a true CRLF */
-                result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+                result =unsafe{ Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
                 if result as u64 != 0 {
                     return result;
                 }
-                if ((*data).req).upload_chunky() as i32 != 0 && ((*conn).bits).authneg() as i32 != 0
+                if unsafe{((*data).req).upload_chunky() as i32 != 0 && ((*conn).bits).authneg() as i32 != 0}
                 {
-                    result = Curl_dyn_add(
+                    result = unsafe{Curl_dyn_add(
                         r,
                         b"0\r\n\r\n\0" as *const u8 as *const libc::c_char as *mut libc::c_char,
-                    );
+                    )};
                     if result as u64 != 0 {
                         return result;
                     }
-                } else if (*data).state.infilesize != 0 {
-                    Curl_pgrsSetUploadSize(
+                } else if unsafe{(*data).state.infilesize != 0 }{
+                    unsafe{ Curl_pgrsSetUploadSize(
                         data,
                         if (*http).postsize != 0 {
                             (*http).postsize
                         } else {
                            -1 as i64
                         },
-                    );
-                    if ((*conn).bits).authneg() == 0 {
-                        (*http).postdata =
-                            &mut (*http).postdata as *mut *const libc::c_char as *mut libc::c_char;
+                    );}
+                    if unsafe{((*conn).bits).authneg() == 0} {
+                        unsafe{  (*http).postdata =
+                            &mut (*http).postdata as *mut *const libc::c_char as *mut libc::c_char;}
                     }
                 }
             }
@@ -4297,20 +4307,20 @@ pub unsafe extern "C" fn Curl_http_bodysend(
             // }
 
             /* this sends the buffer and frees all the buffer resources */
-            result = Curl_buffer_send(
+            result = unsafe{Curl_buffer_send(
                 r,
                 data,
                 &mut (*data).info.request_size,
                 included_body,
                 0,
-            );
+            )};
             if result as u64 != 0 {
-                Curl_failf(
+                unsafe{ Curl_failf(
                     data,
                     b"Failed sending HTTP POST request\0" as *const u8 as *const libc::c_char,
-                );
+                );}
             } else {
-                Curl_setup_transfer(
+                unsafe{Curl_setup_transfer(
                     data,
                     0,
                     -1 as curl_off_t,
@@ -4320,34 +4330,34 @@ pub unsafe extern "C" fn Curl_http_bodysend(
                     } else {
                         -1
                     },
-                );
+                );}
             }
         }
         _ => {
-            result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+            result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
             if result as u64 != 0 {
                 return result;
             }
-            result = Curl_buffer_send(
+            result = unsafe{Curl_buffer_send(
                 r,
                 data,
                 &mut (*data).info.request_size,
                 0 as curl_off_t,
                 0,
-            );
+            )};
             if result as u64 != 0 {
-                Curl_failf(
+                unsafe{ Curl_failf(
                     data,
                     b"Failed sending HTTP request\0" as *const u8 as *const libc::c_char,
-                );
+                );}
             } else {
-                Curl_setup_transfer(
+                unsafe{Curl_setup_transfer(
                     data,
                     0,
                     -1 as curl_off_t,
                     true,
                     -1,
-                );
+                );}
             }
         }
     }
@@ -4356,54 +4366,54 @@ pub unsafe extern "C" fn Curl_http_bodysend(
 
 #[cfg(not(CURL_DISABLE_COOKIES))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_cookies(
+pub  extern "C" fn Curl_http_cookies(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut r: *mut dynbuf,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
     let mut addcookies: *mut libc::c_char = 0 as *mut libc::c_char;
-    if !((*data).set.str_0[STRING_COOKIE as i32 as usize]).is_null()
-        && (Curl_checkheaders(data, b"Cookie\0" as *const u8 as *const libc::c_char)).is_null()
+    if unsafe{!((*data).set.str_0[STRING_COOKIE as usize]).is_null()
+        && (Curl_checkheaders(data, b"Cookie\0" as *const u8 as *const libc::c_char)).is_null()}
     {
-        addcookies = (*data).set.str_0[STRING_COOKIE as i32 as usize];
+        addcookies = unsafe{(*data).set.str_0[STRING_COOKIE as usize]};
     }
-    if !((*data).cookies).is_null() || !addcookies.is_null() {
+    if unsafe{!((*data).cookies).is_null() || !addcookies.is_null()} {
         let mut co: *mut Cookie = 0 as *mut Cookie;
         let mut count: i32 = 0 as i32;
-        if !((*data).cookies).is_null() && ((*data).state).cookie_engine() as i32 != 0 {
-            let mut host: *const libc::c_char = if !((*data).state.aptr.cookiehost).is_null() {
+        if unsafe{!((*data).cookies).is_null() && ((*data).state).cookie_engine() as i32 != 0 }{
+            let mut host: *const libc::c_char = unsafe{if !((*data).state.aptr.cookiehost).is_null() {
                 (*data).state.aptr.cookiehost
             } else {
                 (*conn).host.name
-            };
+            }};
             let secure_context: bool =
-                if (*(*conn).handler).protocol & ((1 as i32) << 1 as i32) as u32 != 0
+                if unsafe{(*(*conn).handler).protocol & ((1 as i32) << 1 as i32) as u32 != 0
                     || Curl_strcasecompare(b"localhost\0" as *const u8 as *const libc::c_char, host)
                         != 0
                     || strcmp(host, b"127.0.0.1\0" as *const u8 as *const libc::c_char) == 0
-                    || strcmp(host, b"[::1]\0" as *const u8 as *const libc::c_char) == 0
+                    || strcmp(host, b"[::1]\0" as *const u8 as *const libc::c_char) == 0}
                 {
                     1
                 } else {
                     0
                 } != 0;
-            Curl_share_lock(data, CURL_LOCK_DATA_COOKIE, CURL_LOCK_ACCESS_SINGLE);
+                unsafe{ Curl_share_lock(data, CURL_LOCK_DATA_COOKIE, CURL_LOCK_ACCESS_SINGLE);
             co = Curl_cookie_getlist((*data).cookies, host, (*data).state.up.path, secure_context);
-            Curl_share_unlock(data, CURL_LOCK_DATA_COOKIE);
+            Curl_share_unlock(data, CURL_LOCK_DATA_COOKIE);}
         }
         if !co.is_null() {
             let mut store: *mut Cookie = co;
             /* now loop through all cookies that matched */
             while !co.is_null() {
-                if !((*co).value).is_null() {
+                if unsafe{!((*co).value).is_null()} {
                     if 0 as i32 == count {
-                        result = Curl_dyn_add(r, b"Cookie: \0" as *const u8 as *const libc::c_char);
+                        result =unsafe{ Curl_dyn_add(r, b"Cookie: \0" as *const u8 as *const libc::c_char)};
                         if result as u64 != 0 {
                             break;
                         }
                     }
-                    result = Curl_dyn_addf(
+                    result = unsafe{Curl_dyn_addf(
                         r,
                         b"%s%s=%s\0" as *const u8 as *const libc::c_char,
                         if count != 0 {
@@ -4413,23 +4423,23 @@ pub unsafe extern "C" fn Curl_http_cookies(
                         },
                         (*co).name,
                         (*co).value,
-                    );
+                    )};
 
                     if result as u64 != 0 {
                         break;
                     }
                     count += 1;
                 }
-                co = (*co).next;
+                co = unsafe{(*co).next};
             }
-            Curl_cookie_freelist(store);
+            unsafe{  Curl_cookie_freelist(store);}
         }
         if !addcookies.is_null() && result as u64 == 0 {
             if count == 0 {
-                result = Curl_dyn_add(r, b"Cookie: \0" as *const u8 as *const libc::c_char);
+                result = unsafe{Curl_dyn_add(r, b"Cookie: \0" as *const u8 as *const libc::c_char)};
             }
             if result as u64 == 0 {
-                result = Curl_dyn_addf(
+                result = unsafe{Curl_dyn_addf(
                     r,
                     b"%s%s\0" as *const u8 as *const libc::c_char,
                     if count != 0 {
@@ -4438,12 +4448,12 @@ pub unsafe extern "C" fn Curl_http_cookies(
                         b"\0" as *const u8 as *const libc::c_char
                     },
                     addcookies,
-                );
+                )};
                 count += 1;
             }
         }
         if count != 0 && result as u64 == 0 {
-            result = Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char);
+            result = unsafe{Curl_dyn_add(r, b"\r\n\0" as *const u8 as *const libc::c_char)};
         }
         if result as u64 != 0 {
             return result;
@@ -4453,7 +4463,7 @@ pub unsafe extern "C" fn Curl_http_cookies(
 }
 #[cfg(CURL_DISABLE_COOKIES)]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_cookies(
+pub  extern "C" fn Curl_http_cookies(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut r: *mut dynbuf,
@@ -4461,15 +4471,15 @@ pub unsafe extern "C" fn Curl_http_cookies(
     return CURLE_OK;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_range(
+pub  extern "C" fn Curl_http_range(
     mut data: *mut Curl_easy,
     mut httpreq: Curl_HttpReq,
 ) -> CURLcode {
-    if ((*data).state).use_range() != 0 {
-        if (httpreq as u32 == HTTPREQ_GET as i32 as u32
-            || httpreq as u32 == HTTPREQ_HEAD as i32 as u32)
-            && (Curl_checkheaders(data, b"Range\0" as *const u8 as *const libc::c_char)).is_null()
-        {
+    if unsafe{((*data).state).use_range() != 0} {
+        if (httpreq as u32 == HTTPREQ_GET as u32
+            || httpreq as u32 == HTTPREQ_HEAD as u32)
+            && unsafe{(Curl_checkheaders(data, b"Range\0" as *const u8 as *const libc::c_char)).is_null()}
+        {unsafe{
             #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(
                 (*data).state.aptr.rangeline as *mut libc::c_void,
@@ -4483,12 +4493,12 @@ pub unsafe extern "C" fn Curl_http_range(
             (*data).state.aptr.rangeline = curl_maprintf(
                 b"Range: bytes=%s\r\n\0" as *const u8 as *const libc::c_char,
                 (*data).state.range,
-            );
-        } else if (httpreq as u32 == HTTPREQ_POST as i32 as u32
-            || httpreq as u32 == HTTPREQ_PUT as i32 as u32)
-            && (Curl_checkheaders(data, b"Content-Range\0" as *const u8 as *const libc::c_char))
-                .is_null()
-        {
+            );}
+        } else if (httpreq as u32 == HTTPREQ_POST as u32
+            || httpreq as u32 == HTTPREQ_PUT as u32)
+            && unsafe{(Curl_checkheaders(data, b"Content-Range\0" as *const u8 as *const libc::c_char))
+                .is_null()}
+        {unsafe{
             #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(
                 (*data).state.aptr.rangeline as *mut libc::c_void,
@@ -4499,10 +4509,10 @@ pub unsafe extern "C" fn Curl_http_range(
                 2784 as i32,
                 b"http.c\0" as *const u8 as *const libc::c_char,
             );
-            if (*data).set.set_resume_from < 0 as i32 as i64 {
+            if (*data).set.set_resume_from < 0 as i64 {
                 (*data).state.aptr.rangeline = curl_maprintf(
                     b"Content-Range: bytes 0-%ld/%ld\r\n\0" as *const u8 as *const libc::c_char,
-                    (*data).state.infilesize - 1 as i32 as i64,
+                    (*data).state.infilesize - 1 as i64,
                     (*data).state.infilesize,
                 );
             } else if (*data).state.resume_from != 0 {
@@ -4511,7 +4521,7 @@ pub unsafe extern "C" fn Curl_http_range(
                 (*data).state.aptr.rangeline = curl_maprintf(
                     b"Content-Range: bytes %s%ld/%ld\r\n\0" as *const u8 as *const libc::c_char,
                     (*data).state.range,
-                    total_expected_size - 1 as i32 as i64,
+                    total_expected_size - 1 as i64,
                     total_expected_size,
                 );
             } else {
@@ -4523,79 +4533,79 @@ pub unsafe extern "C" fn Curl_http_range(
             }
             if ((*data).state.aptr.rangeline).is_null() {
                 return CURLE_OUT_OF_MEMORY;
-            }
+            }}
         }
     }
     return CURLE_OK;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_resume(
+pub  extern "C" fn Curl_http_resume(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut httpreq: Curl_HttpReq,
 ) -> CURLcode {
-    if (HTTPREQ_POST as i32 as u32 == httpreq as u32 || HTTPREQ_PUT as i32 as u32 == httpreq as u32)
-        && (*data).state.resume_from != 0
+    if (HTTPREQ_POST as u32 == httpreq as u32 || HTTPREQ_PUT as u32 == httpreq as u32)
+        && unsafe{(*data).state.resume_from != 0}
     {
-        if (*data).state.resume_from < 0 as i32 as i64 {
-            (*data).state.resume_from = 0 as i32 as curl_off_t;
+        if unsafe{(*data).state.resume_from < 0 as i64 }{
+            unsafe{ (*data).state.resume_from = 0 as curl_off_t;}
         }
-        if (*data).state.resume_from != 0 && ((*data).state).this_is_a_follow() == 0 {
+        if unsafe{(*data).state.resume_from != 0 && ((*data).state).this_is_a_follow() == 0} {
             let mut seekerr: i32 = 2 as i32;
-            if ((*conn).seek_func).is_some() {
-                Curl_set_in_callback(data, 1 as i32 != 0);
+            if unsafe{((*conn).seek_func).is_some() }{
+                unsafe{  Curl_set_in_callback(data, 1 as i32 != 0);
                 seekerr = ((*conn).seek_func).expect("non-null function pointer")(
                     (*conn).seek_client,
                     (*data).state.resume_from,
                     0 as i32,
                 );
-                Curl_set_in_callback(data, 0 as i32 != 0);
+                Curl_set_in_callback(data, 0 as i32 != 0);}
             }
             if seekerr != 0 as i32 {
                 let mut passed: curl_off_t = 0 as i32 as curl_off_t;
                 if seekerr != 2 as i32 {
-                    Curl_failf(
+                    unsafe{Curl_failf(
                         data,
                         b"Could not seek stream\0" as *const u8 as *const libc::c_char,
-                    );
+                    );}
                     return CURLE_READ_ERROR;
                 }
                 loop {
                     let mut readthisamountnow: size_t =
-                        if (*data).state.resume_from - passed > (*data).set.buffer_size {
-                            (*data).set.buffer_size as size_t
+                        if unsafe{(*data).state.resume_from - passed > (*data).set.buffer_size} {
+                            unsafe{ (*data).set.buffer_size as size_t}
                         } else {
-                            curlx_sotouz((*data).state.resume_from - passed)
+                            unsafe{curlx_sotouz((*data).state.resume_from - passed)}
                         };
-                    let mut actuallyread: size_t = ((*data).state.fread_func)
+                    let mut actuallyread: size_t = unsafe{((*data).state.fread_func)
                         .expect("non-null function pointer")(
                         (*data).state.buffer,
-                        1 as i32 as size_t,
+                        1 as size_t,
                         readthisamountnow,
                         (*data).state.in_0,
-                    );
-                    passed = (passed as u64).wrapping_add(actuallyread) as curl_off_t as curl_off_t;
-                    if actuallyread == 0 as i32 as u64 || actuallyread > readthisamountnow {
-                        Curl_failf(
+                    )};
+                    passed = (passed as u64).wrapping_add(actuallyread) as curl_off_t;
+                    if actuallyread == 0 as u64 || actuallyread > readthisamountnow {
+                        unsafe{ Curl_failf(
                             data,
                             b"Could only read %ld bytes from the input\0" as *const u8
                                 as *const libc::c_char,
                             passed,
-                        );
+                        );}
                         return CURLE_READ_ERROR;
                     }
-                    if !(passed < (*data).state.resume_from) {
+                    if unsafe{ !(passed < (*data).state.resume_from)} {
                         break;
                     }
                 }
             }
-            if (*data).state.infilesize > 0 as i64 {
-                (*data).state.infilesize -= (*data).state.resume_from;
-                if (*data).state.infilesize <= 0 as i32 as i64 {
-                    Curl_failf(
+            if unsafe{ (*data).state.infilesize > 0 as i64} {
+                unsafe{ (*data).state.infilesize -= (*data).state.resume_from;}
+                if unsafe{(*data).state.infilesize <= 0 as i64} {
+                    unsafe{ Curl_failf(
                         data,
                         b"File already completely uploaded\0" as *const u8 as *const libc::c_char,
-                    );
+                    );}
                     return CURLE_PARTIAL_FILE;
                 }
             }
@@ -4604,23 +4614,23 @@ pub unsafe extern "C" fn Curl_http_resume(
     return CURLE_OK;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_firstwrite(
+pub  extern "C" fn Curl_http_firstwrite(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut done: *mut bool,
 ) -> CURLcode {
-    let mut k: *mut SingleRequest = &mut (*data).req;
+    let mut k: *mut SingleRequest = unsafe{&mut (*data).req};
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
-    if (*(*conn).handler).protocol
+    if unsafe{(*(*conn).handler).protocol
         & ((1 as i32) << 0 as i32 | (1 as i32) << 1 as i32 | (1 as i32) << 18 as i32) as u32
-        != 0
+        != 0}
     {
     } else {
-        __assert_fail(
+        unsafe{  __assert_fail(
             b"conn->handler->protocol&(((1<<0)|(1<<1))|(1<<18))\0" as *const u8
                 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
-            2905 as i32 as u32,
+            2905 as u32,
             (*::std::mem::transmute::<
                 &[u8; 81],
                 &[libc::c_char; 81],
@@ -4628,41 +4638,41 @@ pub unsafe extern "C" fn Curl_http_firstwrite(
                 b"CURLcode Curl_http_firstwrite(struct Curl_easy *, struct connectdata *, _Bool *)\0",
             ))
                 .as_ptr(),
-        );
+        );}
     }
-    if ((*data).req).ignore_cl() != 0 {
-        let ref mut fresh64 = (*k).maxdownload;
+    if unsafe{((*data).req).ignore_cl() != 0 }{
+        let ref mut fresh64 = unsafe{(*k).maxdownload};
         *fresh64 = -(1 as i32) as curl_off_t;
-        (*k).size = *fresh64;
-    } else if (*k).size != -(1 as i32) as i64 {
-        if (*data).set.max_filesize != 0 && (*k).size > (*data).set.max_filesize {
-            Curl_failf(
+        unsafe{  (*k).size = *fresh64;}
+    } else if unsafe{(*k).size != -(1 as i32) as i64 }{
+        if unsafe{(*data).set.max_filesize != 0 && (*k).size > (*data).set.max_filesize} {
+            unsafe{ Curl_failf(
                 data,
                 b"Maximum file size exceeded\0" as *const u8 as *const libc::c_char,
-            );
+            );}
             return CURLE_FILESIZE_EXCEEDED;
         }
-        Curl_pgrsSetDownloadSize(data, (*k).size);
+        unsafe{ Curl_pgrsSetDownloadSize(data, (*k).size);}
     }
-    if !((*data).req.newurl).is_null() {
-        if ((*conn).bits).close() != 0 {
-            (*k).keepon &= !((1 as i32) << 0 as i32);
-            *done = 1 as i32 != 0;
+    if unsafe{!((*data).req.newurl).is_null() }{
+        if unsafe{((*conn).bits).close() != 0} {
+            unsafe{(*k).keepon &= !((1 as i32) << 0 as i32);
+            *done = 1 as i32 != 0;}
             return CURLE_OK;
         }
-        (*k).set_ignorebody(1 as i32 as bit);
+        unsafe{(*k).set_ignorebody(1 as bit);
         Curl_infof(
             data,
             b"Ignoring the response-body\0" as *const u8 as *const libc::c_char,
-        );
+        );}
     }
-    if (*data).state.resume_from != 0
+    if unsafe{(*data).state.resume_from != 0
         && (*k).content_range() == 0
-        && (*data).state.httpreq as u32 == HTTPREQ_GET as i32 as u32
-        && (*k).ignorebody() == 0
+        && (*data).state.httpreq as u32 == HTTPREQ_GET as u32
+        && (*k).ignorebody() == 0}
     {
-        if (*k).size == (*data).state.resume_from {
-            Curl_infof(
+        if unsafe{(*k).size == (*data).state.resume_from }{
+            unsafe{ Curl_infof(
                 data,
                 b"The entire document is already downloaded\0" as *const u8 as *const libc::c_char,
             );
@@ -4676,18 +4686,18 @@ pub unsafe extern "C" fn Curl_http_firstwrite(
             );
             (*k).keepon &= !((1 as i32) << 0 as i32);
             *done = 1 as i32 != 0;
-            return CURLE_OK;
-        }
+            return CURLE_OK;}
+        }unsafe{
         Curl_failf(
             data,
             b"HTTP server doesn't seem to support byte ranges. Cannot resume.\0" as *const u8
                 as *const libc::c_char,
-        );
+        );}
         return CURLE_RANGE_ERROR;
     }
-    if (*data).set.timecondition as u32 != 0 && ((*data).state.range).is_null() {
-        if !Curl_meets_timecondition(data, (*k).timeofdoc) {
-            *done = 1 as i32 != 0;
+    if unsafe{(*data).set.timecondition as u32 != 0 && ((*data).state.range).is_null()} {
+        if unsafe{!Curl_meets_timecondition(data, (*k).timeofdoc)} {
+            unsafe{*done = 1 as i32 != 0;
             (*data).info.httpcode = 304 as i32;
             Curl_infof(
                 data,
@@ -4700,7 +4710,7 @@ pub unsafe extern "C" fn Curl_http_firstwrite(
                 conn,
                 1 as i32,
                 b"Simulated 304 handling\0" as *const u8 as *const libc::c_char,
-            );
+            );}
             return CURLE_OK;
         }
     }
@@ -4708,28 +4718,28 @@ pub unsafe extern "C" fn Curl_http_firstwrite(
 }
 #[cfg(HAVE_LIBZ)]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLcode {
-    if (Curl_checkheaders(data, b"TE\0" as *const u8 as *const libc::c_char)).is_null()
-        && ((*data).set).http_transfer_encoding() as i32 != 0
+pub  extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLcode {
+    if unsafe{(Curl_checkheaders(data, b"TE\0" as *const u8 as *const libc::c_char)).is_null()
+        && ((*data).set).http_transfer_encoding() as i32 != 0}
     {
         let mut cptr: *mut libc::c_char =
-            Curl_checkheaders(data, b"Connection\0" as *const u8 as *const libc::c_char);
+        unsafe{Curl_checkheaders(data, b"Connection\0" as *const u8 as *const libc::c_char)};
         #[cfg(not(CURLDEBUG))]
-        Curl_cfree.expect("non-null function pointer")((*data).state.aptr.te as *mut libc::c_void);
+        unsafe{Curl_cfree.expect("non-null function pointer")((*data).state.aptr.te as *mut libc::c_void);}
         #[cfg(CURLDEBUG)]
-        curl_dbg_free(
+        unsafe{curl_dbg_free(
             (*data).state.aptr.te as *mut libc::c_void,
             2990 as i32,
             b"http.c\0" as *const u8 as *const libc::c_char,
         );
-        (*data).state.aptr.te = 0 as *mut libc::c_char;
+        (*data).state.aptr.te = 0 as *mut libc::c_char;}
         if !cptr.is_null() {
             cptr = Curl_copy_header_value(cptr);
             if cptr.is_null() {
                 return CURLE_OUT_OF_MEMORY;
             }
         }
-        (*data).state.aptr.te = curl_maprintf(
+        unsafe{ (*data).state.aptr.te = curl_maprintf(
             b"Connection: %s%sTE\r\nTE: gzip\r\n\0" as *const u8 as *const libc::c_char,
             if !cptr.is_null() {
                 cptr as *const libc::c_char
@@ -4749,8 +4759,8 @@ pub unsafe extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLco
             cptr as *mut libc::c_void,
             3002 as i32,
             b"http.c\0" as *const u8 as *const libc::c_char,
-        );
-        if ((*data).state.aptr.te).is_null() {
+        );}
+        if unsafe{((*data).state.aptr.te).is_null()} {
             return CURLE_OUT_OF_MEMORY;
         }
     }
@@ -4758,8 +4768,8 @@ pub unsafe extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLco
 }
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
-    let mut conn: *mut connectdata = (*data).conn;
+pub  extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
+    let mut conn: *mut connectdata = unsafe{(*data).conn};
     let mut result: CURLcode = CURLE_OK;
     let mut http: *mut HTTP = 0 as *mut HTTP;
     let mut httpreq: Curl_HttpReq = HTTPREQ_GET;
@@ -4776,9 +4786,10 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
     };
     let mut altused: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut p_accept: *const libc::c_char = 0 as *const libc::c_char;
-    *done = 1 as i32 != 0;
-    if (*conn).transport as u32 != TRNSPRT_QUIC as i32 as u32 {
-        if ((*conn).httpversion as i32) < 20 as i32 {
+    unsafe{*done = 1 as i32 != 0;}
+    if unsafe{(*conn).transport as u32 }!= TRNSPRT_QUIC as u32 {
+        if unsafe{((*conn).httpversion as i32) < 20 as i32} {
+            unsafe{
             match (*conn).negnpn {
                 3 => {
                     (*conn).httpversion = 20 as i32 as u8;
@@ -4808,11 +4819,11 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
                                 data,
                                 b"HTTP/2 over clean TCP\0" as *const u8 as *const libc::c_char,
                             );
-                            (*conn).httpversion = 20 as i32 as u8;
+                            (*conn).httpversion = 20 as u8;
                             result = Curl_http2_switched(
                                 data,
                                 0 as *const libc::c_char,
-                                0 as i32 as size_t,
+                                0 as size_t,
                             );
                             if result as u64 != 0 {
                                 return result;
@@ -4820,48 +4831,49 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
                         }
                     }
                 }
-            }
+            }}
         } else {
-            result = Curl_http2_setup(data, conn);
+            result = unsafe{Curl_http2_setup(data, conn)};
             if result as u64 != 0 {
                 return result;
             }
         }
     }
-    http = (*data).req.p.http;
+    http =unsafe{ (*data).req.p.http};
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
     if !http.is_null() {
     } else {
-        __assert_fail(
+        unsafe{__assert_fail(
             b"http\0" as *const u8 as *const libc::c_char,
             b"http.c\0" as *const u8 as *const libc::c_char,
-            3079 as i32 as u32,
+            3079 as u32,
             (*::std::mem::transmute::<&[u8; 48], &[libc::c_char; 48]>(
                 b"CURLcode Curl_http(struct Curl_easy *, _Bool *)\0",
             ))
             .as_ptr(),
-        );
+        );}
     }
-    result = Curl_http_host(data, conn);
+    result = unsafe{Curl_http_host(data, conn)};
     if result as u64 != 0 {
         return result;
     }
-    result = Curl_http_useragent(data);
+    result = unsafe{Curl_http_useragent(data)};
     if result as u64 != 0 {
         return result;
     }
-    Curl_http_method(data, conn, &mut request, &mut httpreq);
+    unsafe{Curl_http_method(data, conn, &mut request, &mut httpreq);}
     let mut pq: *mut libc::c_char = 0 as *mut libc::c_char;
-    if !((*data).state.up.query).is_null() {
-        pq = curl_maprintf(
+    if unsafe{!((*data).state.up.query).is_null() }{
+        pq = unsafe{curl_maprintf(
             b"%s?%s\0" as *const u8 as *const libc::c_char,
             (*data).state.up.path,
             (*data).state.up.query,
-        );
+        )};
         if pq.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
     }
+    unsafe{
     result = Curl_http_output_auth(
         data,
         conn,
@@ -4881,10 +4893,10 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         pq as *mut libc::c_void,
         3101 as i32,
         b"http.c\0" as *const u8 as *const libc::c_char,
-    );
+    );}
     if result as u64 != 0 {
         return result;
-    }
+    }unsafe{
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*data).state.aptr.ref_0 as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
@@ -4893,25 +4905,25 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         3106 as i32,
         b"http.c\0" as *const u8 as *const libc::c_char,
     );
-    (*data).state.aptr.ref_0 = 0 as *mut libc::c_char;
-    if !((*data).state.referer).is_null()
-        && (Curl_checkheaders(data, b"Referer\0" as *const u8 as *const libc::c_char)).is_null()
+    (*data).state.aptr.ref_0 = 0 as *mut libc::c_char;}
+    if unsafe{!((*data).state.referer).is_null()
+        && (Curl_checkheaders(data, b"Referer\0" as *const u8 as *const libc::c_char)).is_null()}
     {
-        (*data).state.aptr.ref_0 = curl_maprintf(
+        unsafe{ (*data).state.aptr.ref_0 = curl_maprintf(
             b"Referer: %s\r\n\0" as *const u8 as *const libc::c_char,
             (*data).state.referer,
-        );
-        if ((*data).state.aptr.ref_0).is_null() {
+        );}
+        if unsafe{((*data).state.aptr.ref_0).is_null()} {
             return CURLE_OUT_OF_MEMORY;
         }
     }
-    if (Curl_checkheaders(
+    if unsafe{(Curl_checkheaders(
         data,
         b"Accept-Encoding\0" as *const u8 as *const libc::c_char,
     ))
     .is_null()
-        && !((*data).set.str_0[STRING_ENCODING as i32 as usize]).is_null()
-    {
+        && !((*data).set.str_0[STRING_ENCODING as usize]).is_null()}
+    {unsafe{
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(
             (*data).state.aptr.accept_encoding as *mut libc::c_void,
@@ -4925,12 +4937,13 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         (*data).state.aptr.accept_encoding = 0 as *mut libc::c_char;
         (*data).state.aptr.accept_encoding = curl_maprintf(
             b"Accept-Encoding: %s\r\n\0" as *const u8 as *const libc::c_char,
-            (*data).set.str_0[STRING_ENCODING as i32 as usize],
+            (*data).set.str_0[STRING_ENCODING as usize],
         );
         if ((*data).state.aptr.accept_encoding).is_null() {
             return CURLE_OUT_OF_MEMORY;
-        }
+        }}
     } else {
+        unsafe{
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(
             (*data).state.aptr.accept_encoding as *mut libc::c_void,
@@ -4941,13 +4954,13 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
             3122 as i32,
             b"http.c\0" as *const u8 as *const libc::c_char,
         );
-        (*data).state.aptr.accept_encoding = 0 as *mut libc::c_char;
+        (*data).state.aptr.accept_encoding = 0 as *mut libc::c_char;}
     }
     // TODO 测试过了就把注释删咯
     match () {
         #[cfg(HAVE_LIBZ)]
         _ => {
-            result = Curl_transferencode(data);
+            result = unsafe{Curl_transferencode(data)};
             if result as u64 != 0 {
                 return result;
             }
@@ -4961,55 +4974,55 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
     //         return result;
     //     }
     // }
-    result = Curl_http_body(data, conn, httpreq, &mut te);
+    result = unsafe{Curl_http_body(data, conn, httpreq, &mut te)};
     if result as u64 != 0 {
         return result;
     }
     p_accept =
-        if !(Curl_checkheaders(data, b"Accept\0" as *const u8 as *const libc::c_char)).is_null() {
+        if unsafe{!(Curl_checkheaders(data, b"Accept\0" as *const u8 as *const libc::c_char)).is_null()} {
             0 as *const libc::c_char
         } else {
             b"Accept: */*\r\n\0" as *const u8 as *const libc::c_char
         };
-    result = Curl_http_resume(data, conn, httpreq);
+    result = unsafe{Curl_http_resume(data, conn, httpreq)};
     if result as u64 != 0 {
         return result;
     }
-    result = Curl_http_range(data, httpreq);
+    result = unsafe{Curl_http_range(data, httpreq)};
     if result as u64 != 0 {
         return result;
     }
-    httpstring = get_http_string(data, conn);
-    Curl_dyn_init(&mut req, (1024 as i32 * 1024 as i32) as size_t);
-    Curl_dyn_reset(&mut (*data).state.headerb);
-    result = Curl_dyn_addf(
+    httpstring = unsafe{get_http_string(data, conn)};
+    unsafe{Curl_dyn_init(&mut req, (1024 as i32 * 1024 as i32) as size_t);
+    Curl_dyn_reset(&mut (*data).state.headerb);}
+    result = unsafe{Curl_dyn_addf(
         &mut req as *mut dynbuf,
         b"%s \0" as *const u8 as *const libc::c_char,
         request,
-    );
+    )};
     if result as u64 == 0 {
-        result = Curl_http_target(data, conn, &mut req);
+        result = unsafe{Curl_http_target(data, conn, &mut req)};
     }
     if result as u64 != 0 {
-        Curl_dyn_free(&mut req);
+        unsafe{Curl_dyn_free(&mut req);}
         return result;
     }
     #[cfg(not(CURL_DISABLE_ALTSVC))]
-    if ((*conn).bits).altused() as i32 != 0
-        && (Curl_checkheaders(data, b"Alt-Used\0" as *const u8 as *const libc::c_char)).is_null()
+    if unsafe{((*conn).bits).altused() as i32 != 0}
+        && unsafe{(Curl_checkheaders(data, b"Alt-Used\0" as *const u8 as *const libc::c_char)).is_null()}
     {
-        altused = curl_maprintf(
+        altused = unsafe{curl_maprintf(
             b"Alt-Used: %s:%d\r\n\0" as *const u8 as *const libc::c_char,
             (*conn).conn_to_host.name,
             (*conn).conn_to_port,
-        );
+        )};
         if altused.is_null() {
-            Curl_dyn_free(&mut req);
+            unsafe{Curl_dyn_free(&mut req);}
             return CURLE_OUT_OF_MEMORY;
         }
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag2: bool = ((*conn).bits).httpproxy() as i32 != 0
+    let flag2: bool = unsafe{((*conn).bits).httpproxy() as i32 != 0
         && ((*conn).bits).tunnel_proxy() == 0
         && (Curl_checkheaders(
             data,
@@ -5021,10 +5034,10 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
             conn,
             b"Proxy-Connection\0" as *const u8 as *const libc::c_char,
         ))
-        .is_null();
+        .is_null()};
     #[cfg(CURL_DISABLE_PROXY)]
     let flag2: bool = false;
-    result = Curl_dyn_addf(
+    result = unsafe{Curl_dyn_addf(
         &mut req as *mut dynbuf,
         b" HTTP/%s\r\n%s%s%s%s%s%s%s%s%s%s%s%s\0" as *const u8 as *const libc::c_char,
         httpstring,
@@ -5048,8 +5061,8 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         } else {
             b"\0" as *const u8 as *const libc::c_char
         },
-        if !((*data).set.str_0[STRING_USERAGENT as i32 as usize]).is_null()
-            && *(*data).set.str_0[STRING_USERAGENT as i32 as usize] as i32 != 0
+        if !((*data).set.str_0[STRING_USERAGENT as usize]).is_null()
+            && *(*data).set.str_0[STRING_USERAGENT as usize] as i32 != 0
             && !((*data).state.aptr.uagent).is_null()
         {
             (*data).state.aptr.uagent as *const libc::c_char
@@ -5066,8 +5079,8 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         } else {
             b"\0" as *const u8 as *const libc::c_char
         },
-        if !((*data).set.str_0[STRING_ENCODING as i32 as usize]).is_null()
-            && *(*data).set.str_0[STRING_ENCODING as i32 as usize] as i32 != 0
+        if !((*data).set.str_0[STRING_ENCODING as usize]).is_null()
+            && *(*data).set.str_0[STRING_ENCODING as usize] as i32 != 0
             && !((*data).state.aptr.accept_encoding).is_null()
         {
             (*data).state.aptr.accept_encoding as *const libc::c_char
@@ -5090,7 +5103,8 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         } else {
             b"\0" as *const u8 as *const libc::c_char
         },
-    );
+    )};
+    unsafe{
     #[cfg(not(CURLDEBUG))]
     Curl_cfree.expect("non-null function pointer")((*data).state.aptr.userpwd as *mut libc::c_void);
     #[cfg(CURLDEBUG)]
@@ -5118,54 +5132,54 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
         altused as *mut libc::c_void,
         3226 as i32,
         b"http.c\0" as *const u8 as *const libc::c_char,
-    );
+    );}
     if result as u64 != 0 {
-        Curl_dyn_free(&mut req);
+        unsafe{Curl_dyn_free(&mut req);}
         return result;
     }
-    if (*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 == 0
+    if unsafe{(*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 == 0
         && (*conn).httpversion as i32 != 20 as i32
-        && (*data).state.httpwant as i32 == CURL_HTTP_VERSION_2_0 as i32
+        && (*data).state.httpwant as i32 == CURL_HTTP_VERSION_2_0 as i32}
     {
-        result = Curl_http2_request_upgrade(&mut req, data);
+        result = unsafe{Curl_http2_request_upgrade(&mut req, data)};
         if result as u64 != 0 {
-            Curl_dyn_free(&mut req);
+            unsafe{Curl_dyn_free(&mut req);}
             return result;
         }
     }
-    result = Curl_http_cookies(data, conn, &mut req);
+    result = unsafe{Curl_http_cookies(data, conn, &mut req)};
     if result as u64 == 0 {
-        result = Curl_add_timecondition(data, &mut req);
+        result = unsafe{Curl_add_timecondition(data, &mut req)};
     }
     if result as u64 == 0 {
-        result = Curl_add_custom_headers(data, 0 as i32 != 0, &mut req);
+        result = unsafe{Curl_add_custom_headers(data, 0 as i32 != 0, &mut req)};
     }
     if result as u64 == 0 {
-        (*http).postdata = 0 as *const libc::c_char;
-        if httpreq as u32 == HTTPREQ_GET as i32 as u32
-            || httpreq as u32 == HTTPREQ_HEAD as i32 as u32
+        unsafe{(*http).postdata = 0 as *const libc::c_char;}
+        if httpreq as u32 == HTTPREQ_GET  as u32
+            || httpreq as u32 == HTTPREQ_HEAD as u32
         {
-            Curl_pgrsSetUploadSize(data, 0 as i32 as curl_off_t);
+            unsafe{ Curl_pgrsSetUploadSize(data, 0 as curl_off_t);}
         }
-        result = Curl_http_bodysend(data, conn, &mut req, httpreq);
+        result = unsafe{Curl_http_bodysend(data, conn, &mut req, httpreq)};
     }
     if result as u64 != 0 {
-        Curl_dyn_free(&mut req);
+        unsafe{ Curl_dyn_free(&mut req);}
         return result;
     }
-    if (*http).postsize > -(1 as i32) as i64
+    if unsafe{(*http).postsize > -(1 as i32) as i64
         && (*http).postsize <= (*data).req.writebytecount
-        && (*http).sending as u32 != HTTPSEND_REQUEST as i32 as u32
+        && (*http).sending as u32 != HTTPSEND_REQUEST as i32 as u32}
     {
-        (*data).req.set_upload_done(1 as i32 as bit);
+        unsafe{ (*data).req.set_upload_done(1 as i32 as bit);}
     }
-    if (*data).req.writebytecount != 0 {
-        Curl_pgrsSetUploadCounter(data, (*data).req.writebytecount);
-        if Curl_pgrsUpdate(data) != 0 {
+    if unsafe{(*data).req.writebytecount != 0 }{
+        unsafe{ Curl_pgrsSetUploadCounter(data, (*data).req.writebytecount);}
+        if unsafe{Curl_pgrsUpdate(data) != 0} {
             result = CURLE_ABORTED_BY_CALLBACK;
         }
-        if (*http).postsize == 0 {
-            Curl_infof(
+        if unsafe{(*http).postsize == 0} {
+            unsafe{ Curl_infof(
                 data,
                 b"upload completely sent off: %ld out of %ld bytes\0" as *const u8
                     as *const libc::c_char,
@@ -5175,128 +5189,128 @@ pub unsafe extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool
             (*data).req.set_upload_done(1 as i32 as bit);
             (*data).req.keepon &= !((1 as i32) << 1 as i32);
             (*data).req.exp100 = EXP100_SEND_DATA;
-            Curl_expire_done(data, EXPIRE_100_TIMEOUT);
+            Curl_expire_done(data, EXPIRE_100_TIMEOUT);}
         }
     }
-    if (*conn).httpversion as i32 == 20 as i32 && ((*data).req).upload_chunky() as i32 != 0 {
-        (*data).req.set_upload_chunky(0 as i32 as bit);
+    if unsafe{(*conn).httpversion as i32 == 20 as i32 && ((*data).req).upload_chunky() as i32 != 0} {
+        unsafe{ (*data).req.set_upload_chunky(0 as bit);}
     }
     return result;
 }
-unsafe extern "C" fn checkprefixmax(
+ extern "C" fn checkprefixmax(
     mut prefix: *const libc::c_char,
     mut buffer: *const libc::c_char,
     mut len: size_t,
 ) -> bool {
-    let mut ch: size_t = if strlen(prefix) < len {
-        strlen(prefix)
+    let mut ch: size_t = if unsafe{strlen(prefix) < len} {
+        unsafe{strlen(prefix)}
     } else {
         len
     };
-    return curl_strnequal(prefix, buffer, ch) != 0;
+    return unsafe{curl_strnequal(prefix, buffer, ch) != 0};
 }
-unsafe extern "C" fn checkhttpprefix(
+ extern "C" fn checkhttpprefix(
     mut data: *mut Curl_easy,
     mut s: *const libc::c_char,
     mut len: size_t,
 ) -> statusline {
-    let mut head: *mut curl_slist = (*data).set.http200aliases;
+    let mut head: *mut curl_slist = unsafe{(*data).set.http200aliases};
     let mut rc: statusline = STATUS_BAD;
-    let mut onmatch: statusline = (if len >= 5 as i32 as u64 {
+    let mut onmatch: statusline = (if len >= 5 as u64 {
         STATUS_DONE as i32
     } else {
         STATUS_UNKNOWN as i32
     }) as statusline;
     while !head.is_null() {
-        if checkprefixmax((*head).data, s, len) {
+        if unsafe{checkprefixmax((*head).data, s, len)} {
             rc = onmatch;
             break;
         } else {
-            head = (*head).next;
+            head = unsafe{(*head).next};
         }
     }
-    if rc as u32 != STATUS_DONE as i32 as u32
-        && checkprefixmax(b"HTTP/\0" as *const u8 as *const libc::c_char, s, len) as i32 != 0
+    if rc as u32 != STATUS_DONE as u32
+        && unsafe{checkprefixmax(b"HTTP/\0" as *const u8 as *const libc::c_char, s, len) as i32 != 0}
     {
         rc = onmatch;
     }
     return rc;
 }
 #[cfg(not(CURL_DISABLE_RSTP))]
-unsafe extern "C" fn checkrtspprefix(
+ extern "C" fn checkrtspprefix(
     mut data: *mut Curl_easy,
     mut s: *const libc::c_char,
     mut len: size_t,
 ) -> statusline {
     let mut result: statusline = STATUS_BAD;
-    let mut onmatch: statusline = (if len >= 5 as i32 as u64 {
+    let mut onmatch: statusline = (if len >= 5 as u64 {
         STATUS_DONE as i32
     } else {
         STATUS_UNKNOWN as i32
     }) as statusline;
-    if checkprefixmax(b"RTSP/\0" as *const u8 as *const libc::c_char, s, len) {
+    if unsafe{checkprefixmax(b"RTSP/\0" as *const u8 as *const libc::c_char, s, len)} {
         result = onmatch;
     }
     return result;
 }
-unsafe extern "C" fn checkprotoprefix(
+ extern "C" fn checkprotoprefix(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut s: *const libc::c_char,
     mut len: size_t,
-) -> statusline {
+) -> statusline {unsafe{
     #[cfg(not(CURL_DISABLE_RSTP))]
     if (*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0 {
         return checkrtspprefix(data, s, len);
     }
-    return checkhttpprefix(data, s, len);
+    return checkhttpprefix(data, s, len);}
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_header(
+pub extern "C" fn Curl_http_header(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut headp: *mut libc::c_char,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    let mut k: *mut SingleRequest = &mut (*data).req;
+    let mut k: *mut SingleRequest = unsafe{&mut (*data).req};
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag1: bool = (*conn).httpversion as i32 == 10 as i32
+    let flag1: bool = unsafe{(*conn).httpversion as i32 == 10 as i32
         && ((*conn).bits).httpproxy() as i32 != 0
         && Curl_compareheader(
             headp,
             b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
             b"keep-alive\0" as *const u8 as *const libc::c_char,
         ) as i32
-            != 0;
+            != 0};
     #[cfg(CURL_DISABLE_PROXY)]
     let flag1: bool = false;
     #[cfg(not(CURL_DISABLE_PROXY))]
-    let flag2: bool = (*conn).httpversion as i32 == 11 as i32
+    let flag2: bool = unsafe{(*conn).httpversion as i32 == 11 as i32
         && ((*conn).bits).httpproxy() as i32 != 0
         && Curl_compareheader(
             headp,
             b"Proxy-Connection:\0" as *const u8 as *const libc::c_char,
             b"close\0" as *const u8 as *const libc::c_char,
         ) as i32
-            != 0;
+            != 0};
     #[cfg(CURL_DISABLE_PROXY)]
     let flag2: bool = false;
     #[cfg(not(CURL_DISABLE_COOKIES))]
-    let flag3: bool = !((*data).cookies).is_null()
+    let flag3: bool = unsafe{!((*data).cookies).is_null()
         && ((*data).state).cookie_engine() as i32 != 0
         && curl_strnequal(
             b"Set-Cookie:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Set-Cookie:\0" as *const u8 as *const libc::c_char),
-        ) != 0;
+        ) != 0};
     #[cfg(CURL_DISABLE_COOKIES)]
     let flag3: bool = false;
     #[cfg(USE_SPNEGO)]
-    let flag4: bool = curl_strnequal(
+    let flag4: bool =unsafe{ curl_strnequal(
         b"Persistent-Auth:\0" as *const u8 as *const libc::c_char,
         headp,
         strlen(b"Persistent-Auth:\0" as *const u8 as *const libc::c_char),
-    ) != 0;
+    ) != 0};
     #[cfg(not(USE_SPNEGO))]
     let flag4: bool = false;
     // let flag4: bool = if cfg!(USE_SPNEGO) {
@@ -5309,16 +5323,16 @@ pub unsafe extern "C" fn Curl_http_header(
     //     false
     // };
     #[cfg(not(CURL_DISABLE_HSTS))]
-    let flag5: bool = !((*data).hsts).is_null()
+    let flag5: bool = unsafe{!((*data).hsts).is_null()
         && curl_strnequal(
             b"Strict-Transport-Security:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Strict-Transport-Security:\0" as *const u8 as *const libc::c_char),
         ) != 0
-        && (*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0;
+        && (*(*conn).handler).flags & ((1 as i32) << 0 as i32) as u32 != 0};
     #[cfg(CURL_DISABLE_HSTS)]
     let flag5: bool = false;
-    let flag6: bool = if cfg!(all(not(CURL_DISABLE_ALTSVC), not(CURLDEBUG))) {
+    let flag6: bool =unsafe{ if cfg!(all(not(CURL_DISABLE_ALTSVC), not(CURLDEBUG))) {
         !((*data).asi).is_null()
             && curl_strnequal(
                 b"Alt-Svc:\0" as *const u8 as *const libc::c_char,
@@ -5337,34 +5351,34 @@ pub unsafe extern "C" fn Curl_http_header(
                 || !(getenv(b"CURL_ALTSVC_HTTP\0" as *const u8 as *const libc::c_char)).is_null())
     } else {
         false
-    };
-    if (*k).http_bodyless() == 0
+    }};
+    if unsafe{(*k).http_bodyless() == 0
         && ((*data).set).ignorecl() == 0
         && curl_strnequal(
             b"Content-Length:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Content-Length:\0" as *const u8 as *const libc::c_char),
-        ) != 0
+        ) != 0}
     {
         let mut contentlength: curl_off_t = 0;
-        let mut offt: CURLofft = curlx_strtoofft(
+        let mut offt: CURLofft = unsafe{curlx_strtoofft(
             headp.offset(strlen(b"Content-Length:\0" as *const u8 as *const libc::c_char) as isize),
             0 as *mut *mut libc::c_char,
             10 as i32,
             &mut contentlength,
-        );
-        if offt as u32 == CURL_OFFT_OK as i32 as u32 {
-            (*k).size = contentlength;
-            (*k).maxdownload = (*k).size;
-        } else if offt as u32 == CURL_OFFT_FLOW as i32 as u32 {
-            if (*data).set.max_filesize != 0 {
-                Curl_failf(
+        )};
+        if offt as u32 == CURL_OFFT_OK as u32 {
+            unsafe{ (*k).size = contentlength;
+            (*k).maxdownload = (*k).size;}
+        } else if offt as u32 == CURL_OFFT_FLOW as u32 {
+            if unsafe{(*data).set.max_filesize != 0} {
+                unsafe{ Curl_failf(
                     data,
                     b"Maximum file size exceeded\0" as *const u8 as *const libc::c_char,
-                );
+                );}
                 return CURLE_FILESIZE_EXCEEDED;
             }
-            #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+            unsafe{ #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
             Curl_conncontrol(conn, 2 as i32);
             #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
             Curl_conncontrol(
@@ -5375,35 +5389,35 @@ pub unsafe extern "C" fn Curl_http_header(
             Curl_infof(
                 data,
                 b"Overflow Content-Length: value!\0" as *const u8 as *const libc::c_char,
-            );
+            );}
         } else {
-            Curl_failf(
+            unsafe{Curl_failf(
                 data,
                 b"Invalid Content-Length: value\0" as *const u8 as *const libc::c_char,
-            );
+            );}
             return CURLE_WEIRD_SERVER_REPLY;
         }
-    } else if curl_strnequal(
+    } else if unsafe{curl_strnequal(
         b"Content-Type:\0" as *const u8 as *const libc::c_char,
         headp,
         strlen(b"Content-Type:\0" as *const u8 as *const libc::c_char),
-    ) != 0
+    ) != 0}
     {
-        let mut contenttype: *mut libc::c_char = Curl_copy_header_value(headp);
+        let mut contenttype: *mut libc::c_char =unsafe{ Curl_copy_header_value(headp)};
         if contenttype.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
-        if *contenttype == 0 {
-            #[cfg(not(CURLDEBUG))]
+        if unsafe{*contenttype == 0} {
+            unsafe{#[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(contenttype as *mut libc::c_void);
             #[cfg(CURLDEBUG)]
             curl_dbg_free(
                 contenttype as *mut libc::c_void,
                 3445 as i32,
                 b"http.c\0" as *const u8 as *const libc::c_char,
-            );
+            );}
         } else {
-            #[cfg(not(CURLDEBUG))]
+            unsafe{#[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(
                 (*data).info.contenttype as *mut libc::c_void,
             );
@@ -5414,10 +5428,10 @@ pub unsafe extern "C" fn Curl_http_header(
                 b"http.c\0" as *const u8 as *const libc::c_char,
             );
             (*data).info.contenttype = 0 as *mut libc::c_char;
-            (*data).info.contenttype = contenttype;
+            (*data).info.contenttype = contenttype;}
         }
     } else if flag1 {
-        #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+        unsafe{#[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 0 as i32);
         #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
         Curl_conncontrol(
@@ -5428,9 +5442,9 @@ pub unsafe extern "C" fn Curl_http_header(
         Curl_infof(
             data,
             b"HTTP/1.0 proxy connection set to keep alive!\0" as *const u8 as *const libc::c_char,
-        );
+        );}
     } else if flag2 {
-        #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+        unsafe{#[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 1 as i32);
         #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
         Curl_conncontrol(
@@ -5441,16 +5455,16 @@ pub unsafe extern "C" fn Curl_http_header(
         Curl_infof(
             data,
             b"HTTP/1.1 proxy connection set close!\0" as *const u8 as *const libc::c_char,
-        );
-    } else if (*conn).httpversion as i32 == 10 as i32
+        );}
+    } else if unsafe{(*conn).httpversion as i32 == 10 as i32
         && Curl_compareheader(
             headp,
             b"Connection:\0" as *const u8 as *const libc::c_char,
             b"keep-alive\0" as *const u8 as *const libc::c_char,
         ) as i32
-            != 0
+            != 0}
     {
-        #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+        unsafe{#[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 0 as i32);
         #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
         Curl_conncontrol(
@@ -5461,12 +5475,12 @@ pub unsafe extern "C" fn Curl_http_header(
         Curl_infof(
             data,
             b"HTTP/1.0 connection set to keep alive!\0" as *const u8 as *const libc::c_char,
-        );
-    } else if Curl_compareheader(
+        );}
+    } else if unsafe{Curl_compareheader(
         headp,
         b"Connection:\0" as *const u8 as *const libc::c_char,
         b"close\0" as *const u8 as *const libc::c_char,
-    ) {
+    ) }{unsafe{
         #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 2 as i32);
         #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
@@ -5474,26 +5488,26 @@ pub unsafe extern "C" fn Curl_http_header(
             conn,
             2 as i32,
             b"Connection: close used\0" as *const u8 as *const libc::c_char,
-        );
-    } else if (*k).http_bodyless() == 0
+        );}
+    } else if unsafe{(*k).http_bodyless() == 0
         && curl_strnequal(
             b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char),
-        ) != 0
+        ) != 0}
     {
-        result = Curl_build_unencoding_stack(
+        result =unsafe{ Curl_build_unencoding_stack(
             data,
             headp.offset(
                 strlen(b"Transfer-Encoding:\0" as *const u8 as *const libc::c_char) as isize,
             ),
             1 as i32,
-        );
+        )};
         if result as u64 != 0 {
             return result;
         }
-        if (*k).chunk() == 0 {
-            #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+        if unsafe{(*k).chunk() == 0} {
+            unsafe{ #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
             Curl_conncontrol(conn, 1 as i32);
             #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
             Curl_conncontrol(
@@ -5501,94 +5515,94 @@ pub unsafe extern "C" fn Curl_http_header(
                 1 as i32,
                 b"HTTP/1.1 transfer-encoding without chunks\0" as *const u8 as *const libc::c_char,
             );
-            (*k).set_ignore_cl(1 as i32 as bit);
+            (*k).set_ignore_cl(1 as bit);}
         }
-    } else if (*k).http_bodyless() == 0
+    } else if unsafe{(*k).http_bodyless() == 0
         && curl_strnequal(
             b"Content-Encoding:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Content-Encoding:\0" as *const u8 as *const libc::c_char),
         ) != 0
-        && !((*data).set.str_0[STRING_ENCODING as i32 as usize]).is_null()
+        && !((*data).set.str_0[STRING_ENCODING as i32 as usize]).is_null()}
     {
-        result = Curl_build_unencoding_stack(
+        result = unsafe{Curl_build_unencoding_stack(
             data,
             headp.offset(
                 strlen(b"Content-Encoding:\0" as *const u8 as *const libc::c_char) as isize,
             ),
             0 as i32,
-        );
+        )};
         if result as u64 != 0 {
             return result;
         }
-    } else if curl_strnequal(
+    } else if unsafe{curl_strnequal(
         b"Retry-After:\0" as *const u8 as *const libc::c_char,
         headp,
         strlen(b"Retry-After:\0" as *const u8 as *const libc::c_char),
-    ) != 0
+    ) != 0}
     {
         let mut retry_after: curl_off_t = 0 as i32 as curl_off_t;
-        let mut date: time_t = Curl_getdate_capped(
+        let mut date: time_t = unsafe{Curl_getdate_capped(
             headp.offset(strlen(b"Retry-After:\0" as *const u8 as *const libc::c_char) as isize),
-        );
+        )};
         if -(1 as i32) as i64 == date {
-            curlx_strtoofft(
+            unsafe{curlx_strtoofft(
                 headp
                     .offset(strlen(b"Retry-After:\0" as *const u8 as *const libc::c_char) as isize),
                 0 as *mut *mut libc::c_char,
                 10 as i32,
                 &mut retry_after,
-            );
+            )};
         } else {
-            retry_after = date - time(0 as *mut time_t);
+            unsafe{retry_after = date - time(0 as *mut time_t);}
         }
-        (*data).info.retry_after = retry_after;
-    } else if (*k).http_bodyless() == 0
+        unsafe{(*data).info.retry_after = retry_after;}
+    } else if unsafe{(*k).http_bodyless() == 0
         && curl_strnequal(
             b"Content-Range:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Content-Range:\0" as *const u8 as *const libc::c_char),
-        ) != 0
+        ) != 0}
     {
         let mut ptr: *mut libc::c_char =
-            headp.offset(strlen(b"Content-Range:\0" as *const u8 as *const libc::c_char) as isize);
-        while *ptr as i32 != 0 && Curl_isdigit(*ptr as u8 as i32) == 0 && *ptr as i32 != '*' as i32
+        unsafe{headp.offset(strlen(b"Content-Range:\0" as *const u8 as *const libc::c_char) as isize)};
+        while unsafe{*ptr as i32 != 0 && Curl_isdigit(*ptr as u8 as i32) == 0 && *ptr as i32 != '*' as i32}
         {
-            ptr = ptr.offset(1);
+            ptr = unsafe{ptr.offset(1)};
         }
-        if Curl_isdigit(*ptr as u8 as i32) != 0 {
-            if curlx_strtoofft(
+        if unsafe{Curl_isdigit(*ptr as i32) != 0} {
+            if unsafe{curlx_strtoofft(
                 ptr,
                 0 as *mut *mut libc::c_char,
                 10 as i32,
                 &mut (*k).offset,
             ) as u64
-                == 0
+                == 0}
             {
-                if (*data).state.resume_from == (*k).offset {
-                    (*k).set_content_range(1 as i32 as bit);
+                if unsafe{(*data).state.resume_from == (*k).offset} {
+                    unsafe{(*k).set_content_range(1 as bit);}
                 }
             }
         } else {
-            (*data).state.resume_from = 0 as i32 as curl_off_t;
+            unsafe{ (*data).state.resume_from = 0 as curl_off_t;}
         }
     } else if flag3 {
-        let mut host: *const libc::c_char = if !((*data).state.aptr.cookiehost).is_null() {
+        let mut host: *const libc::c_char = unsafe{if !((*data).state.aptr.cookiehost).is_null() {
             (*data).state.aptr.cookiehost
         } else {
             (*conn).host.name
-        };
-        let secure_context: bool = if (*(*conn).handler).protocol & ((1 as i32) << 1 as i32) as u32
+        }};
+        let secure_context: bool = if unsafe{(*(*conn).handler).protocol & ((1 as i32) << 1 as i32) as u32
             != 0
             || Curl_strcasecompare(b"localhost\0" as *const u8 as *const libc::c_char, host) != 0
             || strcmp(host, b"127.0.0.1\0" as *const u8 as *const libc::c_char) == 0
-            || strcmp(host, b"[::1]\0" as *const u8 as *const libc::c_char) == 0
+            || strcmp(host, b"[::1]\0" as *const u8 as *const libc::c_char) == 0}
         {
             1 as i32
         } else {
             0 as i32
         } != 0;
-        Curl_share_lock(data, CURL_LOCK_DATA_COOKIE, CURL_LOCK_ACCESS_SINGLE);
+        unsafe{Curl_share_lock(data, CURL_LOCK_DATA_COOKIE, CURL_LOCK_ACCESS_SINGLE);
         Curl_cookie_add(
             data,
             (*data).cookies,
@@ -5599,22 +5613,22 @@ pub unsafe extern "C" fn Curl_http_header(
             (*data).state.up.path,
             secure_context,
         );
-        Curl_share_unlock(data, CURL_LOCK_DATA_COOKIE);
-    } else if (*k).http_bodyless() == 0
+        Curl_share_unlock(data, CURL_LOCK_DATA_COOKIE);}
+    } else if unsafe{(*k).http_bodyless() == 0
         && curl_strnequal(
             b"Last-Modified:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Last-Modified:\0" as *const u8 as *const libc::c_char),
         ) != 0
-        && ((*data).set.timecondition as u32 != 0 || ((*data).set).get_filetime() as i32 != 0)
+        && ((*data).set.timecondition as u32 != 0 || ((*data).set).get_filetime() as i32 != 0)}
     {
-        (*k).timeofdoc = Curl_getdate_capped(
+        unsafe{(*k).timeofdoc = Curl_getdate_capped(
             headp.offset(strlen(b"Last-Modified:\0" as *const u8 as *const libc::c_char) as isize),
         );
         if ((*data).set).get_filetime() != 0 {
             (*data).info.filetime = (*k).timeofdoc;
-        }
-    } else if curl_strnequal(
+        }}
+    } else if unsafe{curl_strnequal(
         b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char,
         headp,
         strlen(b"WWW-Authenticate:\0" as *const u8 as *const libc::c_char),
@@ -5625,18 +5639,19 @@ pub unsafe extern "C" fn Curl_http_header(
             headp,
             strlen(b"Proxy-authenticate:\0" as *const u8 as *const libc::c_char),
         ) != 0
-            && 407 as i32 == (*k).httpcode
+            && 407 as i32 == (*k).httpcode}
     {
-        let mut proxy: bool = if (*k).httpcode == 407 as i32 {
+        let mut proxy: bool = if unsafe{(*k).httpcode == 407 as i32} {
             1 as i32
         } else {
             0 as i32
         } != 0;
-        let mut auth: *mut libc::c_char = Curl_copy_header_value(headp);
+        let mut auth: *mut libc::c_char = unsafe{Curl_copy_header_value(headp)};
         if auth.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
-        result = Curl_http_input_auth(data, proxy, auth);
+        result = unsafe{Curl_http_input_auth(data, proxy, auth)};
+        unsafe{
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(auth as *mut libc::c_void);
         #[cfg(CURLDEBUG)]
@@ -5644,14 +5659,14 @@ pub unsafe extern "C" fn Curl_http_header(
             auth as *mut libc::c_void,
             3616 as i32,
             b"http.c\0" as *const u8 as *const libc::c_char,
-        );
+        );}
         if result as u64 != 0 {
             return result;
         }
     } else if flag4 {
         match () {
             #[cfg(USE_SPNEGO)]
-            _ => {
+            _ => {unsafe{
                 let mut negdata: *mut negotiatedata = &mut (*conn).negotiate;
                 let mut authp: *mut auth = &mut (*data).state.authhost;
                 if (*authp).picked == (1 as i32 as u64) << 2 as i32 {
@@ -5682,7 +5697,7 @@ pub unsafe extern "C" fn Curl_http_header(
                     Curl_cfree.expect("non-null function pointer")(
                         persistentauth as *mut libc::c_void,
                     );
-                }
+                }}
             }
             #[cfg(not(USE_SPNEGO))]
             _ => {}
@@ -5720,20 +5735,20 @@ pub unsafe extern "C" fn Curl_http_header(
         //             "non-null function pointer",
         //         )(persistentauth as *mut libc::c_void);
         // }
-    } else if (*k).httpcode >= 300 as i32
+    } else if unsafe{(*k).httpcode >= 300 as i32
         && (*k).httpcode < 400 as i32
         && curl_strnequal(
             b"Location:\0" as *const u8 as *const libc::c_char,
             headp,
             strlen(b"Location:\0" as *const u8 as *const libc::c_char),
         ) != 0
-        && ((*data).req.location).is_null()
+        && ((*data).req.location).is_null()}
     {
-        let mut location: *mut libc::c_char = Curl_copy_header_value(headp);
+        let mut location: *mut libc::c_char = unsafe{Curl_copy_header_value(headp)};
         if location.is_null() {
             return CURLE_OUT_OF_MEMORY;
         }
-        if *location == 0 {
+        if unsafe{*location == 0} {unsafe{
             #[cfg(not(CURLDEBUG))]
             Curl_cfree.expect("non-null function pointer")(location as *mut libc::c_void);
             #[cfg(CURLDEBUG)]
@@ -5741,17 +5756,17 @@ pub unsafe extern "C" fn Curl_http_header(
                 location as *mut libc::c_void,
                 3647 as i32,
                 b"http.c\0" as *const u8 as *const libc::c_char,
-            );
+            );}
         } else {
-            (*data).req.location = location;
-            if ((*data).set).http_follow_location() != 0 {
-                #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
+            unsafe{ (*data).req.location = location;}
+            if unsafe{((*data).set).http_follow_location() != 0} {
+                unsafe{#[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
                 if ((*data).req.newurl).is_null() {
                 } else {
                     __assert_fail(
                         b"!data->req.newurl\0" as *const u8 as *const libc::c_char,
                         b"http.c\0" as *const u8 as *const libc::c_char,
-                        3652 as i32 as u32,
+                        3652 as u32,
                         (*::std::mem::transmute::<
                             &[u8; 76],
                             &[libc::c_char; 76],
@@ -5760,26 +5775,26 @@ pub unsafe extern "C" fn Curl_http_header(
                         ))
                             .as_ptr(),
                     );
-                }
+                }}
                 match () {
                     #[cfg(not(CURLDEBUG))]
-                    _ => {
+                    _ => {unsafe{
                         (*data).req.newurl =
                             Curl_cstrdup.expect("non-null function pointer")((*data).req.location);
-                    }
+                    }}
                     #[cfg(CURLDEBUG)]
-                    _ => {
+                    _ => {unsafe{
                         (*data).req.newurl = curl_dbg_strdup(
                             (*data).req.location,
                             3653 as i32,
                             b"http.c\0" as *const u8 as *const libc::c_char,
-                        );
+                        );}
                     }
                 }
-                if ((*data).req.newurl).is_null() {
+                if unsafe{ ((*data).req.newurl).is_null()} {
                     return CURLE_OUT_OF_MEMORY;
                 }
-                result = http_perhapsrewind(data, conn);
+                result = unsafe{http_perhapsrewind(data, conn)};
                 if result as u64 != 0 {
                     return result;
                 }
@@ -5789,50 +5804,50 @@ pub unsafe extern "C" fn Curl_http_header(
         match () {
             #[cfg(not(CURL_DISABLE_HSTS))]
             _ => {
-                let mut check: CURLcode = Curl_hsts_parse(
+                let mut check: CURLcode = unsafe{Curl_hsts_parse(
                     (*data).hsts,
                     (*data).state.up.hostname,
                     headp.offset(strlen(
                         b"Strict-Transport-Security:\0" as *const u8 as *const libc::c_char,
                     ) as isize),
-                );
+                )};
                 if check as u64 != 0 {
-                    Curl_infof(
+                    unsafe{Curl_infof(
                         data,
                         b"Illegal STS header skipped\0" as *const u8 as *const libc::c_char,
-                    );
-                } else {
+                    )};
+                } else {unsafe{
                     #[cfg(DEBUGBUILD)]
                     Curl_infof(
                         data,
                         b"Parsed STS header fine (%zu entries)\0" as *const u8
                             as *const libc::c_char,
                         (*(*data).hsts).list.size,
-                    );
+                    );}
                 }
             }
             #[cfg(CURL_DISABLE_HSTS)]
             _ => {}
         }
     } else if flag6 {
-        let mut id: alpnid = (if (*conn).httpversion as i32 == 20 as i32 {
+        let mut id: alpnid = (if unsafe{(*conn).httpversion as i32 == 20 as i32} {
             ALPN_h2 as i32
         } else {
             ALPN_h1 as i32
         }) as alpnid;
-        result = Curl_altsvc_parse(
+        result = unsafe{Curl_altsvc_parse(
             data,
             (*data).asi,
             headp.offset(strlen(b"Alt-Svc:\0" as *const u8 as *const libc::c_char) as isize),
             id,
             (*conn).host.name,
             curlx_uitous((*conn).remote_port as u32),
-        );
+        )};
         if result as u64 != 0 {
             return result;
         }
-    } else if (*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0 {
-        result = Curl_rtsp_parseheader(data, headp);
+    } else if unsafe{(*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0} {
+        result = unsafe{Curl_rtsp_parseheader(data, headp)};
         if result as u64 != 0 {
             return result;
         }
@@ -5840,12 +5855,12 @@ pub unsafe extern "C" fn Curl_http_header(
     return CURLE_OK;
 }
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_statusline(
+pub extern "C" fn Curl_http_statusline(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
 ) -> CURLcode {
-    let mut k: *mut SingleRequest = &mut (*data).req;
-    (*data).info.httpcode = (*k).httpcode;
+    let mut k: *mut SingleRequest = unsafe{ &mut (*data).req};
+    unsafe{(*data).info.httpcode = (*k).httpcode;
     (*data).info.httpversion = (*conn).httpversion as i32;
     if (*data).state.httpversion == 0
         || (*data).state.httpversion as i32 > (*conn).httpversion as i32
@@ -5853,10 +5868,10 @@ pub unsafe extern "C" fn Curl_http_statusline(
         (*data).state.httpversion = (*conn).httpversion;
     }
     if (*data).state.resume_from != 0
-        && (*data).state.httpreq as u32 == HTTPREQ_GET as i32 as u32
+        && (*data).state.httpreq as u32 == HTTPREQ_GET as u32
         && (*k).httpcode == 416 as i32
     {
-        (*k).set_ignorebody(1 as i32 as bit);
+        (*k).set_ignorebody(1 as bit);
     }
     if (*conn).httpversion as i32 == 10 as i32 {
         Curl_infof(
@@ -5888,13 +5903,13 @@ pub unsafe extern "C" fn Curl_http_statusline(
         );
     }
     (*k).set_http_bodyless(
-        ((*k).httpcode >= 100 as i32 && (*k).httpcode < 200 as i32) as i32 as bit,
-    );
+        ((*k).httpcode >= 100 as i32 && (*k).httpcode < 200 as i32) as bit,
+    );}
     let mut current_block_25: u64;
-    match (*k).httpcode {
+    match unsafe{(*k).httpcode} {
         304 => {
-            if (*data).set.timecondition as u64 != 0 {
-                (*data).info.set_timecond(1 as i32 as bit);
+            if unsafe{(*data).set.timecondition as u64 != 0} {
+                unsafe{(*data).info.set_timecond(1 as bit);}
             }
             current_block_25 = 14741359113768901450;
         }
@@ -5907,9 +5922,9 @@ pub unsafe extern "C" fn Curl_http_statusline(
     }
     match current_block_25 {
         14741359113768901450 => {
-            (*k).size = 0 as i32 as curl_off_t;
-            (*k).maxdownload = 0 as i32 as curl_off_t;
-            (*k).set_http_bodyless(1 as i32 as bit);
+            unsafe{ (*k).size = 0 as curl_off_t;
+            (*k).maxdownload = 0 as curl_off_t;
+            (*k).set_http_bodyless(1 as bit);}
         }
         _ => {}
     }
@@ -5920,16 +5935,16 @@ pub unsafe extern "C" fn Curl_http_statusline(
  * Read any HTTP header lines from the server and pass them to the client app.
  */
 #[no_mangle]
-pub unsafe extern "C" fn Curl_http_readwrite_headers(
+pub extern "C" fn Curl_http_readwrite_headers(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
     mut nread: *mut ssize_t,
     mut stop_reading: *mut bool,
 ) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
-    let mut k: *mut SingleRequest = &mut (*data).req;
-    let mut onread: ssize_t = *nread;
-    let mut ostr: *mut libc::c_char = (*k).str_0;
+    let mut k: *mut SingleRequest =unsafe{ &mut (*data).req};
+    let mut onread: ssize_t = unsafe{*nread};
+    let mut ostr: *mut libc::c_char = unsafe{(*k).str_0};
     let mut headp: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut str_start: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut end_ptr: *mut libc::c_char = 0 as *mut libc::c_char;
@@ -5941,37 +5956,37 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
         let mut writetype: i32 = 0;
 
         /* str_start is start of line within buf */
-        str_start = (*k).str_0;
+        str_start = unsafe{(*k).str_0};
 
         /* data is in network encoding so use 0x0a instead of '\n' */
-        end_ptr = memchr(str_start as *const libc::c_void, 0xa as i32, *nread as u64)
+        end_ptr =unsafe{ memchr(str_start as *const libc::c_void, 0xa as i32, *nread as u64)}
             as *mut libc::c_char;
         if end_ptr.is_null() {
             /* Not a complete header line within buffer, append the data to
             the end of the headerbuff. */
-            result = Curl_dyn_addn(
+            result = unsafe{Curl_dyn_addn(
                 &mut (*data).state.headerb,
                 str_start as *const libc::c_void,
                 *nread as size_t,
-            );
+            )};
             if result as u64 != 0 {
                 return result;
             }
 
-            if !((*k).headerline == 0) {
+            if unsafe{!((*k).headerline == 0) }{
                 /* check if this looks like a protocol header */
                 break;
             }
-            let mut st: statusline = checkprotoprefix(
+            let mut st: statusline = unsafe{checkprotoprefix(
                 data,
                 conn,
                 Curl_dyn_ptr(&mut (*data).state.headerb),
                 Curl_dyn_len(&mut (*data).state.headerb),
-            );
-            if !(st as u32 == STATUS_BAD as i32 as u32) {
+            )};
+            if !(st as u32 == STATUS_BAD as u32) {
                 break;
             }
-            (*k).set_header(0 as i32 as bit);
+            unsafe{(*k).set_header(0 as bit);
             (*k).badheader = HEADER_ALLBAD;
             #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
             Curl_conncontrol(conn, 2 as i32);
@@ -5980,37 +5995,37 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                 conn,
                 2 as i32,
                 b"bad HTTP: No end-of-message indicator\0" as *const u8 as *const libc::c_char,
-            );
-            if ((*data).set).http09_allowed() == 0 {
-                Curl_failf(
+            );}
+            if unsafe{ ((*data).set).http09_allowed() == 0 }{
+                unsafe{Curl_failf(
                     data,
                     b"Received HTTP/0.9 when not allowed\0" as *const u8 as *const libc::c_char,
-                );
+                );}
                 return CURLE_UNSUPPORTED_PROTOCOL;
             }
             break;
         } else {
-            rest_length = (end_ptr.offset_from((*k).str_0) as i64 + 1 as i32 as i64) as size_t;
-            *nread -= rest_length as ssize_t;
+            rest_length = unsafe{(end_ptr.offset_from((*k).str_0) as i64 + 1 as i32 as i64) as size_t};
+            unsafe{*nread -= rest_length as ssize_t;
             (*k).str_0 = end_ptr.offset(1 as isize);
-            full_length = ((*k).str_0).offset_from(str_start) as i64 as size_t;
+            full_length = ((*k).str_0).offset_from(str_start) as size_t;
             result = Curl_dyn_addn(
                 &mut (*data).state.headerb,
                 str_start as *const libc::c_void,
                 full_length,
-            );
+            );}
             if result as u64 != 0 {
                 return result;
             }
-            if (*k).headerline == 0 {
-                let mut st_0: statusline = checkprotoprefix(
+            if unsafe{(*k).headerline == 0} {
+                let mut st_0: statusline = unsafe{checkprotoprefix(
                     data,
                     conn,
                     Curl_dyn_ptr(&mut (*data).state.headerb),
                     Curl_dyn_len(&mut (*data).state.headerb),
-                );
-                if st_0 as u32 == STATUS_BAD as i32 as u32 {
-                    #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
+                )};
+                if st_0 as u32 == STATUS_BAD as u32 {
+                    unsafe{ #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
                     Curl_conncontrol(conn, 2 as i32);
                     #[cfg(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS)))]
                     Curl_conncontrol(
@@ -6027,7 +6042,7 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                         );
                         return CURLE_UNSUPPORTED_PROTOCOL;
                     }
-                    (*k).set_header(0 as i32 as bit);
+                    (*k).set_header(0 as bit);
                     if *nread != 0 {
                         (*k).badheader = HEADER_PARTHEADER;
                     } else {
@@ -6037,11 +6052,12 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                         return CURLE_OK;
                     }
                     break;
-                }
+                }}
             }
-            headp = Curl_dyn_ptr(&mut (*data).state.headerb);
-            if 0xa as i32 == *headp as i32 || 0xd as i32 == *headp as i32 {
+            headp = unsafe{Curl_dyn_ptr(&mut (*data).state.headerb)};
+            if unsafe{0xa as i32 == *headp as i32 || 0xd as i32 == *headp as i32 }{
                 let mut headerlen: size_t = 0;
+                unsafe{
                 #[cfg(not(CURL_DOES_CONVERSIONS))]
                 if '\r' as i32 == *headp as i32 {
                     headp = headp.offset(1);
@@ -6049,49 +6065,49 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                 #[cfg(not(CURL_DOES_CONVERSIONS))]
                 if '\n' as i32 == *headp as i32 {
                     headp = headp.offset(1);
-                }
-                if 100 as i32 <= (*k).httpcode && 199 as i32 >= (*k).httpcode {
-                    match (*k).httpcode {
+                }}
+                if unsafe{ 100 as i32 <= (*k).httpcode && 199 as i32 >= (*k).httpcode} {
+                    unsafe{match (*k).httpcode {
                         100 => {
-                            (*k).set_header(1 as i32 as bit);
+                            (*k).set_header(1 as bit);
                             (*k).headerline = 0 as i32;
-                            if (*k).exp100 as u32 > EXP100_SEND_DATA as i32 as u32 {
+                            if (*k).exp100 as u32 > EXP100_SEND_DATA as u32 {
                                 (*k).exp100 = EXP100_SEND_DATA;
                                 (*k).keepon |= (1 as i32) << 1 as i32;
                                 Curl_expire_done(data, EXPIRE_100_TIMEOUT);
                             }
                         }
                         101 => {
-                            if (*k).upgr101 as u32 == UPGR101_REQUESTED as i32 as u32 {
+                            if (*k).upgr101 as u32 == UPGR101_REQUESTED as u32 {
                                 Curl_infof(
                                     data,
                                     b"Received 101\0" as *const u8 as *const libc::c_char,
                                 );
                                 (*k).upgr101 = UPGR101_RECEIVED;
-                                (*k).set_header(1 as i32 as bit);
+                                (*k).set_header(1 as bit);
                                 (*k).headerline = 0 as i32;
                                 result = Curl_http2_switched(data, (*k).str_0, *nread as size_t);
                                 if result as u64 != 0 {
                                     return result;
                                 }
-                                *nread = 0 as i32 as ssize_t;
+                                *nread = 0 as ssize_t;
                             } else {
-                                (*k).set_header(0 as i32 as bit);
+                                (*k).set_header(0 as bit);
                             }
                         }
                         _ => {
-                            (*k).set_header(1 as i32 as bit);
+                            (*k).set_header(1 as bit);
                             (*k).headerline = 0 as i32;
                         }
-                    }
-                } else {
-                    (*k).set_header(0 as i32 as bit);
+                    }}
+                } else {unsafe{
+                    (*k).set_header(0 as bit);
                     if (*k).size == -(1 as i32) as i64
                         && (*k).chunk() == 0
                         && ((*conn).bits).close() == 0
                         && (*conn).httpversion as i32 == 11 as i32
                         && (*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 == 0
-                        && (*data).state.httpreq as u32 != HTTPREQ_HEAD as i32 as u32
+                        && (*data).state.httpreq as u32 != HTTPREQ_HEAD as u32
                     {
                         Curl_infof(
                             data,
@@ -6107,28 +6123,29 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                             b"HTTP: No end-of-message indicator\0" as *const u8
                                 as *const libc::c_char,
                         );
-                    }
+                    }}
                 }
+                unsafe{
                 #[cfg(USE_NTLM)]
                 if ((*conn).bits).close() as i32 != 0
                     && ((*data).req.httpcode == 401 as i32
-                        && (*conn).http_ntlm_state as u32 == NTLMSTATE_TYPE2 as i32 as u32
+                        && (*conn).http_ntlm_state as u32 == NTLMSTATE_TYPE2 as u32
                         || (*data).req.httpcode == 407 as i32
-                            && (*conn).proxy_ntlm_state as u32 == NTLMSTATE_TYPE2 as i32 as u32)
+                            && (*conn).proxy_ntlm_state as u32 == NTLMSTATE_TYPE2 as u32)
                 {
                     Curl_infof(
                         data,
                         b"Connection closure while negotiating auth (HTTP 1.0?)\0" as *const u8
                             as *const libc::c_char,
                     );
-                    (*data).state.set_authproblem(1 as i32 as bit);
+                    (*data).state.set_authproblem(1 as bit);
                 }
                 #[cfg(USE_SPNEGO)]
                 if ((*conn).bits).close() as i32 != 0
                     && ((*data).req.httpcode == 401 as i32
-                        && (*conn).http_negotiate_state as u32 == GSS_AUTHRECV as i32 as u32
+                        && (*conn).http_negotiate_state as u32 == GSS_AUTHRECV as u32
                         || (*data).req.httpcode == 407 as i32
-                            && (*conn).proxy_negotiate_state as u32 == GSS_AUTHRECV as i32 as u32)
+                            && (*conn).proxy_negotiate_state as u32 == GSS_AUTHRECV as u32)
                 {
                     Curl_infof(
                         data,
@@ -6136,56 +6153,56 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                             as *const libc::c_char,
                     );
                     let ref mut fresh89 = (*data).state;
-                    (*fresh89).set_authproblem(1 as i32 as bit);
+                    (*fresh89).set_authproblem(1 as bit);
                 }
                 #[cfg(USE_SPNEGO)]
-                if (*conn).http_negotiate_state as u32 == GSS_AUTHDONE as i32 as u32
+                if (*conn).http_negotiate_state as u32 == GSS_AUTHDONE as u32
                     && (*data).req.httpcode != 401 as i32
                 {
                     (*conn).http_negotiate_state = GSS_AUTHSUCC;
                 }
                 #[cfg(USE_SPNEGO)]
-                if (*conn).proxy_negotiate_state as u32 == GSS_AUTHDONE as i32 as u32
+                if (*conn).proxy_negotiate_state as u32 == GSS_AUTHDONE as u32
                     && (*data).req.httpcode != 407 as i32
                 {
                     (*conn).proxy_negotiate_state = GSS_AUTHSUCC;
-                }
+                }}
                 writetype = (1 as i32) << 1 as i32;
-                if ((*data).set).include_header() != 0 {
+                if unsafe{((*data).set).include_header() != 0 }{
                     writetype |= (1 as i32) << 0 as i32;
                 }
-                headerlen = Curl_dyn_len(&mut (*data).state.headerb);
-                result = Curl_client_write(
+                headerlen =unsafe{ Curl_dyn_len(&mut (*data).state.headerb)};
+                result = unsafe{Curl_client_write(
                     data,
                     writetype,
                     Curl_dyn_ptr(&mut (*data).state.headerb),
                     headerlen,
-                );
+                )};
                 if result as u64 != 0 {
                     return result;
                 }
-                (*data).info.header_size += headerlen as i64;
-                (*data).req.headerbytecount += headerlen as i64;
-                if http_should_fail(data) {
-                    Curl_failf(
+                unsafe{ (*data).info.header_size += headerlen as i64;
+                (*data).req.headerbytecount += headerlen as i64;}
+                if unsafe{http_should_fail(data)} {
+                    unsafe{ Curl_failf(
                         data,
                         b"The requested URL returned error: %d\0" as *const u8
                             as *const libc::c_char,
                         (*k).httpcode,
-                    );
+                    )};
                     return CURLE_HTTP_RETURNED_ERROR;
                 }
-                (*data).req.deductheadercount =
+                unsafe{(*data).req.deductheadercount =
                     if 100 as i32 <= (*k).httpcode && 199 as i32 >= (*k).httpcode {
                         (*data).req.headerbytecount
                     } else {
-                        0 as i32 as i64
-                    };
-                result = Curl_http_auth_act(data);
+                        0 as i64
+                    };}
+                result = unsafe{Curl_http_auth_act(data)};
                 if result as u64 != 0 {
                     return result;
                 }
-                if (*k).httpcode >= 300 as i32 {
+                if unsafe{(*k).httpcode >= 300 as i32} {unsafe{
                     if ((*conn).bits).authneg() == 0
                         && ((*conn).bits).close() == 0
                         && ((*conn).bits).rewindaftersend() == 0
@@ -6209,7 +6226,7 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                                             __assert_fail(
                                                 b"!data->req.newurl\0" as *const u8 as *const libc::c_char,
                                                 b"http.c\0" as *const u8 as *const libc::c_char,
-                                                4084 as i32 as u32,
+                                                4084 as u32,
                                                 (*::std::mem::transmute::<
                                                     &[u8; 99],
                                                     &[libc::c_char; 99],
@@ -6272,7 +6289,7 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                                         if result as u64 != 0 {
                                             return result;
                                         }
-                                        (*k).set_upload_done(1 as i32 as bit);
+                                        (*k).set_upload_done(1 as bit);
                                         if ((*data).state).expect100header() != 0 {
                                             (*k).exp100 = EXP100_FAILED;
                                         }
@@ -6289,18 +6306,18 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                                 as *const libc::c_char,
                         );
                         (*k).keepon |= (1 as i32) << 1 as i32;
-                    }
+                    }}
                 }
                 // 解决clippy错误
-                if (*k).header() == 0 {
+                if unsafe{(*k).header() == 0} {
                     // TODO 待测试
                     #[cfg(not(CURL_DISABLE_RSTP))]
-                    let flag7: bool = ((*data).set).opt_no_body() != 0
+                    let flag7: bool = unsafe{((*data).set).opt_no_body() != 0
                         || (*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0
-                            && (*data).set.rtspreq as u32 == RTSPREQ_DESCRIBE as i32 as u32
-                            && (*k).size <= -(1 as i32) as i64;
+                            && (*data).set.rtspreq as u32 == RTSPREQ_DESCRIBE as u32
+                            && (*k).size <= -(1 as i32) as i64};
                     #[cfg(CURL_DISABLE_RSTP)]
-                    let flag7: bool = ((*data).set).opt_no_body() != 0;
+                    let flag7: bool = unsafe{((*data).set).opt_no_body() != 0};
                     // let flag7: bool = if cfg!(not(CURL_DISABLE_RSTP)) {
                     //     ((*data).set).opt_no_body() != 0
                     //     || (*(*conn).handler).protocol
@@ -6313,7 +6330,7 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                     //     ((*data).set).opt_no_body() != 0
                     // };
                     if flag7 {
-                        *stop_reading = 1 as i32 != 0;
+                        unsafe{ *stop_reading = 1 as i32 != 0;}
                     // } else if (*(*conn).handler).protocol
                     //     & ((1 as i32) << 18 as i32) as u32
                     //     != 0
@@ -6322,51 +6339,51 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                     //     && (*k).size <= -(1 as i32) as i64
                     // {
                     //     *stop_reading = 1 as i32 != 0;
-                    } else if (*k).chunk() != 0 {
-                        let ref mut fresh89 = (*k).size;
+                    } else if unsafe{(*k).chunk() != 0} {
+                        unsafe{ let ref mut fresh89 = (*k).size;
                         *fresh89 = -(1 as i32) as curl_off_t;
-                        (*k).maxdownload = *fresh89;
+                        (*k).maxdownload = *fresh89;}
                     }
-                    if -(1 as i32) as i64 != (*k).size {
-                        Curl_pgrsSetDownloadSize(data, (*k).size);
-                        (*k).maxdownload = (*k).size;
+                    if -(1 as i32) as i64 != unsafe{(*k).size} {
+                        unsafe{ Curl_pgrsSetDownloadSize(data, (*k).size);
+                        (*k).maxdownload = (*k).size;}
                     }
                     #[cfg(USE_NGHTTP2)]
-                    let flag8: bool = 0 as i32 as i64 == (*k).maxdownload
+                    let flag8: bool = unsafe{0 as i64 == (*k).maxdownload
                         && !((*(*conn).handler).protocol
                             & ((1 as i32) << 0 as i32 | (1 as i32) << 1 as i32) as u32
                             != 0
-                            && (*conn).httpversion as i32 == 20 as i32);
+                            && (*conn).httpversion as i32 == 20 as i32)};
                     #[cfg(not(USE_NGHTTP2))]
-                    let flag8: bool = 0 as i32 as i64 == (*k).maxdownload;
+                    let flag8: bool = 0 as i64 ==unsafe{ (*k).maxdownload};
                     if flag8 {
-                        *stop_reading = 1 as i32 != 0;
+                        unsafe{ *stop_reading = 1 as i32 != 0;}
                     }
-                    if *stop_reading {
-                        (*k).keepon &= !((1 as i32) << 0 as i32);
+                    if unsafe{*stop_reading} {
+                        unsafe{ (*k).keepon &= !((1 as i32) << 0 as i32);}
                     }
-                    Curl_debug(data, CURLINFO_HEADER_IN, str_start, headerlen);
+                    unsafe{Curl_debug(data, CURLINFO_HEADER_IN, str_start, headerlen);}
                     break;
                 } else {
-                    Curl_dyn_reset(&mut (*data).state.headerb);
+                    unsafe{ Curl_dyn_reset(&mut (*data).state.headerb);}
                 }
             } else {
-                let ref mut fresh90 = (*k).headerline;
+                let ref mut fresh90 = unsafe{(*k).headerline};
                 let fresh91 = *fresh90;
                 *fresh90 = *fresh90 + 1;
                 if fresh91 == 0 {
                     let mut httpversion_major: i32 = 0;
                     let mut rtspversion_major: i32 = 0;
                     let mut nc: i32 = 0 as i32;
-                    if (*(*conn).handler).protocol
+                    if unsafe{(*(*conn).handler).protocol}
                         & ((1 as i32) << 0 as i32 | (1 as i32) << 1 as i32) as u32
                         != 0
                     {
                         let mut separator: libc::c_char = 0;
                         let mut twoorthree: [libc::c_char; 2] = [0; 2];
                         let mut httpversion: i32 = 0 as i32;
-                        let mut digit4: libc::c_char = 0 as i32 as libc::c_char;
-                        nc = sscanf(
+                        let mut digit4: libc::c_char = 0 as libc::c_char;
+                        nc = unsafe{sscanf(
                             headp,
                             b" HTTP/%1d.%1d%c%3d%c\0" as *const u8 as *const libc::c_char,
                             &mut httpversion_major as *mut i32,
@@ -6374,161 +6391,161 @@ pub unsafe extern "C" fn Curl_http_readwrite_headers(
                             &mut separator as *mut libc::c_char,
                             &mut (*k).httpcode as *mut i32,
                             &mut digit4 as *mut libc::c_char,
-                        );
+                        )};
                         if nc == 1 as i32
                             && httpversion_major >= 2 as i32
                             && 2 as i32
-                                == sscanf(
+                                == unsafe{sscanf(
                                     headp,
                                     b" HTTP/%1[23] %d\0" as *const u8 as *const libc::c_char,
                                     twoorthree.as_mut_ptr(),
                                     &mut (*k).httpcode as *mut i32,
-                                )
+                                )}
                         {
-                            (*conn).httpversion = 0 as i32 as u8;
+                            unsafe{(*conn).httpversion = 0 as u8;}
                             nc = 4 as i32;
-                            separator = ' ' as i32 as libc::c_char;
-                        } else if Curl_isdigit(digit4 as u8 as i32) != 0 {
-                            Curl_failf(
+                            separator = ' ' as libc::c_char;
+                        } else if unsafe{Curl_isdigit(digit4 as i32) != 0} {
+                            unsafe{ Curl_failf(
                                 data,
                                 b"Unsupported response code in HTTP response\0" as *const u8
                                     as *const libc::c_char,
-                            );
+                            );}
                             return CURLE_UNSUPPORTED_PROTOCOL;
                         }
                         if nc >= 4 as i32 && ' ' as i32 == separator as i32 {
                             httpversion += 10 as i32 * httpversion_major;
                             match httpversion {
                                 10 | 11 => {
-                                    (*conn).httpversion = httpversion as u8;
+                                    unsafe{(*conn).httpversion = httpversion as u8;}
                                 }
                                 #[cfg(any(USE_NGHTTP2, USE_HYPER))]
                                 20 => {
-                                    (*conn).httpversion = httpversion as u8;
+                                    unsafe{(*conn).httpversion = httpversion as u8;}
                                 }
                                 #[cfg(ENABLE_QUIC)]
                                 30 => {
-                                    (*conn).httpversion = httpversion as u8;
+                                    unsafe{(*conn).httpversion = httpversion as u8;}
                                 }
                                 _ => {
-                                    Curl_failf(
+                                    unsafe{Curl_failf(
                                         data,
                                         b"Unsupported HTTP version (%u.%d) in response\0"
                                             as *const u8
                                             as *const libc::c_char,
                                         httpversion / 10 as i32,
                                         httpversion % 10 as i32,
-                                    );
+                                    );}
                                     return CURLE_UNSUPPORTED_PROTOCOL;
                                 }
                             }
-                            if (*k).upgr101 as u32 == UPGR101_RECEIVED as i32 as u32 {
-                                if (*conn).httpversion as i32 != 20 as i32 {
-                                    Curl_infof(
+                            if unsafe{(*k).upgr101 as u32 == UPGR101_RECEIVED as u32} {
+                                if unsafe{(*conn).httpversion as i32 != 20 as i32} {
+                                    unsafe{Curl_infof(
                                         data,
                                         b"Lying server, not serving HTTP/2\0" as *const u8
                                             as *const libc::c_char,
-                                    );
+                                    );}
                                 }
                             }
-                            if ((*conn).httpversion as i32) < 20 as i32 {
-                                (*(*conn).bundle).multiuse = -(1 as i32);
+                            if unsafe{((*conn).httpversion as i32) < 20 as i32} {
+                                unsafe{ (*(*conn).bundle).multiuse = -(1 as i32);
                                 Curl_infof(
                                     data,
                                     b"Mark bundle as not supporting multiuse\0" as *const u8
                                         as *const libc::c_char,
-                                );
+                                );}
                             }
                         } else if nc == 0 {
-                            nc = sscanf(
+                            nc = unsafe{sscanf(
                                 headp,
                                 b" HTTP %3d\0" as *const u8 as *const libc::c_char,
                                 &mut (*k).httpcode as *mut i32,
-                            );
-                            (*conn).httpversion = 10 as i32 as u8;
+                            )};
+                            unsafe{(*conn).httpversion = 10 as u8;}
                             if nc == 0 {
-                                let mut check: statusline = checkhttpprefix(
+                                let mut check: statusline = unsafe{checkhttpprefix(
                                     data,
                                     Curl_dyn_ptr(&mut (*data).state.headerb),
                                     Curl_dyn_len(&mut (*data).state.headerb),
-                                );
-                                if check as u32 == STATUS_DONE as i32 as u32 {
+                                )};
+                                if check as u32 == STATUS_DONE as u32 {
                                     nc = 1 as i32;
-                                    (*k).httpcode = 200 as i32;
-                                    (*conn).httpversion = 10 as i32 as u8;
+                                    unsafe{(*k).httpcode = 200 as i32;
+                                    (*conn).httpversion = 10 as u8;}
                                 }
                             }
                         } else {
-                            Curl_failf(
+                            unsafe{Curl_failf(
                                 data,
                                 b"Unsupported HTTP version in response\0" as *const u8
                                     as *const libc::c_char,
-                            );
+                            );}
                             return CURLE_UNSUPPORTED_PROTOCOL;
                         }
-                    } else if (*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0 {
+                    } else if  unsafe{(*(*conn).handler).protocol & ((1 as i32) << 18 as i32) as u32 != 0} {
                         let mut separator_0: libc::c_char = 0;
                         let mut rtspversion: i32 = 0;
-                        nc = sscanf(
+                        nc =  unsafe{sscanf(
                             headp,
                             b" RTSP/%1d.%1d%c%3d\0" as *const u8 as *const libc::c_char,
                             &mut rtspversion_major as *mut i32,
                             &mut rtspversion as *mut i32,
                             &mut separator_0 as *mut libc::c_char,
                             &mut (*k).httpcode as *mut i32,
-                        );
+                        )};
                         if nc == 4 as i32 && ' ' as i32 == separator_0 as i32 {
-                            (*conn).httpversion = 11 as i32 as u8;
+                            unsafe{ (*conn).httpversion = 11 as u8;}
                         } else {
                             nc = 0 as i32;
                         }
                     }
                     if nc != 0 {
-                        result = Curl_http_statusline(data, conn);
+                        result =  unsafe{Curl_http_statusline(data, conn)};
                         if result as u64 != 0 {
                             return result;
                         }
                     } else {
-                        (*k).set_header(0 as i32 as bit);
+                        unsafe{ (*k).set_header(0 as bit);}
                         break;
                     }
                 }
-                result = CURLE_OK as i32 as CURLcode;
+                result = CURLE_OK as CURLcode;
                 if result as u64 != 0 {
                     return result;
                 }
-                result = Curl_http_header(data, conn, headp);
+                result =  unsafe{Curl_http_header(data, conn, headp)};
                 if result as u64 != 0 {
                     return result;
                 }
                 writetype = (1 as i32) << 1 as i32;
-                if ((*data).set).include_header() != 0 {
+                if  unsafe{((*data).set).include_header() != 0} {
                     writetype |= (1 as i32) << 0 as i32;
                 }
-                Curl_debug(
+                unsafe{Curl_debug(
                     data,
                     CURLINFO_HEADER_IN,
                     headp,
                     Curl_dyn_len(&mut (*data).state.headerb),
-                );
-                result = Curl_client_write(
+                );}
+                result =  unsafe{Curl_client_write(
                     data,
                     writetype,
                     headp,
                     Curl_dyn_len(&mut (*data).state.headerb),
-                );
+                )};
                 if result as u64 != 0 {
                     return result;
                 }
-                (*data).info.header_size = ((*data).info.header_size as u64)
+                unsafe{(*data).info.header_size = ((*data).info.header_size as u64)
                     .wrapping_add(Curl_dyn_len(&mut (*data).state.headerb))
-                    as curl_off_t as curl_off_t;
+                    as curl_off_t;
                 (*data).req.headerbytecount = ((*data).req.headerbytecount as u64)
                     .wrapping_add(Curl_dyn_len(&mut (*data).state.headerb))
-                    as curl_off_t as curl_off_t;
-                Curl_dyn_reset(&mut (*data).state.headerb);
+                    as curl_off_t;
+                Curl_dyn_reset(&mut (*data).state.headerb);}
             }
-            if !(*(*k).str_0 != 0) {
+            if  unsafe{!(*(*k).str_0 != 0)} {
                 break;
             }
         }
