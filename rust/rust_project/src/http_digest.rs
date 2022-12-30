@@ -30,11 +30,11 @@ pub extern "C" fn Curl_input_digest(
     mut proxy: bool,
     mut header: *const libc::c_char,
 ) -> CURLcode {
-        /* rest of the *-authenticate:
-        header */
-        let mut digest: *mut digestdata =unsafe { 0 as *mut digestdata};
-        /* Point to the correct struct with this */
-        unsafe {
+    /* rest of the *-authenticate:
+    header */
+    let mut digest: *mut digestdata = unsafe { 0 as *mut digestdata };
+    /* Point to the correct struct with this */
+    unsafe {
         if proxy {
             digest = &mut (*data).state.proxydigest;
         } else {
@@ -63,22 +63,22 @@ pub extern "C" fn Curl_output_digest(
     mut request: *const u8,
     mut uripath: *const u8,
 ) -> CURLcode {
-        let mut result: CURLcode = CURLE_OK;
-        let mut path: *mut u8 =unsafe { 0 as *mut u8};
-        let mut tmp: *mut libc::c_char =unsafe { 0 as *mut libc::c_char};
-        let mut response: *mut libc::c_char =unsafe { 0 as *mut libc::c_char};
-        let mut len: size_t = 0;
-        let mut have_chlg: bool = false;
-        /* Point to the address of the pointer that holds the string to send to the
-        server, which is for a plain host or for a HTTP proxy */
-        let mut allocuserpwd: *mut *mut libc::c_char =unsafe { 0 as *mut *mut libc::c_char};
-        /* Point to the name and password for this */
-        let mut userp: *const libc::c_char =unsafe { 0 as *const libc::c_char};
-        let mut passwdp: *const libc::c_char =unsafe { 0 as *const libc::c_char};
-        /* Point to the correct struct with this */
-        let mut digest: *mut digestdata = unsafe {0 as *mut digestdata};
-        let mut authp: *mut auth =unsafe { 0 as *mut auth};
-        unsafe {
+    let mut result: CURLcode = CURLE_OK;
+    let mut path: *mut u8 = unsafe { 0 as *mut u8 };
+    let mut tmp: *mut libc::c_char = unsafe { 0 as *mut libc::c_char };
+    let mut response: *mut libc::c_char = unsafe { 0 as *mut libc::c_char };
+    let mut len: size_t = 0;
+    let mut have_chlg: bool = false;
+    /* Point to the address of the pointer that holds the string to send to the
+    server, which is for a plain host or for a HTTP proxy */
+    let mut allocuserpwd: *mut *mut libc::c_char = unsafe { 0 as *mut *mut libc::c_char };
+    /* Point to the name and password for this */
+    let mut userp: *const libc::c_char = unsafe { 0 as *const libc::c_char };
+    let mut passwdp: *const libc::c_char = unsafe { 0 as *const libc::c_char };
+    /* Point to the correct struct with this */
+    let mut digest: *mut digestdata = unsafe { 0 as *mut digestdata };
+    let mut authp: *mut auth = unsafe { 0 as *mut auth };
+    unsafe {
         if proxy {
             if cfg!(not(CURL_DISABLE_PROXY)) {
                 digest = &mut (*data).state.proxydigest;

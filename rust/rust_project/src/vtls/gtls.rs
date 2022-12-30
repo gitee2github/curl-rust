@@ -24,41 +24,44 @@ extern "C" fn gtls_push(
     mut buf: *const libc::c_void,
     mut len: size_t,
 ) -> ssize_t {
-        let mut sock: curl_socket_t =unsafe{ *(s as *mut curl_socket_t)};
-        #[cfg(not(CURLDEBUG))]
-        let mut ret: ssize_t =unsafe{  send(sock, buf, len, MSG_NOSIGNAL as i32)};
+    let mut sock: curl_socket_t = unsafe { *(s as *mut curl_socket_t) };
+    #[cfg(not(CURLDEBUG))]
+    let mut ret: ssize_t = unsafe { send(sock, buf, len, MSG_NOSIGNAL as i32) };
 
-        #[cfg(CURLDEBUG)]
-        let mut ret: ssize_t =unsafe{  curl_dbg_send(
+    #[cfg(CURLDEBUG)]
+    let mut ret: ssize_t = unsafe {
+        curl_dbg_send(
             sock,
             buf,
             len,
             MSG_NOSIGNAL as i32,
             86 as i32,
             b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
-        )};
-        return ret;
-    
+        )
+    };
+    return ret;
 }
 extern "C" fn gtls_pull(
     mut s: *mut libc::c_void,
     mut buf: *mut libc::c_void,
     mut len: size_t,
 ) -> ssize_t {
-        let mut sock: curl_socket_t =unsafe{  *(s as *mut curl_socket_t)};
-        #[cfg(not(CURLDEBUG))]
-        let mut ret: ssize_t =unsafe{  recv(sock, buf, len, 0 as i32)};
+    let mut sock: curl_socket_t = unsafe { *(s as *mut curl_socket_t) };
+    #[cfg(not(CURLDEBUG))]
+    let mut ret: ssize_t = unsafe { recv(sock, buf, len, 0 as i32) };
 
-        #[cfg(CURLDEBUG)]
-        let mut ret: ssize_t =unsafe{  curl_dbg_recv(
+    #[cfg(CURLDEBUG)]
+    let mut ret: ssize_t = unsafe {
+        curl_dbg_recv(
             sock,
             buf,
             len,
             0 as i32,
             93 as i32,
             b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
-        )};
-        return ret;
+        )
+    };
+    return ret;
 }
 extern "C" fn gtls_push_ssl(
     mut s: *mut libc::c_void,
@@ -87,18 +90,22 @@ extern "C" fn gtls_pull_ssl(
  * situation under control!
  */
 extern "C" fn gtls_init() -> i32 {
-        let mut ret: i32 = 1 as i32;
-        if unsafe{ !gtls_inited} {
-            ret =unsafe{  if gnutls_global_init() != 0 {
+    let mut ret: i32 = 1 as i32;
+    if unsafe { !gtls_inited } {
+        ret = unsafe {
+            if gnutls_global_init() != 0 {
                 0 as i32
             } else {
                 1 as i32
-            }};
+            }
+        };
 
-            // #[cfg(GTLSDEBUG)]
-            unsafe{  gtls_inited = 1 as i32 != 0;}
+        // #[cfg(GTLSDEBUG)]
+        unsafe {
+            gtls_inited = 1 as i32 != 0;
         }
-        return ret;
+    }
+    return ret;
 }
 
 extern "C" fn gtls_cleanup() {
@@ -111,26 +118,27 @@ extern "C" fn gtls_cleanup() {
 }
 #[cfg(not(CURL_DISABLE_VERBOSE_STRINGS))]
 extern "C" fn showtime(mut data: *mut Curl_easy, mut text: *const libc::c_char, mut stamp: time_t) {
-        let mut buffer: tm = tm {
-            tm_sec: 0,
-            tm_min: 0,
-            tm_hour: 0,
-            tm_mday: 0,
-            tm_mon: 0,
-            tm_year: 0,
-            tm_wday: 0,
-            tm_yday: 0,
-            tm_isdst: 0,
-            tm_gmtoff: 0,
-            tm_zone: 0 as *const libc::c_char,
-        };
-        let mut tm: *const tm = &mut buffer;
-        let mut str: [libc::c_char; 96] = [0; 96];
-        let mut result: CURLcode =unsafe{  Curl_gmtime(stamp, &mut buffer)};
-        if result as u64 != 0 {
-            return;
-        }
-        unsafe{ curl_msnprintf(
+    let mut buffer: tm = tm {
+        tm_sec: 0,
+        tm_min: 0,
+        tm_hour: 0,
+        tm_mday: 0,
+        tm_mon: 0,
+        tm_year: 0,
+        tm_wday: 0,
+        tm_yday: 0,
+        tm_isdst: 0,
+        tm_gmtoff: 0,
+        tm_zone: 0 as *const libc::c_char,
+    };
+    let mut tm: *const tm = &mut buffer;
+    let mut str: [libc::c_char; 96] = [0; 96];
+    let mut result: CURLcode = unsafe { Curl_gmtime(stamp, &mut buffer) };
+    if result as u64 != 0 {
+        return;
+    }
+    unsafe {
+        curl_msnprintf(
             str.as_mut_ptr(),
             ::std::mem::size_of::<[libc::c_char; 96]>() as u64,
             b"  %s: %s, %02d %s %4d %02d:%02d:%02d GMT\0" as *const u8 as *const libc::c_char,
@@ -151,20 +159,22 @@ extern "C" fn showtime(mut data: *mut Curl_easy, mut text: *const libc::c_char, 
             data,
             b"%s\0" as *const u8 as *const libc::c_char,
             str.as_mut_ptr(),
-        );}
-    
+        );
+    }
 }
 extern "C" fn load_file(mut file: *const libc::c_char) -> gnutls_datum_t {
-        let mut f: *mut FILE = 0 as *mut FILE;
-        let mut loaded_file: gnutls_datum_t =unsafe{  {
+    let mut f: *mut FILE = 0 as *mut FILE;
+    let mut loaded_file: gnutls_datum_t = unsafe {
+        {
             gnutls_datum_t {
                 data: 0 as *mut u8,
                 size: 0 as u32,
             }
-        }};
-        let mut filelen: i64 = 0;
-        let mut ptr: *mut libc::c_void = 0 as *mut libc::c_void;
-        unsafe{ 
+        }
+    };
+    let mut filelen: i64 = 0;
+    let mut ptr: *mut libc::c_void = 0 as *mut libc::c_void;
+    unsafe {
         match () {
             #[cfg(not(CURLDEBUG))]
             _ => {
@@ -234,17 +244,20 @@ extern "C" fn load_file(mut file: *const libc::c_char) -> gnutls_datum_t {
             break 'out;
         }
     }
-        #[cfg(not(CURLDEBUG))]
-        unsafe{ fclose(f);}
+    #[cfg(not(CURLDEBUG))]
+    unsafe {
+        fclose(f);
+    }
 
-        #[cfg(CURLDEBUG)]
-        unsafe{ curl_dbg_fclose(
+    #[cfg(CURLDEBUG)]
+    unsafe {
+        curl_dbg_fclose(
             f,
             186 as i32,
             b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
-        );}
-        return loaded_file;
-    
+        );
+    }
+    return loaded_file;
 }
 extern "C" fn unload_file(mut data: gnutls_datum_t) {
     unsafe {
@@ -268,13 +281,13 @@ extern "C" fn handshake(
     mut duringconnect: bool,
     mut nonblocking: bool,
 ) -> CURLcode {
-
-        let mut connssl: *mut ssl_connect_data =unsafe{ 
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data};
-        let mut backend: *mut ssl_backend_data =unsafe{  (*connssl).backend};
-        let mut session: gnutls_session_t =unsafe{  (*backend).session};
-        let mut sockfd: curl_socket_t =unsafe{  (*conn).sock[sockindex as usize]};
-        unsafe{ 
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    let mut session: gnutls_session_t = unsafe { (*backend).session };
+    let mut sockfd: curl_socket_t = unsafe { (*conn).sock[sockindex as usize] };
+    unsafe {
         loop {
             let mut timeout_ms: timediff_t = 0;
             let mut rc: i32 = 0;
@@ -410,7 +423,7 @@ extern "C" fn set_ssl_version_min_max(
     mut prioritylist: *mut *const libc::c_char,
     mut tls13support: *const libc::c_char,
 ) -> CURLcode {
-    unsafe{ 
+    unsafe {
         let mut conn: *mut connectdata = (*data).conn;
         #[cfg(not(CURL_DISABLE_PROXY))]
         let mut ssl_version: i64 = if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
@@ -1640,28 +1653,32 @@ extern "C" fn pkp_pin_peer_pubkey(
     mut cert: gnutls_x509_crt_t,
     mut pinnedpubkey: *const libc::c_char,
 ) -> CURLcode {
-        /* Scratch */
-        let mut len1: size_t = 0 as size_t;
-        let mut len2: size_t = 0 as size_t;
-        let mut buff1: *mut u8 = 0 as *mut u8;
-        let mut key: gnutls_pubkey_t = 0 as gnutls_pubkey_t;
-        /* Result is returned to caller */
-        let mut result: CURLcode = CURLE_SSL_PINNEDPUBKEYNOTMATCH;
-        /* if a path wasn't specified, don't pin */
-        if pinnedpubkey.is_null() {
-            return CURLE_OK;
-        }
-        if cert.is_null() {
-            return result;
-        }
-        let mut ret: i32 = 0;
-        /* Begin Gyrations to get the public key     */
-        unsafe{  gnutls_pubkey_init(&mut key);}
-        ret = unsafe{ gnutls_pubkey_import_x509(key, cert, 0 as u32)};
-        if !(ret < 0 as i32) {
-            ret = unsafe{ gnutls_pubkey_export(key, GNUTLS_X509_FMT_DER, 0 as *mut libc::c_void, &mut len1)};
-            if !(ret != -(51 as i32) || len1 == 0 as u64) {
-                unsafe{ 
+    /* Scratch */
+    let mut len1: size_t = 0 as size_t;
+    let mut len2: size_t = 0 as size_t;
+    let mut buff1: *mut u8 = 0 as *mut u8;
+    let mut key: gnutls_pubkey_t = 0 as gnutls_pubkey_t;
+    /* Result is returned to caller */
+    let mut result: CURLcode = CURLE_SSL_PINNEDPUBKEYNOTMATCH;
+    /* if a path wasn't specified, don't pin */
+    if pinnedpubkey.is_null() {
+        return CURLE_OK;
+    }
+    if cert.is_null() {
+        return result;
+    }
+    let mut ret: i32 = 0;
+    /* Begin Gyrations to get the public key     */
+    unsafe {
+        gnutls_pubkey_init(&mut key);
+    }
+    ret = unsafe { gnutls_pubkey_import_x509(key, cert, 0 as u32) };
+    if !(ret < 0 as i32) {
+        ret = unsafe {
+            gnutls_pubkey_export(key, GNUTLS_X509_FMT_DER, 0 as *mut libc::c_void, &mut len1)
+        };
+        if !(ret != -(51 as i32) || len1 == 0 as u64) {
+            unsafe {
                 match () {
                     #[cfg(not(CURLDEBUG))]
                     _ => {
@@ -1691,25 +1708,30 @@ extern "C" fn pkp_pin_peer_pubkey(
                         /* The one good exit point */
                         result = Curl_pin_peer_pubkey(data, pinnedpubkey, buff1, len1);
                     }
-                }}
+                }
             }
         }
-        if unsafe{ !key.is_null() }{
-            unsafe{ 
-            gnutls_pubkey_deinit(key);}
+    }
+    if unsafe { !key.is_null() } {
+        unsafe {
+            gnutls_pubkey_deinit(key);
         }
-        #[cfg(not(CURLDEBUG))]
-        unsafe{ Curl_cfree.expect("non-null function pointer")(buff1 as *mut libc::c_void);}
+    }
+    #[cfg(not(CURLDEBUG))]
+    unsafe {
+        Curl_cfree.expect("non-null function pointer")(buff1 as *mut libc::c_void);
+    }
 
-        #[cfg(CURLDEBUG)]
-        unsafe{ curl_dbg_free(
+    #[cfg(CURLDEBUG)]
+    unsafe {
+        curl_dbg_free(
             buff1 as *mut libc::c_void,
             804 as i32,
             b"vtls/gtls.c\0" as *const u8 as *const libc::c_char,
-        );}
-        buff1 = 0 as *mut u8;
-        return result;
-    
+        );
+    }
+    buff1 = 0 as *mut u8;
+    return result;
 }
 
 extern "C" fn gtls_connect_step3(
@@ -2926,9 +2948,9 @@ extern "C" fn gtls_connect(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> CURLcode {
-        let mut result: CURLcode = CURLE_OK;
-        let mut done: bool = 0 as i32 != 0;
-        unsafe{ 
+    let mut result: CURLcode = CURLE_OK;
+    let mut done: bool = 0 as i32 != 0;
+    unsafe {
         result = gtls_connect_common(data, conn, sockindex, 0 as i32 != 0, &mut done);
         if result as u64 != 0 {
             return result;
@@ -2950,29 +2972,31 @@ extern "C" fn gtls_connect(
     }
 }
 extern "C" fn gtls_data_pending(mut conn: *const connectdata, mut connindex: i32) -> bool {
-        let mut connssl: *const ssl_connect_data =unsafe{ 
-            &*((*conn).ssl).as_ptr().offset(connindex as isize) as *const ssl_connect_data};
-        let mut res: bool = 0 as i32 != 0;
-        let mut backend: *mut ssl_backend_data =unsafe{  (*connssl).backend};
-        if unsafe{ !((*backend).session).is_null()
-            && 0 as u64 != gnutls_record_check_pending((*backend).session)}
-        {
+    let mut connssl: *const ssl_connect_data =
+        unsafe { &*((*conn).ssl).as_ptr().offset(connindex as isize) as *const ssl_connect_data };
+    let mut res: bool = 0 as i32 != 0;
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    if unsafe {
+        !((*backend).session).is_null()
+            && 0 as u64 != gnutls_record_check_pending((*backend).session)
+    } {
+        res = 1 as i32 != 0;
+    }
+    #[cfg(not(CURL_DISABLE_PROXY))]
+    if true {
+        connssl = unsafe {
+            &*((*conn).proxy_ssl).as_ptr().offset(connindex as isize) as *const ssl_connect_data
+        };
+        backend = unsafe { (*connssl).backend };
+        if unsafe {
+            !((*backend).session).is_null()
+                && 0 as u64 != gnutls_record_check_pending((*backend).session)
+        } {
             res = 1 as i32 != 0;
         }
-        #[cfg(not(CURL_DISABLE_PROXY))]
-        if true {
-            connssl = unsafe{ &*((*conn).proxy_ssl).as_ptr().offset(connindex as isize)
-                as *const ssl_connect_data};
-            backend = unsafe{ (*connssl).backend};
-            if unsafe{ !((*backend).session).is_null()
-                && 0 as u64 != gnutls_record_check_pending((*backend).session)}
-            {
-                res = 1 as i32 != 0;
-            }
-        }
+    }
 
-        return res;
-    
+    return res;
 }
 extern "C" fn gtls_send(
     mut data: *mut Curl_easy,
@@ -2981,13 +3005,13 @@ extern "C" fn gtls_send(
     mut len: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
-
-        let mut conn: *mut connectdata = unsafe{ (*data).conn};
-        let mut connssl: *mut ssl_connect_data =unsafe{ 
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data};
-        let mut backend: *mut ssl_backend_data = unsafe{ (*connssl).backend};
-        let mut rc: ssize_t =unsafe{  gnutls_record_send((*backend).session, mem, len)};
-        unsafe{ 
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    let mut rc: ssize_t = unsafe { gnutls_record_send((*backend).session, mem, len) };
+    unsafe {
         if rc < 0 as i64 {
             *curlcode = (if rc == -(28 as i32) as i64 {
                 CURLE_AGAIN as i32
@@ -3001,9 +3025,8 @@ extern "C" fn gtls_send(
 }
 
 extern "C" fn close_one(mut connssl: *mut ssl_connect_data) {
-
-        let mut backend: *mut ssl_backend_data =unsafe{  (*connssl).backend};
-        unsafe{ 
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    unsafe {
         if !((*backend).session).is_null() {
             let mut buf: [libc::c_char; 32] = [0; 32];
             /* Maybe the server has already sent a close notify alert.
@@ -3046,12 +3069,12 @@ extern "C" fn gtls_shutdown(
     mut conn: *mut connectdata,
     mut sockindex: i32,
 ) -> i32 {
-
-        let mut connssl: *mut ssl_connect_data =unsafe{ 
-            &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data};
-        let mut backend: *mut ssl_backend_data =unsafe{  (*connssl).backend};
-        let mut retval: i32 = 0 as i32;
-        unsafe{ 
+    let mut connssl: *mut ssl_connect_data = unsafe {
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data
+    };
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    let mut retval: i32 = 0 as i32;
+    unsafe {
         /* This has only been tested on the proftpd server, and the mod_tls code
         sends a close notify alert without waiting for a close notify alert in
         response. Thus we wait for a close notify alert from the server, but
@@ -3169,12 +3192,12 @@ extern "C" fn gtls_recv(
     mut buffersize: size_t,
     mut curlcode: *mut CURLcode,
 ) -> ssize_t {
-        let mut conn: *mut connectdata =unsafe{  (*data).conn};
-        let mut connssl: *mut ssl_connect_data =unsafe{ 
-            &mut *((*conn).ssl).as_mut_ptr().offset(num as isize) as *mut ssl_connect_data};
-        let mut backend: *mut ssl_backend_data =unsafe{  (*connssl).backend};
-        let mut ret: ssize_t = 0;
-        unsafe{ 
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut connssl: *mut ssl_connect_data =
+        unsafe { &mut *((*conn).ssl).as_mut_ptr().offset(num as isize) as *mut ssl_connect_data };
+    let mut backend: *mut ssl_backend_data = unsafe { (*connssl).backend };
+    let mut ret: ssize_t = 0;
+    unsafe {
         ret = gnutls_record_recv((*backend).session, buf as *mut libc::c_void, buffersize);
         if ret == -(28 as i32) as i64 || ret == -(52 as i32) as i64 {
             *curlcode = CURLE_AGAIN;
@@ -3235,9 +3258,8 @@ extern "C" fn gtls_random(
     mut entropy: *mut u8,
     mut length: size_t,
 ) -> CURLcode {
-
-        let mut rc: i32 = 0;
-        unsafe{ 
+    let mut rc: i32 = 0;
+    unsafe {
         rc = gnutls_rnd(GNUTLS_RND_RANDOM, entropy as *mut libc::c_void, length);
         return (if rc != 0 {
             CURLE_FAILED_INIT as i32
@@ -3252,14 +3274,15 @@ extern "C" fn gtls_sha256sum(
     mut sha256sum: *mut u8,
     mut sha256len: size_t,
 ) -> CURLcode {
-
-        let mut SHA256pw: sha256_ctx =unsafe{  sha256_ctx {
+    let mut SHA256pw: sha256_ctx = unsafe {
+        sha256_ctx {
             state: [0; 8],
             count: 0,
             block: [0; 64],
             index: 0,
-        }};
-        unsafe{ 
+        }
+    };
+    unsafe {
         nettle_sha256_init(&mut SHA256pw);
         nettle_sha256_update(&mut SHA256pw, tmplen as size_t, tmp);
         nettle_sha256_digest(&mut SHA256pw, sha256len as size_t, sha256sum);

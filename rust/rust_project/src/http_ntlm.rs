@@ -23,28 +23,29 @@ pub extern "C" fn Curl_input_ntlm(
     mut header: *const libc::c_char, /* rest of the www-authenticate:
                      header */
 ) -> CURLcode {
-        /* point to the correct struct with this */
-        let mut ntlm: *mut ntlmdata = 0 as *mut ntlmdata;
-        let mut state: *mut curlntlm = 0 as *mut curlntlm;
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata = unsafe {(*data).conn};
-        ntlm = if proxy as i32 != 0 {
-            unsafe {&mut (*conn).proxyntlm}
-        } else {
-            unsafe {&mut (*conn).ntlm}
-        };
-        state = if proxy as i32 != 0 {
-            unsafe {&mut (*conn).proxy_ntlm_state}
-        } else {
-            unsafe {&mut (*conn).http_ntlm_state}
-        };
-        if unsafe {curl_strnequal(
+    /* point to the correct struct with this */
+    let mut ntlm: *mut ntlmdata = 0 as *mut ntlmdata;
+    let mut state: *mut curlntlm = 0 as *mut curlntlm;
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    ntlm = if proxy as i32 != 0 {
+        unsafe { &mut (*conn).proxyntlm }
+    } else {
+        unsafe { &mut (*conn).ntlm }
+    };
+    state = if proxy as i32 != 0 {
+        unsafe { &mut (*conn).proxy_ntlm_state }
+    } else {
+        unsafe { &mut (*conn).http_ntlm_state }
+    };
+    if unsafe {
+        curl_strnequal(
             b"NTLM\0" as *const u8 as *const libc::c_char,
             header,
             strlen(b"NTLM\0" as *const u8 as *const libc::c_char),
-        ) != 0}
-        {
-            unsafe {
+        ) != 0
+    } {
+        unsafe {
             header = header.offset(strlen(b"NTLM\0" as *const u8 as *const libc::c_char) as isize);
             while *header as i32 != 0 && Curl_isspace(*header as i32) != 0 {
                 header = header.offset(1);
@@ -102,33 +103,32 @@ pub extern "C" fn Curl_input_ntlm(
                 }
                 *state = NTLMSTATE_TYPE1;
             }
-            }
         }
-        return result;
-    
+    }
+    return result;
 }
 #[no_mangle]
 pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) -> CURLcode {
-        let mut base64: *mut libc::c_char = 0 as *mut libc::c_char;
-        let mut len: size_t = 0 as size_t;
-        let mut result: CURLcode = CURLE_OK;
-        let mut ntlmmsg: bufref = bufref {
-            dtor: None,
-            ptr: 0 as *const u8,
-            len: 0,
-            #[cfg(CURLDEBUG)]
-            signature: 0,
-        };
-        let mut allocuserpwd: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
-        let mut userp: *const libc::c_char = 0 as *const libc::c_char;
-        let mut passwdp: *const libc::c_char = 0 as *const libc::c_char;
-        let mut service: *const libc::c_char = 0 as *const libc::c_char;
-        let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
-        let mut ntlm: *mut ntlmdata = 0 as *mut ntlmdata;
-        let mut state: *mut curlntlm = 0 as *mut curlntlm;
-        let mut authp: *mut auth = 0 as *mut auth;
-        let mut conn: *mut connectdata = unsafe {(*data).conn};
-        unsafe {
+    let mut base64: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut len: size_t = 0 as size_t;
+    let mut result: CURLcode = CURLE_OK;
+    let mut ntlmmsg: bufref = bufref {
+        dtor: None,
+        ptr: 0 as *const u8,
+        len: 0,
+        #[cfg(CURLDEBUG)]
+        signature: 0,
+    };
+    let mut allocuserpwd: *mut *mut libc::c_char = 0 as *mut *mut libc::c_char;
+    let mut userp: *const libc::c_char = 0 as *const libc::c_char;
+    let mut passwdp: *const libc::c_char = 0 as *const libc::c_char;
+    let mut service: *const libc::c_char = 0 as *const libc::c_char;
+    let mut hostname: *const libc::c_char = 0 as *const libc::c_char;
+    let mut ntlm: *mut ntlmdata = 0 as *mut ntlmdata;
+    let mut state: *mut curlntlm = 0 as *mut curlntlm;
+    let mut authp: *mut auth = 0 as *mut auth;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    unsafe {
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
         if !conn.is_null() {
         } else {
@@ -156,8 +156,8 @@ pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) ->
             );
         }
     }
-        if proxy {
-            unsafe {
+    if proxy {
+        unsafe {
             match () {
                 #[cfg(not(CURL_DISABLE_PROXY))]
                 _ => {
@@ -180,31 +180,37 @@ pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) ->
                     return CURLE_NOT_BUILT_IN;
                 }
             }
-            }
-        } else {
-            allocuserpwd =unsafe { &mut (*data).state.aptr.userpwd};
-            userp = unsafe {(*data).state.aptr.user};
-            passwdp = unsafe {(*data).state.aptr.passwd};
-            service = unsafe {if !((*data).set.str_0[STRING_SERVICE_NAME as usize]).is_null() {
+        }
+    } else {
+        allocuserpwd = unsafe { &mut (*data).state.aptr.userpwd };
+        userp = unsafe { (*data).state.aptr.user };
+        passwdp = unsafe { (*data).state.aptr.passwd };
+        service = unsafe {
+            if !((*data).set.str_0[STRING_SERVICE_NAME as usize]).is_null() {
                 (*data).set.str_0[STRING_SERVICE_NAME as usize] as *const libc::c_char
             } else {
                 b"HTTP\0" as *const u8 as *const libc::c_char
-            }};
-            hostname = unsafe {(*conn).host.name};
-            ntlm = unsafe {&mut (*conn).ntlm};
-            state = unsafe {&mut (*conn).http_ntlm_state};
-            authp =unsafe { &mut (*data).state.authhost};
-        }
-        unsafe {(*authp).set_done(0 as bit);}
-        if userp.is_null() {
-            userp = b"\0" as *const u8 as *const libc::c_char;
-        }
-        if passwdp.is_null() {
-            passwdp = b"\0" as *const u8 as *const libc::c_char;
-        }
-        unsafe { Curl_bufref_init(&mut ntlmmsg);}
-        let mut current_block_61: u64;
-        unsafe {
+            }
+        };
+        hostname = unsafe { (*conn).host.name };
+        ntlm = unsafe { &mut (*conn).ntlm };
+        state = unsafe { &mut (*conn).http_ntlm_state };
+        authp = unsafe { &mut (*data).state.authhost };
+    }
+    unsafe {
+        (*authp).set_done(0 as bit);
+    }
+    if userp.is_null() {
+        userp = b"\0" as *const u8 as *const libc::c_char;
+    }
+    if passwdp.is_null() {
+        passwdp = b"\0" as *const u8 as *const libc::c_char;
+    }
+    unsafe {
+        Curl_bufref_init(&mut ntlmmsg);
+    }
+    let mut current_block_61: u64;
+    unsafe {
         match *state as u32 {
             2 => {
                 /* We already received the type-2 message, create a type-3 message */
@@ -350,9 +356,9 @@ pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) ->
             }
             _ => {}
         }
-        Curl_bufref_free(&mut ntlmmsg);}
-        return result;
-    
+        Curl_bufref_free(&mut ntlmmsg);
+    }
+    return result;
 }
 #[no_mangle]
 pub extern "C" fn Curl_http_auth_cleanup_ntlm(mut conn: *mut connectdata) {

@@ -164,15 +164,16 @@ pub static mut Curl_handler_ftps: Curl_handler = unsafe {
     }
 };
 extern "C" fn close_secondarysocket(mut data: *mut Curl_easy, mut conn: *mut connectdata) {
-
-        if unsafe{-(1 as i32) != (*conn).sock[1 as usize] }{
-            unsafe{
+    if unsafe { -(1 as i32) != (*conn).sock[1 as usize] } {
+        unsafe {
             Curl_closesocket(data, conn, (*conn).sock[1 as usize]);
             (*conn).sock[1 as usize] = -(1 as i32);
-            }
         }
-        unsafe{(*conn).bits.tcpconnect[1 as usize] = 0 as i32 != 0;}
-        unsafe{
+    }
+    unsafe {
+        (*conn).bits.tcpconnect[1 as usize] = 0 as i32 != 0;
+    }
+    unsafe {
         match () {
             #[cfg(not(CURL_DISABLE_PROXY))]
             _ => {
@@ -182,7 +183,6 @@ extern "C" fn close_secondarysocket(mut data: *mut Curl_easy, mut conn: *mut con
             _ => {}
         }
     }
-    
 }
 
 /*
@@ -196,11 +196,10 @@ extern "C" fn close_secondarysocket(mut data: *mut Curl_easy, mut conn: *mut con
  * following define named CURL_FTP_HTTPSTYLE_HEAD.
  */
 extern "C" fn freedirs(mut ftpc: *mut ftp_conn) {
-
-        if unsafe{!((*ftpc).dirs).is_null()} {
-            let mut i: i32 = 0;
-            i = 0 as i32;
-            unsafe{
+    if unsafe { !((*ftpc).dirs).is_null() } {
+        let mut i: i32 = 0;
+        i = 0 as i32;
+        unsafe {
             while i < (*ftpc).dirdepth {
                 #[cfg(not(CURLDEBUG))]
                 Curl_cfree.expect("non-null function pointer")(
@@ -216,37 +215,54 @@ extern "C" fn freedirs(mut ftpc: *mut ftp_conn) {
                 i += 1;
             }
         }
-            #[cfg(not(CURLDEBUG))]
-            unsafe{Curl_cfree.expect("non-null function pointer")((*ftpc).dirs as *mut libc::c_void);}
-            #[cfg(CURLDEBUG)]
-            unsafe{curl_dbg_free(
+        #[cfg(not(CURLDEBUG))]
+        unsafe {
+            Curl_cfree.expect("non-null function pointer")((*ftpc).dirs as *mut libc::c_void);
+        }
+        #[cfg(CURLDEBUG)]
+        unsafe {
+            curl_dbg_free(
                 (*ftpc).dirs as *mut libc::c_void,
                 251 as i32,
                 b"ftp.c\0" as *const u8 as *const libc::c_char,
-            );}
-            unsafe{(*ftpc).dirs = 0 as *mut *mut libc::c_char;
-            (*ftpc).dirdepth = 0 as i32;}
+            );
         }
-        #[cfg(not(CURLDEBUG))]
-        unsafe{Curl_cfree.expect("non-null function pointer")((*ftpc).file as *mut libc::c_void);}
-        #[cfg(CURLDEBUG)]
-        unsafe{curl_dbg_free(
+        unsafe {
+            (*ftpc).dirs = 0 as *mut *mut libc::c_char;
+            (*ftpc).dirdepth = 0 as i32;
+        }
+    }
+    #[cfg(not(CURLDEBUG))]
+    unsafe {
+        Curl_cfree.expect("non-null function pointer")((*ftpc).file as *mut libc::c_void);
+    }
+    #[cfg(CURLDEBUG)]
+    unsafe {
+        curl_dbg_free(
             (*ftpc).file as *mut libc::c_void,
             255 as i32,
             b"ftp.c\0" as *const u8 as *const libc::c_char,
-        );}
-        unsafe{(*ftpc).file = 0 as *mut libc::c_char;}
-        #[cfg(not(CURLDEBUG))]
-        unsafe{Curl_cfree.expect("non-null function pointer")((*ftpc).newhost as *mut libc::c_void);}
-        #[cfg(CURLDEBUG)]
-        unsafe{curl_dbg_free(
+        );
+    }
+    unsafe {
+        (*ftpc).file = 0 as *mut libc::c_char;
+    }
+    #[cfg(not(CURLDEBUG))]
+    unsafe {
+        Curl_cfree.expect("non-null function pointer")((*ftpc).newhost as *mut libc::c_void);
+    }
+    #[cfg(CURLDEBUG)]
+    unsafe {
+        curl_dbg_free(
             (*ftpc).newhost as *mut libc::c_void,
             258 as i32,
             b"ftp.c\0" as *const u8 as *const libc::c_char,
-        );}
-        /* no longer of any use */
-        unsafe{(*ftpc).newhost = 0 as *mut libc::c_char;}
-    
+        );
+    }
+    /* no longer of any use */
+    unsafe {
+        (*ftpc).newhost = 0 as *mut libc::c_char;
+    }
 }
 
 /***********************************************************************
@@ -258,33 +274,36 @@ extern "C" fn freedirs(mut ftpc: *mut ftp_conn) {
  *
  */
 extern "C" fn AcceptServerConnect(mut data: *mut Curl_easy) -> CURLcode {
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut sock: curl_socket_t =unsafe{  (*conn).sock[1 as usize]};
-        let mut s: curl_socket_t = -(1 as i32);
-        #[cfg(ENABLE_IPV6)]
-        let mut add: Curl_sockaddr_storage =unsafe{  Curl_sockaddr_storage {
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut sock: curl_socket_t = unsafe { (*conn).sock[1 as usize] };
+    let mut s: curl_socket_t = -(1 as i32);
+    #[cfg(ENABLE_IPV6)]
+    let mut add: Curl_sockaddr_storage = unsafe {
+        Curl_sockaddr_storage {
             buffer: C2RustUnnamed_9 {
                 sa: sockaddr {
                     sa_family: 0,
                     sa_data: [0; 14],
                 },
             },
-        }};
-        #[cfg(not(ENABLE_IPV6))]
-        let mut add: sockaddr_in = unsafe{ sockaddr_in {
+        }
+    };
+    #[cfg(not(ENABLE_IPV6))]
+    let mut add: sockaddr_in = unsafe {
+        sockaddr_in {
             sin_family: 0,
             sin_port: 0,
             sin_addr: in_addr { s_addr: 0 },
             sin_zero: [0; 8],
-        }};
-        #[cfg(ENABLE_IPV6)]
-        let mut size: curl_socklen_t =
-            ::std::mem::size_of::<Curl_sockaddr_storage>() as curl_socklen_t;
-        #[cfg(not(ENABLE_IPV6))]
-        let mut size: curl_socklen_t =
-            ::std::mem::size_of::<sockaddr_in>() as u64 as curl_socklen_t;
-        #[cfg(ENABLE_IPV6)]
-        unsafe{ if  0 as i32
+        }
+    };
+    #[cfg(ENABLE_IPV6)]
+    let mut size: curl_socklen_t = ::std::mem::size_of::<Curl_sockaddr_storage>() as curl_socklen_t;
+    #[cfg(not(ENABLE_IPV6))]
+    let mut size: curl_socklen_t = ::std::mem::size_of::<sockaddr_in>() as u64 as curl_socklen_t;
+    #[cfg(ENABLE_IPV6)]
+    unsafe {
+        if 0 as i32
             == getsockname(
                 sock,
                 &mut add as *mut Curl_sockaddr_storage as *mut sockaddr,
@@ -313,9 +332,11 @@ extern "C" fn AcceptServerConnect(mut data: *mut Curl_easy) -> CURLcode {
                     );
                 }
             }
-        }}
-        #[cfg(not(ENABLE_IPV6))]
-        unsafe{ if 0 as i32
+        }
+    }
+    #[cfg(not(ENABLE_IPV6))]
+    unsafe {
+        if 0 as i32
             == getsockname(
                 sock,
                 &mut add as *mut sockaddr_in as *mut sockaddr,
@@ -330,7 +351,8 @@ extern "C" fn AcceptServerConnect(mut data: *mut Curl_easy) -> CURLcode {
             );
         }
     }
-    unsafe{  Curl_closesocket(data, conn, sock); /* close the first socket */
+    unsafe {
+        Curl_closesocket(data, conn, sock); /* close the first socket */
         if -(1 as i32) == s {
             Curl_failf(
                 data,
@@ -362,8 +384,7 @@ extern "C" fn AcceptServerConnect(mut data: *mut Curl_easy) -> CURLcode {
             }
         }
     }
-        return CURLE_OK;
-    
+    return CURLE_OK;
 }
 
 /*
@@ -376,33 +397,33 @@ extern "C" fn AcceptServerConnect(mut data: *mut Curl_easy) -> CURLcode {
  *
  */
 extern "C" fn ftp_timeleft_accept(mut data: *mut Curl_easy) -> timediff_t {
-        let mut timeout_ms: timediff_t = 60000 as timediff_t;
-        let mut other: timediff_t = 0;
-        let mut now: curltime = curltime {
-            tv_sec: 0,
-            tv_usec: 0,
-        };
-        if unsafe{(*data).set.accepttimeout > 0 as i64} {
-            unsafe{
-            timeout_ms = (*data).set.accepttimeout;}
+    let mut timeout_ms: timediff_t = 60000 as timediff_t;
+    let mut other: timediff_t = 0;
+    let mut now: curltime = curltime {
+        tv_sec: 0,
+        tv_usec: 0,
+    };
+    if unsafe { (*data).set.accepttimeout > 0 as i64 } {
+        unsafe {
+            timeout_ms = (*data).set.accepttimeout;
         }
-        now = unsafe{Curl_now()};
-        /* check if the generic timeout possibly is set shorter */
-        other = unsafe{Curl_timeleft(data, &mut now, 0 as i32 != 0)};
-        if other != 0 && other < timeout_ms {
-            /* note that this also works fine for when other happens to be negative
-            due to it already having elapsed */
-            timeout_ms = other;
-        } else {
-            /* subtract elapsed time */
-            timeout_ms -= unsafe{Curl_timediff(now, (*data).progress.t_acceptdata)};
-            if timeout_ms == 0 {
-                /* avoid returning 0 as that means no timeout! */
-                return -(1 as i32) as timediff_t;
-            }
+    }
+    now = unsafe { Curl_now() };
+    /* check if the generic timeout possibly is set shorter */
+    other = unsafe { Curl_timeleft(data, &mut now, 0 as i32 != 0) };
+    if other != 0 && other < timeout_ms {
+        /* note that this also works fine for when other happens to be negative
+        due to it already having elapsed */
+        timeout_ms = other;
+    } else {
+        /* subtract elapsed time */
+        timeout_ms -= unsafe { Curl_timediff(now, (*data).progress.t_acceptdata) };
+        if timeout_ms == 0 {
+            /* avoid returning 0 as that means no timeout! */
+            return -(1 as i32) as timediff_t;
         }
-        return timeout_ms;
-    
+    }
+    return timeout_ms;
 }
 /***********************************************************************
  *
@@ -414,48 +435,58 @@ extern "C" fn ftp_timeleft_accept(mut data: *mut Curl_easy) -> timediff_t {
  *
  */
 extern "C" fn ReceivedServerConnect(mut data: *mut Curl_easy, mut received: *mut bool) -> CURLcode {
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ctrl_sock: curl_socket_t =unsafe{ (*conn).sock[0 as usize]};
-        let mut data_sock: curl_socket_t = unsafe{(*conn).sock[1 as usize]};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        let mut result: i32 = 0;
-        let mut timeout_ms: timediff_t = 0;
-        let mut nread: ssize_t = 0;
-        let mut ftpcode: i32 = 0;
-        unsafe{*received = 0 as i32 != 0;}
-        timeout_ms = ftp_timeleft_accept(data);
-        unsafe{Curl_infof(
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ctrl_sock: curl_socket_t = unsafe { (*conn).sock[0 as usize] };
+    let mut data_sock: curl_socket_t = unsafe { (*conn).sock[1 as usize] };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    let mut result: i32 = 0;
+    let mut timeout_ms: timediff_t = 0;
+    let mut nread: ssize_t = 0;
+    let mut ftpcode: i32 = 0;
+    unsafe {
+        *received = 0 as i32 != 0;
+    }
+    timeout_ms = ftp_timeleft_accept(data);
+    unsafe {
+        Curl_infof(
             data,
             b"Checking for server connect\0" as *const u8 as *const libc::c_char,
-        );}
-        if timeout_ms < 0 as i64 {
-            /* if a timeout was already reached, bail out */
-            unsafe{Curl_failf(
+        );
+    }
+    if timeout_ms < 0 as i64 {
+        /* if a timeout was already reached, bail out */
+        unsafe {
+            Curl_failf(
                 data,
                 b"Accept timeout occurred while waiting server connect\0" as *const u8
                     as *const libc::c_char,
-            );}
-            return CURLE_FTP_ACCEPT_TIMEOUT;
+            );
         }
-        /* First check whether there is a cached response from server */
+        return CURLE_FTP_ACCEPT_TIMEOUT;
+    }
+    /* First check whether there is a cached response from server */
 
-        if unsafe{(*pp).cache_size != 0
+    if unsafe {
+        (*pp).cache_size != 0
             && !((*pp).cache).is_null()
-            && *((*pp).cache).offset(0 as isize) as i32 > '3' as i32}
-        {
-            /* Data connection could not be established, let's return */
-            unsafe{Curl_infof(
+            && *((*pp).cache).offset(0 as isize) as i32 > '3' as i32
+    } {
+        /* Data connection could not be established, let's return */
+        unsafe {
+            Curl_infof(
                 data,
                 b"There is negative response in cache while serv connect\0" as *const u8
                     as *const libc::c_char,
-            );}
-            Curl_GetFTPResponse(data, &mut nread, &mut ftpcode);
-            return CURLE_FTP_ACCEPT_FAILED;
+            );
         }
-        result = unsafe{Curl_socket_check(ctrl_sock, data_sock, -(1 as i32), 0 as i32 as timediff_t)};
-        /* see if the connecion request is already here */
-        unsafe{
+        Curl_GetFTPResponse(data, &mut nread, &mut ftpcode);
+        return CURLE_FTP_ACCEPT_FAILED;
+    }
+    result =
+        unsafe { Curl_socket_check(ctrl_sock, data_sock, -(1 as i32), 0 as i32 as timediff_t) };
+    /* see if the connecion request is already here */
+    unsafe {
         match result {
             -1 => {
                 /* error *//* let's die here */
@@ -488,9 +519,9 @@ extern "C" fn ReceivedServerConnect(mut data: *mut Curl_easy, mut received: *mut
                     return CURLE_WEIRD_SERVER_REPLY;
                 }
             } /* switch() */
-        }}
-        return CURLE_OK;
-    
+        }
+    }
+    return CURLE_OK;
 }
 
 /***********************************************************************
@@ -502,35 +533,37 @@ extern "C" fn ReceivedServerConnect(mut data: *mut Curl_easy, mut received: *mut
  *
  */
 extern "C" fn InitiateTransfer(mut data: *mut Curl_easy) -> CURLcode {
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        if unsafe{ ((*conn).bits).ftp_use_data_ssl() != 0} {
-            /* since we only have a plaintext TCP connection here, we must now
-             * do the TLS stuff */
-             unsafe{Curl_infof(
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    if unsafe { ((*conn).bits).ftp_use_data_ssl() != 0 } {
+        /* since we only have a plaintext TCP connection here, we must now
+         * do the TLS stuff */
+        unsafe {
+            Curl_infof(
                 data,
                 b"Doing the SSL/TLS handshake on the data stream\0" as *const u8
                     as *const libc::c_char,
-            );}
-            // match () {
-            //     #[cfg(USE_SSL)]
-            //     _ => {
-            //         result = Curl_ssl_connect(data, conn, 1 as i32);
-            //     }
-            //     #[cfg(not(USE_SSL))]
-            //     _ => {
-            //         result = CURLE_NOT_BUILT_IN;
-            //     }
-            // }
-            result = unsafe{Curl_ssl_connect(data, conn, 1 as i32)};
-            if result as u64 != 0 {
-                return result;
-            }
+            );
         }
-        /* When we know we're uploading a specified file, we can get the file
-        size prior to the actual upload. */
-        if unsafe{(*conn).proto.ftpc.state_saved as u32 == FTP_STOR as u32} {
-            unsafe{
+        // match () {
+        //     #[cfg(USE_SSL)]
+        //     _ => {
+        //         result = Curl_ssl_connect(data, conn, 1 as i32);
+        //     }
+        //     #[cfg(not(USE_SSL))]
+        //     _ => {
+        //         result = CURLE_NOT_BUILT_IN;
+        //     }
+        // }
+        result = unsafe { Curl_ssl_connect(data, conn, 1 as i32) };
+        if result as u64 != 0 {
+            return result;
+        }
+    }
+    /* When we know we're uploading a specified file, we can get the file
+    size prior to the actual upload. */
+    if unsafe { (*conn).proto.ftpc.state_saved as u32 == FTP_STOR as u32 } {
+        unsafe {
             Curl_pgrsSetUploadSize(data, (*data).state.infilesize);
             /* set the SO_SNDBUF for the secondary socket for those who need it */
             Curl_setup_transfer(
@@ -539,26 +572,29 @@ extern "C" fn InitiateTransfer(mut data: *mut Curl_easy) -> CURLcode {
                 -(1 as i32) as curl_off_t,
                 0 as i32 != 0,
                 1 as i32,
-            );}
-        } else {
-            /* FTP download: */
-            unsafe{
+            );
+        }
+    } else {
+        /* FTP download: */
+        unsafe {
             Curl_setup_transfer(
                 data,
                 1 as i32,
                 (*conn).proto.ftpc.retr_size_saved,
                 0 as i32 != 0,
                 -(1 as i32),
-            );}
+            );
         }
-        unsafe{(*conn).proto.ftpc.pp.pending_resp = 1 as i32 != 0;} /* expect server response */
-        #[cfg(not(DEBUGBUILD))]
-        _state(data, FTP_STOP);
+    }
+    unsafe {
+        (*conn).proto.ftpc.pp.pending_resp = 1 as i32 != 0;
+    } /* expect server response */
+    #[cfg(not(DEBUGBUILD))]
+    _state(data, FTP_STOP);
 
-        #[cfg(DEBUGBUILD)]
-        _state(data, FTP_STOP, 470 as i32);
-        return CURLE_OK;
-    
+    #[cfg(DEBUGBUILD)]
+    _state(data, FTP_STOP, 470 as i32);
+    return CURLE_OK;
 }
 /***********************************************************************
  *
@@ -570,43 +606,48 @@ extern "C" fn InitiateTransfer(mut data: *mut Curl_easy) -> CURLcode {
  *
  */
 extern "C" fn AllowServerConnect(mut data: *mut Curl_easy, mut connected: *mut bool) -> CURLcode {
-        let mut timeout_ms: timediff_t = 0;
-        let mut result: CURLcode = CURLE_OK;
-        unsafe{*connected = 0 as i32 != 0};
-        unsafe{Curl_infof(
+    let mut timeout_ms: timediff_t = 0;
+    let mut result: CURLcode = CURLE_OK;
+    unsafe { *connected = 0 as i32 != 0 };
+    unsafe {
+        Curl_infof(
             data,
             b"Preparing for accepting server on data port\0" as *const u8 as *const libc::c_char,
         );
         /* Save the time we start accepting server connect */
-        Curl_pgrsTime(data, TIMER_STARTACCEPT);}
-        timeout_ms = ftp_timeleft_accept(data);
-        if timeout_ms < 0 as i64 {
-            /* if a timeout was already reached, bail out */
-            unsafe{Curl_failf(
+        Curl_pgrsTime(data, TIMER_STARTACCEPT);
+    }
+    timeout_ms = ftp_timeleft_accept(data);
+    if timeout_ms < 0 as i64 {
+        /* if a timeout was already reached, bail out */
+        unsafe {
+            Curl_failf(
                 data,
                 b"Accept timeout occurred while waiting server connect\0" as *const u8
                     as *const libc::c_char,
-            );}
-            return CURLE_FTP_ACCEPT_TIMEOUT;
+            );
         }
-        /* see if the connection request is already here */
-        result = ReceivedServerConnect(data, connected);
+        return CURLE_FTP_ACCEPT_TIMEOUT;
+    }
+    /* see if the connection request is already here */
+    result = ReceivedServerConnect(data, connected);
+    if result as u64 != 0 {
+        return result;
+    }
+    /* Add timeout to multi handle and break out of the loop */
+
+    if unsafe { *connected } {
+        result = AcceptServerConnect(data);
         if result as u64 != 0 {
             return result;
         }
-        /* Add timeout to multi handle and break out of the loop */
-
-        if unsafe{*connected} {
-            result = AcceptServerConnect(data);
-            if result as u64 != 0 {
-                return result;
-            }
-            result = InitiateTransfer(data);
-            if result as u64 != 0 {
-                return result;
-            }
-        } else if unsafe{*connected as i32 == 0 as i32} {
-            unsafe{Curl_expire(
+        result = InitiateTransfer(data);
+        if result as u64 != 0 {
+            return result;
+        }
+    } else if unsafe { *connected as i32 == 0 as i32 } {
+        unsafe {
+            Curl_expire(
                 data,
                 if (*data).set.accepttimeout > 0 as i64 {
                     (*data).set.accepttimeout
@@ -614,10 +655,10 @@ extern "C" fn AllowServerConnect(mut data: *mut Curl_easy, mut connected: *mut b
                     60000 as i64
                 },
                 EXPIRE_100_TIMEOUT,
-            );}
+            );
         }
-        return result;
-    
+    }
+    return result;
 }
 extern "C" fn ftp_endofresp(
     mut data: *mut Curl_easy,
@@ -646,14 +687,13 @@ extern "C" fn ftp_readresp(
     mut ftpcode: *mut i32, /* return the ftp-code if done */
     mut size: *mut size_t, /* size of the response */
 ) -> CURLcode {
-
-        let mut code: i32 = 0;
-        let mut result: CURLcode = unsafe{Curl_pp_readresp(data, sockfd, pp, &mut code, size)};
-        if cfg!(HAVE_GSSAPI) {
-            let mut conn: *mut connectdata = unsafe{(*data).conn};
-            let buf: *mut libc::c_char =unsafe{ (*data).state.buffer};
-            /* handle the security-oriented responses 6xx ***/
-            unsafe{
+    let mut code: i32 = 0;
+    let mut result: CURLcode = unsafe { Curl_pp_readresp(data, sockfd, pp, &mut code, size) };
+    if cfg!(HAVE_GSSAPI) {
+        let mut conn: *mut connectdata = unsafe { (*data).conn };
+        let buf: *mut libc::c_char = unsafe { (*data).state.buffer };
+        /* handle the security-oriented responses 6xx ***/
+        unsafe {
             match code {
                 631 => {
                     code = Curl_sec_read_msg(data, conn, buf, PROT_SAFE);
@@ -666,34 +706,39 @@ extern "C" fn ftp_readresp(
                 }
                 _ => {} /* normal ftp stuff we pass through! */
             }
-            }
-            }
-        /* store the latest code for later retrieval */
-        unsafe{(*data).info.httpcode = code;}
-        if !ftpcode.is_null() {
-            unsafe{*ftpcode = code;}
         }
-        if 421 as i32 == code {
-            /* 421 means "Service not available, closing control connection." and FTP
-             * servers use it to signal that idle session timeout has been exceeded.
-             * If we ignored the response, it could end up hanging in some cases.
-             *
-             * This response code can come at any point so having it treated
-             * generically is a good idea.
-             */
-            unsafe{Curl_infof(
+    }
+    /* store the latest code for later retrieval */
+    unsafe {
+        (*data).info.httpcode = code;
+    }
+    if !ftpcode.is_null() {
+        unsafe {
+            *ftpcode = code;
+        }
+    }
+    if 421 as i32 == code {
+        /* 421 means "Service not available, closing control connection." and FTP
+         * servers use it to signal that idle session timeout has been exceeded.
+         * If we ignored the response, it could end up hanging in some cases.
+         *
+         * This response code can come at any point so having it treated
+         * generically is a good idea.
+         */
+        unsafe {
+            Curl_infof(
                 data,
                 b"We got a 421 - timeout!\0" as *const u8 as *const libc::c_char,
-            );}
-            #[cfg(not(DEBUGBUILD))]
-            _state(data, FTP_STOP);
-
-            #[cfg(DEBUGBUILD)]
-            _state(data, FTP_STOP, 596 as i32);
-            return CURLE_OPERATION_TIMEDOUT;
+            );
         }
-        return result;
-    
+        #[cfg(not(DEBUGBUILD))]
+        _state(data, FTP_STOP);
+
+        #[cfg(DEBUGBUILD)]
+        _state(data, FTP_STOP, 596 as i32);
+        return CURLE_OPERATION_TIMEDOUT;
+    }
+    return result;
 }
 /* --- parse FTP server responses --- */
 
@@ -708,66 +753,72 @@ pub extern "C" fn Curl_GetFTPResponse(
     mut nreadp: *mut ssize_t, /* return number of bytes read */
     mut ftpcode: *mut i32,    /* return the ftp-code */
 ) -> CURLcode {
-        /*
-         * We cannot read just one byte per read() and then go back to select() as
-         * the OpenSSL read() doesn't grok that properly.
-         *
-         * Alas, read as much as possible, split up into lines, use the ending
-         * line in a response or continue reading.  */
+    /*
+     * We cannot read just one byte per read() and then go back to select() as
+     * the OpenSSL read() doesn't grok that properly.
+     *
+     * Alas, read as much as possible, split up into lines, use the ending
+     * line in a response or continue reading.  */
 
-        let mut conn: *mut connectdata = unsafe{(*data).conn};
-        let mut sockfd: curl_socket_t = unsafe{(*conn).sock[0 as usize]};
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        let mut nread: size_t = 0;
-        let mut cache_skip: i32 = 0 as i32;
-        let mut value_to_be_ignored: i32 = 0 as i32;
-        if !ftpcode.is_null() {
-            unsafe{*ftpcode = 0 as i32;} /* 0 for errors */
-        } else {
-            /* make the pointer point to something for the rest of this function */
-            ftpcode = &mut value_to_be_ignored;
-        }
-        unsafe{*nreadp = 0 as ssize_t;}
-        let mut current_block_20: u64;
-        while unsafe{*ftpcode == 0 && result as u64 == 0} {
-            /* check and reset timeout value every lap */
-            let mut timeout: timediff_t = unsafe{Curl_pp_state_timeout(data, pp, 0 as i32 != 0)};
-            let mut interval_ms: timediff_t = 0;
-            if timeout <= 0 as i64 {
-                unsafe{Curl_failf(
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut sockfd: curl_socket_t = unsafe { (*conn).sock[0 as usize] };
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    let mut nread: size_t = 0;
+    let mut cache_skip: i32 = 0 as i32;
+    let mut value_to_be_ignored: i32 = 0 as i32;
+    if !ftpcode.is_null() {
+        unsafe {
+            *ftpcode = 0 as i32;
+        } /* 0 for errors */
+    } else {
+        /* make the pointer point to something for the rest of this function */
+        ftpcode = &mut value_to_be_ignored;
+    }
+    unsafe {
+        *nreadp = 0 as ssize_t;
+    }
+    let mut current_block_20: u64;
+    while unsafe { *ftpcode == 0 && result as u64 == 0 } {
+        /* check and reset timeout value every lap */
+        let mut timeout: timediff_t = unsafe { Curl_pp_state_timeout(data, pp, 0 as i32 != 0) };
+        let mut interval_ms: timediff_t = 0;
+        if timeout <= 0 as i64 {
+            unsafe {
+                Curl_failf(
                     data,
                     b"FTP response timeout\0" as *const u8 as *const libc::c_char,
-                );}
-                return CURLE_OPERATION_TIMEDOUT; /* already too little time */
+                );
             }
-            interval_ms = 1000 as timediff_t; /* use 1 second timeout intervals */
-            if timeout < interval_ms {
-                interval_ms = timeout;
-            }
+            return CURLE_OPERATION_TIMEDOUT; /* already too little time */
+        }
+        interval_ms = 1000 as timediff_t; /* use 1 second timeout intervals */
+        if timeout < interval_ms {
+            interval_ms = timeout;
+        }
+        /*
+         * Since this function is blocking, we need to wait here for input on the
+         * connection and only then we call the response reading function. We do
+         * timeout at least every second to make the timeout check run.
+         *
+         * A caution here is that the ftp_readresp() function has a cache that may
+         * contain pieces of a response from the previous invoke and we need to
+         * make sure we don't just wait for input while there is unhandled data in
+         * that cache. But also, if the cache is there, we call ftp_readresp() and
+         * the cache wasn't good enough to continue we must not just busy-loop
+         * around this function.
+         *
+         */
+        if unsafe { !(!((*pp).cache).is_null() && cache_skip < 2 as i32) } {
             /*
-             * Since this function is blocking, we need to wait here for input on the
-             * connection and only then we call the response reading function. We do
-             * timeout at least every second to make the timeout check run.
-             *
-             * A caution here is that the ftp_readresp() function has a cache that may
-             * contain pieces of a response from the previous invoke and we need to
-             * make sure we don't just wait for input while there is unhandled data in
-             * that cache. But also, if the cache is there, we call ftp_readresp() and
-             * the cache wasn't good enough to continue we must not just busy-loop
-             * around this function.
-             *
+             * There's a cache left since before. We then skipping the wait for
+             * socket action, unless this is the same cache like the previous round
+             * as then the cache was deemed not enough to act on and we then need to
+             * wait for more data anyway.
              */
-            if unsafe{!(!((*pp).cache).is_null() && cache_skip < 2 as i32)} {
-                /*
-                 * There's a cache left since before. We then skipping the wait for
-                 * socket action, unless this is the same cache like the previous round
-                 * as then the cache was deemed not enough to act on and we then need to
-                 * wait for more data anyway.
-                 */
-                if unsafe{!Curl_conn_data_pending(conn, 0 as i32)} {
-                    unsafe{
+            if unsafe { !Curl_conn_data_pending(conn, 0 as i32) } {
+                unsafe {
                     match Curl_socket_check(sockfd, -(1 as i32), -(1 as i32), interval_ms) {
                         -1 => {
                             /* select() error, stop reading */
@@ -817,23 +868,26 @@ pub extern "C" fn Curl_GetFTPResponse(
                     }
                 }
             }
-            }
-            result = ftp_readresp(data, sockfd, pp, ftpcode, &mut nread);
-            if result as u64 != 0 {
-                break;
-            }
-            if unsafe{nread == 0 && !((*pp).cache).is_null()} {
-                cache_skip += 1; /* bump cache skip counter as on repeated skips we must wait for more
-                                 data */
-            } else {
-                cache_skip = 0 as i32;
-            }
-            unsafe{*nreadp = (*nreadp as u64).wrapping_add(nread) as ssize_t;}
         }
-        unsafe{(*pp).pending_resp = 0 as i32 != 0;} /* when we got data or there is no cache left, we reset the cache skip
-                                            counter */
-        return result;
-    
+        result = ftp_readresp(data, sockfd, pp, ftpcode, &mut nread);
+        if result as u64 != 0 {
+            break;
+        }
+        if unsafe { nread == 0 && !((*pp).cache).is_null() } {
+            cache_skip += 1; /* bump cache skip counter as on repeated skips we must wait for more
+                             data */
+        } else {
+            cache_skip = 0 as i32;
+        }
+        unsafe {
+            *nreadp = (*nreadp as u64).wrapping_add(nread) as ssize_t;
+        }
+    }
+    unsafe {
+        (*pp).pending_resp = 0 as i32 != 0;
+    } /* when we got data or there is no cache left, we reset the cache skip
+      counter */
+    return result;
 }
 /* for debug purposes */
 static mut ftp_state_names: [*const libc::c_char; 35] = [
@@ -903,7 +957,8 @@ extern "C" fn _state(mut data: *mut Curl_easy, mut newstate: ftpstate, mut linen
 }
 /* For the FTP "protocol connect" and "doing" phases only */
 extern "C" fn ftp_state_user(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
-        let mut result: CURLcode =unsafe{ Curl_pp_sendf(
+    let mut result: CURLcode = unsafe {
+        Curl_pp_sendf(
             data,
             &mut (*conn).proto.ftpc.pp as *mut pingpong,
             b"USER %s\0" as *const u8 as *const libc::c_char,
@@ -912,36 +967,39 @@ extern "C" fn ftp_state_user(mut data: *mut Curl_easy, mut conn: *mut connectdat
             } else {
                 b"\0" as *const u8 as *const libc::c_char
             },
-        )};
-        if result as u64 == 0 {
-            #[cfg(not(DEBUGBUILD))]
-            _state(data, FTP_USER);
+        )
+    };
+    if result as u64 == 0 {
+        #[cfg(not(DEBUGBUILD))]
+        _state(data, FTP_USER);
 
-            #[cfg(DEBUGBUILD)]
-            _state(data, FTP_USER, 787 as i32);
-            //  let ref mut fresh6 = (*data).state;
-            unsafe{((*data).state).set_ftp_trying_alternative(0 as bit);}
+        #[cfg(DEBUGBUILD)]
+        _state(data, FTP_USER, 787 as i32);
+        //  let ref mut fresh6 = (*data).state;
+        unsafe {
+            ((*data).state).set_ftp_trying_alternative(0 as bit);
         }
-        return result;
-    
+    }
+    return result;
 }
 /* For the FTP "DO_MORE" phase only */
 extern "C" fn ftp_state_pwd(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
-        let mut result: CURLcode =unsafe{ Curl_pp_sendf(
+    let mut result: CURLcode = unsafe {
+        Curl_pp_sendf(
             data,
             &mut (*conn).proto.ftpc.pp as *mut pingpong,
             b"%s\0" as *const u8 as *const libc::c_char,
             b"PWD\0" as *const u8 as *const libc::c_char,
-        )};
-        if result as u64 == 0 {
-            #[cfg(not(DEBUGBUILD))]
-            _state(data, FTP_PWD);
+        )
+    };
+    if result as u64 == 0 {
+        #[cfg(not(DEBUGBUILD))]
+        _state(data, FTP_PWD);
 
-            #[cfg(DEBUGBUILD)]
-            _state(data, FTP_PWD, 798 as i32);
-        }
-        return result;
-    
+        #[cfg(DEBUGBUILD)]
+        _state(data, FTP_PWD, 798 as i32);
+    }
+    return result;
 }
 /* For the FTP "protocol connect" and "doing" phases only */
 extern "C" fn ftp_getsock(
@@ -959,28 +1017,31 @@ extern "C" fn ftp_domore_getsock(
     mut conn: *mut connectdata,
     mut socks: *mut curl_socket_t,
 ) -> i32 {
-
-        /* When in DO_MORE state, we could be either waiting for us to connect to a
-         * remote site, or we could wait for that site to connect to us. Or just
-         * handle ordinary commands.
-         */
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        if unsafe{(*conn).cnnct.state as u32 >= CONNECT_SOCKS_INIT as u32
-            && ((*conn).cnnct.state as u32) < CONNECT_DONE as u32}
-        {
-            /* if stopped and still in this state, then we're also waiting for a
-            connect on the secondary connection */
-            #[cfg(not(CURL_DISABLE_PROXY))]
-            unsafe{return Curl_SOCKS_getsock(conn, socks, 1 as i32);}
-            #[cfg(CURL_DISABLE_PROXY)]
-            return 0 as i32;
+    /* When in DO_MORE state, we could be either waiting for us to connect to a
+     * remote site, or we could wait for that site to connect to us. Or just
+     * handle ordinary commands.
+     */
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    if unsafe {
+        (*conn).cnnct.state as u32 >= CONNECT_SOCKS_INIT as u32
+            && ((*conn).cnnct.state as u32) < CONNECT_DONE as u32
+    } {
+        /* if stopped and still in this state, then we're also waiting for a
+        connect on the secondary connection */
+        #[cfg(not(CURL_DISABLE_PROXY))]
+        unsafe {
+            return Curl_SOCKS_getsock(conn, socks, 1 as i32);
         }
-        if unsafe{FTP_STOP as u32 == (*ftpc).state as u32} {
-            let mut bits: i32 = (1 as i32) << 0 as i32;
-            let mut any: bool = 0 as i32 != 0;
-            /* PORT is used to tell the server to connect to us, and during that we
-            don't do happy eyeballs, but we do if we connect to the server */
-            unsafe{*socks.offset(0 as i32 as isize) = (*conn).sock[0 as usize];
+        #[cfg(CURL_DISABLE_PROXY)]
+        return 0 as i32;
+    }
+    if unsafe { FTP_STOP as u32 == (*ftpc).state as u32 } {
+        let mut bits: i32 = (1 as i32) << 0 as i32;
+        let mut any: bool = 0 as i32 != 0;
+        /* PORT is used to tell the server to connect to us, and during that we
+        don't do happy eyeballs, but we do if we connect to the server */
+        unsafe {
+            *socks.offset(0 as i32 as isize) = (*conn).sock[0 as usize];
             if ((*data).set).ftp_use_port() == 0 {
                 let mut s: i32 = 0;
                 let mut i: i32 = 0;
@@ -1001,10 +1062,10 @@ extern "C" fn ftp_domore_getsock(
                 *socks.offset(1 as isize) = (*conn).sock[1 as usize];
                 bits |= (1 as i32) << 16 as i32 + 1 as i32 | (1 as i32) << 1 as i32;
             }
-            return bits;}
+            return bits;
         }
-        return unsafe{Curl_pp_getsock(data, &mut (*conn).proto.ftpc.pp, socks)};
-    
+    }
+    return unsafe { Curl_pp_getsock(data, &mut (*conn).proto.ftpc.pp, socks) };
 }
 
 /* This is called after the FTP_QUOTE state is passed.
@@ -1014,10 +1075,9 @@ extern "C" fn ftp_domore_getsock(
    missing ones, if that option is enabled.
 */
 extern "C" fn ftp_state_cwd(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         if (*ftpc).cwddone {
             /* already done and fine */
             result = ftp_state_mdtm(data);
@@ -1860,10 +1920,10 @@ extern "C" fn ftp_state_prepare_transfer(mut data: *mut Curl_easy) -> CURLcode {
     }
 }
 extern "C" fn ftp_state_rest(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP = unsafe{(*data).req.p.ftp};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         if (*ftp).transfer as u32 != PPTRANSFER_BODY as u32 && !((*ftpc).file).is_null() {
             /* if a "head"-like request is being made (on a file) */
 
@@ -1889,11 +1949,10 @@ extern "C" fn ftp_state_rest(mut data: *mut Curl_easy, mut conn: *mut connectdat
     }
 }
 extern "C" fn ftp_state_size(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP = unsafe{(*data).req.p.ftp};
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         if (*ftp).transfer as u32 == PPTRANSFER_INFO as u32 && !((*ftpc).file).is_null() {
             /* if a "head"-like request is being made (on a file) */
 
@@ -1918,26 +1977,25 @@ extern "C" fn ftp_state_size(mut data: *mut Curl_easy, mut conn: *mut connectdat
     }
 }
 extern "C" fn ftp_state_list(mut data: *mut Curl_easy) -> CURLcode {
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    /* If this output is to be machine-parsed, the NLST command might be better
+    to use, since the LIST command output is not specified or standard in any
+    way. It has turned out that the NLST list output is not the same on all
+    servers either... */
 
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        /* If this output is to be machine-parsed, the NLST command might be better
-        to use, since the LIST command output is not specified or standard in any
-        way. It has turned out that the NLST list output is not the same on all
-        servers either... */
+    /*
+       if FTPFILE_NOCWD was specified, we should add the path
+       as argument for the LIST / NLST / or custom command.
+       Whether the server will support this, is uncertain.
 
-        /*
-           if FTPFILE_NOCWD was specified, we should add the path
-           as argument for the LIST / NLST / or custom command.
-           Whether the server will support this, is uncertain.
-
-           The other ftp_filemethods will CWD into dir/dir/ first and
-           then just do LIST (in that case: nothing to do here)
-        */
-        let mut lstArg: *mut libc::c_char = 0 as *mut libc::c_char;
-        let mut cmd: *mut libc::c_char = 0 as *mut libc::c_char;
-        unsafe{
+       The other ftp_filemethods will CWD into dir/dir/ first and
+       then just do LIST (in that case: nothing to do here)
+    */
+    let mut lstArg: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut cmd: *mut libc::c_char = 0 as *mut libc::c_char;
+    unsafe {
         if (*data).set.ftp_filemethod as u32 == FTPFILE_NOCWD as u32 && !((*ftp).path).is_null() {
             let mut slashPos: *const libc::c_char = 0 as *const libc::c_char;
             let mut rawPath: *mut libc::c_char = 0 as *mut libc::c_char;
@@ -2044,15 +2102,14 @@ extern "C" fn ftp_state_stor_prequote(mut data: *mut Curl_easy) -> CURLcode {
     }
 }
 extern "C" fn ftp_state_type(mut data: *mut Curl_easy) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP = unsafe{(*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        /* If we have selected NOBODY and HEADER, it means that we only want file
-        information. Which in FTP can't be much more than the file size and
-        date. */
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    /* If we have selected NOBODY and HEADER, it means that we only want file
+    information. Which in FTP can't be much more than the file size and
+    date. */
+    unsafe {
         if ((*data).set).opt_no_body() as i32 != 0
             && !((*ftpc).file).is_null()
             && ftp_need_type(conn, ((*data).state).prefer_ascii() != 0) != 0
@@ -2078,12 +2135,11 @@ extern "C" fn ftp_state_type(mut data: *mut Curl_easy) -> CURLcode {
 /* This is called after the CWD commands have been done in the beginning of
 the DO phase */
 extern "C" fn ftp_state_mdtm(mut data: *mut Curl_easy) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        /* Requested time of file or time-depended transfer? */
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    /* Requested time of file or time-depended transfer? */
+    unsafe {
         if (((*data).set).get_filetime() as i32 != 0 || (*data).set.timecondition as u32 != 0)
             && !((*ftpc).file).is_null()
         {
@@ -2110,13 +2166,12 @@ extern "C" fn ftp_state_mdtm(mut data: *mut Curl_easy) -> CURLcode {
 }
 /* This is called after the TYPE and possible quote commands have been sent */
 extern "C" fn ftp_state_ul_setup(mut data: *mut Curl_easy, mut sizechecked: bool) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut append: bool =unsafe{ ((*data).set).remote_append() != 0};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut append: bool = unsafe { ((*data).set).remote_append() != 0 };
+    unsafe {
         if (*data).state.resume_from != 0 && !sizechecked
             || (*data).state.resume_from > 0 as i64 && sizechecked as i32 != 0
         {
@@ -2255,14 +2310,13 @@ extern "C" fn ftp_state_quote(
     mut init: bool,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut quote: bool = 0 as i32 != 0;
-        let mut item: *mut curl_slist = 0 as *mut curl_slist;
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut quote: bool = 0 as i32 != 0;
+    let mut item: *mut curl_slist = 0 as *mut curl_slist;
+    unsafe {
         match instate as u32 {
             13 | 14 => {
                 item = (*data).set.prequote;
@@ -2449,16 +2503,15 @@ extern "C" fn control_address(mut conn: *mut connectdata) -> *mut libc::c_char {
     }
 }
 extern "C" fn ftp_state_pasv_resp(mut data: *mut Curl_easy, mut ftpcode: i32) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut result: CURLcode = CURLE_OK;
-        let mut addr: *mut Curl_dns_entry = 0 as *mut Curl_dns_entry;
-        let mut rc: resolve_t = CURLRESOLV_RESOLVED;
-        let mut connectport: u16 = 0; /* the local port connect() should use! */
-        let mut str: *mut libc::c_char =unsafe{
-            &mut *((*data).state.buffer).offset(4 as isize) as *mut libc::c_char}; /* start on the first letter */
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut result: CURLcode = CURLE_OK;
+    let mut addr: *mut Curl_dns_entry = 0 as *mut Curl_dns_entry;
+    let mut rc: resolve_t = CURLRESOLV_RESOLVED;
+    let mut connectport: u16 = 0; /* the local port connect() should use! */
+    let mut str: *mut libc::c_char =
+        unsafe { &mut *((*data).state.buffer).offset(4 as isize) as *mut libc::c_char }; /* start on the first letter */
+    unsafe {
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")((*ftpc).newhost as *mut libc::c_void);
         /* if we come here again, make sure the former name is cleared */
@@ -2878,12 +2931,11 @@ extern "C" fn ftp_state_pasv_resp(mut data: *mut Curl_easy, mut ftpcode: i32) ->
     }
 }
 extern "C" fn ftp_state_port_resp(mut data: *mut Curl_easy, mut ftpcode: i32) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut fcmd: ftpport = unsafe{(*ftpc).count1 as ftpport};
-        let mut result: CURLcode = CURLE_OK;
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut fcmd: ftpport = unsafe { (*ftpc).count1 as ftpport };
+    let mut result: CURLcode = CURLE_OK;
+    unsafe {
         /* The FTP spec tells a positive response should have code 200.
         Be more permissive here to tolerate deviant servers. */
         if ftpcode / 100 as i32 != 2 as i32 {
@@ -2923,12 +2975,11 @@ extern "C" fn ftp_state_port_resp(mut data: *mut Curl_easy, mut ftpcode: i32) ->
     }
 }
 extern "C" fn ftp_state_mdtm_resp(mut data: *mut Curl_easy, mut ftpcode: i32) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP =unsafe{(*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         match ftpcode {
             213 => {
                 /* we got a time. Format should be: "YYYYMMDDHHMMSS[.sss]" where the
@@ -3098,10 +3149,9 @@ extern "C" fn ftp_state_type_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    unsafe {
         if ftpcode / 100 as i32 != 2 as i32 {
             /* "sasserftpd" and "(u)r(x)bot ftpd" both responds with 226 after a
             successful 'TYPE I'. While that is not as RFC959 says, it is still a
@@ -3133,12 +3183,11 @@ extern "C" fn ftp_state_type_resp(
     }
 }
 extern "C" fn ftp_state_retr(mut data: *mut Curl_easy, mut filesize: curl_off_t) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         if (*data).set.max_filesize != 0 && filesize > (*data).set.max_filesize {
             Curl_failf(
                 data,
@@ -3250,11 +3299,10 @@ extern "C" fn ftp_state_size_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut filesize: curl_off_t = -(1 as i32) as curl_off_t;
-        let mut buf: *mut libc::c_char =unsafe{ (*data).state.buffer};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut filesize: curl_off_t = -(1 as i32) as curl_off_t;
+    let mut buf: *mut libc::c_char = unsafe { (*data).state.buffer };
+    unsafe {
         /* get the size from the ascii string: */
         if ftpcode == 213 as i32 {
             /* To allow servers to prepend "rubbish" in the response string, we scan
@@ -3327,10 +3375,9 @@ extern "C" fn ftp_state_rest_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         match instate as u32 {
             27 => {
                 if ftpcode != 350 as i32 {
@@ -3383,10 +3430,9 @@ extern "C" fn ftp_state_stor_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata = unsafe{(*data).conn};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    unsafe {
         if ftpcode >= 400 as i32 {
             Curl_failf(
                 data,
@@ -3434,11 +3480,10 @@ extern "C" fn ftp_state_get_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    unsafe {
         if ftpcode == 150 as i32 || ftpcode == 125 as i32 {
             /*
             A;
@@ -3580,10 +3625,9 @@ extern "C" fn ftp_state_get_resp(
 }
 /* after USER, PASS and ACCT */
 extern "C" fn ftp_state_loggedin(mut data: *mut Curl_easy) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    unsafe {
         if ((*conn).bits).ftp_use_control_ssl() != 0 {
             /* PBSZ = PROTECTION BUFFER SIZE.
 
@@ -3624,12 +3668,11 @@ extern "C" fn ftp_state_user_resp(
     mut ftpcode: i32,
     mut instate: ftpstate,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata = unsafe{(*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc}; /* no use for this yet */
-        /* some need password anyway, and others just return 2xx ignored */
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc }; /* no use for this yet */
+    /* some need password anyway, and others just return 2xx ignored */
+    unsafe {
         if ftpcode == 331 as i32 && (*ftpc).state as u32 == FTP_USER as u32 {
             /* 331 Password required for ...
             (the server requires to send the user's password too) */
@@ -4392,15 +4435,14 @@ unsafe extern "C" fn ftp_statemachine(
 /* called repeatedly until done from multi.c */
 
 extern "C" fn ftp_multi_statemach(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut result: CURLcode =unsafe{
-            Curl_pp_statemach(data, &mut (*ftpc).pp, 0 as i32 != 0, 0 as i32 != 0)};
-        /* Check for the state outside of the Curl_socket_check() return code checks
-        since at times we are in fact already in this state when this function
-        gets called. */
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut result: CURLcode =
+        unsafe { Curl_pp_statemach(data, &mut (*ftpc).pp, 0 as i32 != 0, 0 as i32 != 0) };
+    /* Check for the state outside of the Curl_socket_check() return code checks
+    since at times we are in fact already in this state when this function
+    gets called. */
+    unsafe {
         *done = if (*ftpc).state as u32 == FTP_STOP as u32 {
             1 as i32
         } else {
@@ -4414,10 +4456,10 @@ extern "C" fn ftp_block_statemach(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
 ) -> CURLcode {
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        let mut result: CURLcode = CURLE_OK;
-        unsafe{
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    let mut result: CURLcode = CURLE_OK;
+    unsafe {
         // 解决clippy错误
         loop {
             if (*ftpc).state as u32 == FTP_STOP as u32 {
@@ -4444,11 +4486,11 @@ extern "C" fn ftp_block_statemach(
 extern "C" fn ftp_connect(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
     /* see description above */
 
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    unsafe {
         *done = 0 as i32 != 0; /* default to not done yet */
         #[cfg(not(all(DEBUGBUILD, not(CURL_DISABLE_VERBOSE_STRINGS))))]
         Curl_conncontrol(conn, 0 as i32);
@@ -4521,17 +4563,16 @@ extern "C" fn ftp_done(
     mut status: CURLcode,
     mut premature: bool,
 ) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        let mut nread: ssize_t = 0;
-        let mut ftpcode: i32 = 0;
-        let mut result: CURLcode = CURLE_OK;
-        let mut rawPath: *mut libc::c_char = 0 as *mut libc::c_char;
-        let mut pathLen: size_t = 0 as size_t;
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    let mut nread: ssize_t = 0;
+    let mut ftpcode: i32 = 0;
+    let mut result: CURLcode = CURLE_OK;
+    let mut rawPath: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut pathLen: size_t = 0 as size_t;
+    unsafe {
         if ftp.is_null() {
             return CURLE_OK;
         }
@@ -4904,12 +4945,11 @@ extern "C" fn ftp_sendquote(
     mut conn: *mut connectdata,
     mut quote: *mut curl_slist,
 ) -> CURLcode {
-
-        let mut item: *mut curl_slist = 0 as *mut curl_slist;
-        let mut ftpc: *mut ftp_conn = unsafe{&mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong = unsafe{&mut (*ftpc).pp};
-        item = quote;
-        unsafe{
+    let mut item: *mut curl_slist = 0 as *mut curl_slist;
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    item = quote;
+    unsafe {
         while !item.is_null() {
             if !((*item).data).is_null() {
                 let mut nread: ssize_t = 0;
@@ -4983,15 +5023,14 @@ extern "C" fn ftp_nb_type(
     mut ascii: bool,
     mut newstate: ftpstate,
 ) -> CURLcode {
-
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut result: CURLcode = CURLE_OK;
-        let mut want: libc::c_char = (if ascii as i32 != 0 {
-            'A' as i32
-        } else {
-            'I' as i32
-        }) as libc::c_char;
-        unsafe{
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut result: CURLcode = CURLE_OK;
+    let mut want: libc::c_char = (if ascii as i32 != 0 {
+        'A' as i32
+    } else {
+        'I' as i32
+    }) as libc::c_char;
+    unsafe {
         if (*ftpc).transfertype as i32 == want as i32 {
             #[cfg(not(DEBUGBUILD))]
             _state(data, newstate);
@@ -5034,9 +5073,8 @@ extern "C" fn ftp_pasv_verbose(
     mut newhost: *mut libc::c_char, /* ascii version */
     mut port: i32,
 ) {
-
-        let mut buf: [libc::c_char; 256] = [0; 256];
-        unsafe{
+    let mut buf: [libc::c_char; 256] = [0; 256];
+    unsafe {
         Curl_printable_address(
             ai,
             buf.as_mut_ptr(),
@@ -5063,14 +5101,13 @@ extern "C" fn ftp_pasv_verbose(
  * EPSV).
  */
 extern "C" fn ftp_do_more(mut data: *mut Curl_easy, mut completep: *mut i32) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut result: CURLcode = CURLE_OK;
-        let mut connected: bool = 0 as i32 != 0;
-        let mut complete: bool = 0 as i32 != 0;
-        let mut ftp: *mut FTP = unsafe{(*data).req.p.ftp};
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut result: CURLcode = CURLE_OK;
+    let mut connected: bool = 0 as i32 != 0;
+    let mut complete: bool = 0 as i32 != 0;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    unsafe {
         /* the ftp struct is inited in ftp_connect() */
         /* if the second connection isn't done yet, wait for it */
         if !(*conn).bits.tcpconnect[1 as i32 as usize] {
@@ -5307,14 +5344,13 @@ extern "C" fn wc_data_dtor(mut ptr: *mut libc::c_void) {
 }
 
 extern "C" fn init_wc_data(mut data: *mut Curl_easy) -> CURLcode {
-
-        let mut last_slash: *mut libc::c_char = 0 as *mut libc::c_char;
-        let mut ftp: *mut FTP = unsafe{(*data).req.p.ftp};
-        let mut path: *mut libc::c_char =unsafe{ (*ftp).path};
-        let mut wildcard: *mut WildcardData =unsafe{ &mut (*data).wildcard};
-        let mut result: CURLcode = CURLE_OK;
-        let mut ftpwc: *mut ftp_wc = 0 as *mut ftp_wc;
-        unsafe{
+    let mut last_slash: *mut libc::c_char = 0 as *mut libc::c_char;
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut path: *mut libc::c_char = unsafe { (*ftp).path };
+    let mut wildcard: *mut WildcardData = unsafe { &mut (*data).wildcard };
+    let mut result: CURLcode = CURLE_OK;
+    let mut ftpwc: *mut ftp_wc = 0 as *mut ftp_wc;
+    unsafe {
         last_slash = strrchr((*ftp).path, '/' as i32);
         if !last_slash.is_null() {
             last_slash = last_slash.offset(1);
@@ -5493,12 +5529,11 @@ extern "C" fn init_wc_data(mut data: *mut Curl_easy) -> CURLcode {
 }
 
 extern "C" fn wc_statemach(mut data: *mut Curl_easy) -> CURLcode {
-
-        let wildcard: *mut WildcardData =unsafe{ &mut (*data).wildcard};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut result: CURLcode = CURLE_OK;
-        let mut current_block_53: u64;
-        unsafe{
+    let wildcard: *mut WildcardData = unsafe { &mut (*data).wildcard };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut result: CURLcode = CURLE_OK;
+    let mut current_block_53: u64;
+    unsafe {
         loop {
             match (*wildcard).state as u32 {
                 1 => {
@@ -5693,11 +5728,10 @@ extern "C" fn wc_statemach(mut data: *mut Curl_easy) -> CURLcode {
  * The input argument is already checked for validity.
  */
 extern "C" fn ftp_do(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         *done = 0 as i32 != 0; /* default to false */
         (*ftpc).wait_data_conn = 0 as i32 != 0; /* default to no such wait */
         if ((*data).state).wildcardmatch() != 0 {
@@ -6329,17 +6363,16 @@ extern "C" fn ftp_disconnect(
     mut conn: *mut connectdata,
     mut dead_connection: bool,
 ) -> CURLcode {
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut pp: *mut pingpong = unsafe { &mut (*ftpc).pp };
+    /* We cannot send quit unconditionally. If this connection is stale or
+       bad in any way, sending quit and waiting around here will make the
+       disconnect wait in vain and cause more problems than we need to.
 
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut pp: *mut pingpong =unsafe{ &mut (*ftpc).pp};
-        /* We cannot send quit unconditionally. If this connection is stale or
-           bad in any way, sending quit and waiting around here will make the
-           disconnect wait in vain and cause more problems than we need to.
-
-           ftp_quit() will check the state of ftp->ctl_valid. If it's ok it
-           will try to send the QUIT command, otherwise it will just return.
-        */
-        unsafe{
+       ftp_quit() will check the state of ftp->ctl_valid. If it's ok it
+       will try to send the QUIT command, otherwise it will just return.
+    */
+    unsafe {
         if dead_connection {
             (*ftpc).ctl_valid = 0 as i32 != 0;
         }
@@ -6400,17 +6433,16 @@ extern "C" fn ftp_disconnect(
  *
  */
 extern "C" fn ftp_parse_url_path(mut data: *mut Curl_easy) -> CURLcode {
-
-        /* the ftp struct is already inited in ftp_connect() */
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        let mut slashPos: *const libc::c_char = 0 as *const libc::c_char;
-        let mut fileName: *const libc::c_char = 0 as *const libc::c_char;
-        let mut result: CURLcode = CURLE_OK;
-        let mut rawPath: *mut libc::c_char = 0 as *mut libc::c_char; /* url-decoded "raw" path */
-        let mut pathLen: size_t = 0 as size_t;
-        unsafe{
+    /* the ftp struct is already inited in ftp_connect() */
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    let mut slashPos: *const libc::c_char = 0 as *const libc::c_char;
+    let mut fileName: *const libc::c_char = 0 as *const libc::c_char;
+    let mut result: CURLcode = CURLE_OK;
+    let mut rawPath: *mut libc::c_char = 0 as *mut libc::c_char; /* url-decoded "raw" path */
+    let mut pathLen: size_t = 0 as size_t;
+    unsafe {
         (*ftpc).ctl_valid = 0 as i32 != 0;
         (*ftpc).cwdfail = 0 as i32 != 0;
         /* url-decode ftp path before further evaluation */
@@ -6723,11 +6755,10 @@ extern "C" fn ftp_parse_url_path(mut data: *mut Curl_easy) -> CURLcode {
 }
 /* call this when the DO phase has completed */
 extern "C" fn ftp_dophase_done(mut data: *mut Curl_easy, mut connected: bool) -> CURLcode {
-
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftp: *mut FTP =unsafe{ (*data).req.p.ftp};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftp: *mut FTP = unsafe { (*data).req.p.ftp };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         if connected {
             let mut completed: i32 = 0;
             let mut result: CURLcode = ftp_do_more(data, &mut completed);
@@ -6791,12 +6822,11 @@ extern "C" fn ftp_regular_transfer(
     mut data: *mut Curl_easy,
     mut dophase_done: *mut bool,
 ) -> CURLcode {
-
-        let mut result: CURLcode = CURLE_OK;
-        let mut connected: bool = 0 as i32 != 0;
-        let mut conn: *mut connectdata =unsafe{ (*data).conn};
-        let mut ftpc: *mut ftp_conn =unsafe{ &mut (*conn).proto.ftpc};
-        unsafe{
+    let mut result: CURLcode = CURLE_OK;
+    let mut connected: bool = 0 as i32 != 0;
+    let mut conn: *mut connectdata = unsafe { (*data).conn };
+    let mut ftpc: *mut ftp_conn = unsafe { &mut (*conn).proto.ftpc };
+    unsafe {
         (*data).req.size = -(1 as i32) as curl_off_t; /* make sure this is unknown at this point */
         Curl_pgrsSetUploadCounter(data, 0 as curl_off_t);
         Curl_pgrsSetDownloadCounter(data, 0 as curl_off_t);

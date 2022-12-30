@@ -8,16 +8,16 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
  * PURPOSE.
  * See the Mulan PSL v2 for more details.
- * Author: Drug<zhangziyao21@mail.ustc.edu.cn>, 
+ * Author: Drug<zhangziyao21@mail.ustc.edu.cn>,
  * Create: 2022-10-31
  * Description: support rustls backend
  ******************************************************************************/
 use ::libc;
 // use c2rust_bitfields::BitfieldStruct;
+use crate::src::vtls::vtls::*;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
-use crate::src::vtls::vtls::*;
 // #[derive(Copy, Clone)]
 // #[repr(C)]
 // pub struct ssl_backend_data {
@@ -40,9 +40,8 @@ unsafe extern "C" fn cr_data_pending(
     mut conn: *const connectdata,
     mut sockindex: libc::c_int,
 ) -> bool {
-    let mut connssl: *const ssl_connect_data = &*((*conn).ssl)
-        .as_ptr()
-        .offset(sockindex as isize) as *const ssl_connect_data;
+    let mut connssl: *const ssl_connect_data =
+        &*((*conn).ssl).as_ptr().offset(sockindex as isize) as *const ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     return (*backend).data_pending;
 }
@@ -101,9 +100,8 @@ unsafe extern "C" fn cr_recv(
     mut err: *mut CURLcode,
 ) -> ssize_t {
     let mut conn: *mut connectdata = (*data).conn;
-    let connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let backend: *mut ssl_backend_data = (*connssl).backend;
     let rconn: *mut rustls_connection = (*backend).conn;
     let mut n: size_t = 0 as libc::c_int as size_t;
@@ -123,8 +121,8 @@ unsafe extern "C" fn cr_recv(
                     *mut uintptr_t,
                 ) -> libc::c_int,
         ),
-        &mut *((*conn).sock).as_mut_ptr().offset(sockindex as isize)
-            as *mut curl_socket_t as *mut libc::c_void,
+        &mut *((*conn).sock).as_mut_ptr().offset(sockindex as isize) as *mut curl_socket_t
+            as *mut libc::c_void,
         &mut tls_bytes_read,
     );
     if io_error == 11 as libc::c_int || io_error == 11 as libc::c_int {
@@ -191,9 +189,7 @@ unsafe extern "C" fn cr_recv(
         {
             *err = CURLE_OK;
             return 0 as libc::c_int as ssize_t;
-        } else if rresult as libc::c_uint
-                != RUSTLS_RESULT_OK as libc::c_int as libc::c_uint
-            {
+        } else if rresult as libc::c_uint != RUSTLS_RESULT_OK as libc::c_int as libc::c_uint {
             Curl_failf(
                 data,
                 b"error in rustls_connection_read\0" as *const u8 as *const libc::c_char,
@@ -210,12 +206,11 @@ unsafe extern "C" fn cr_recv(
         } else {
             Curl_infof(
                 data,
-                b"cr_recv copied out %ld bytes of plaintext\0" as *const u8
-                    as *const libc::c_char,
+                b"cr_recv copied out %ld bytes of plaintext\0" as *const u8 as *const libc::c_char,
                 n,
             );
-            plain_bytes_copied = (plain_bytes_copied as libc::c_ulong).wrapping_add(n)
-                as size_t as size_t;
+            plain_bytes_copied =
+                (plain_bytes_copied as libc::c_ulong).wrapping_add(n) as size_t as size_t;
         }
     }
     if plain_bytes_copied == 0 as libc::c_int as libc::c_ulong {
@@ -232,9 +227,8 @@ unsafe extern "C" fn cr_send(
     mut err: *mut CURLcode,
 ) -> ssize_t {
     let mut conn: *mut connectdata = (*data).conn;
-    let connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let backend: *mut ssl_backend_data = (*connssl).backend;
     let rconn: *mut rustls_connection = (*backend).conn;
     let mut plainwritten: size_t = 0 as libc::c_int as size_t;
@@ -265,8 +259,7 @@ unsafe extern "C" fn cr_send(
             if plainwritten == 0 as libc::c_int as libc::c_ulong {
                 Curl_failf(
                     data,
-                    b"EOF in rustls_connection_write\0" as *const u8
-                        as *const libc::c_char,
+                    b"EOF in rustls_connection_write\0" as *const u8 as *const libc::c_char,
                 );
                 *err = CURLE_WRITE_ERROR;
                 return -(1 as libc::c_int) as ssize_t;
@@ -285,8 +278,8 @@ unsafe extern "C" fn cr_send(
                         *mut uintptr_t,
                     ) -> libc::c_int,
             ),
-            &mut *((*conn).sock).as_mut_ptr().offset(sockindex as isize)
-                as *mut curl_socket_t as *mut libc::c_void,
+            &mut *((*conn).sock).as_mut_ptr().offset(sockindex as isize) as *mut curl_socket_t
+                as *mut libc::c_void,
             &mut tlswritten,
         );
         if io_error == 11 as libc::c_int || io_error == 11 as libc::c_int {
@@ -323,8 +316,8 @@ unsafe extern "C" fn cr_send(
             b"cr_send wrote %ld bytes to network\0" as *const u8 as *const libc::c_char,
             tlswritten,
         );
-        tlswritten_total = (tlswritten_total as libc::c_ulong).wrapping_add(tlswritten)
-            as size_t as size_t;
+        tlswritten_total =
+            (tlswritten_total as libc::c_ulong).wrapping_add(tlswritten) as size_t as size_t;
     }
     return plainwritten as ssize_t;
 }
@@ -365,19 +358,17 @@ unsafe extern "C" fn cr_init_backend(
     backend: *mut ssl_backend_data,
 ) -> CURLcode {
     let mut rconn: *mut rustls_connection = (*backend).conn;
-    let mut config_builder: *mut rustls_client_config_builder = 0
-        as *mut rustls_client_config_builder;
-    let ssl_cafile: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int
-        as libc::c_uint == (*conn).http_proxy.proxytype as libc::c_uint
+    let mut config_builder: *mut rustls_client_config_builder =
+        0 as *mut rustls_client_config_builder;
+    let ssl_cafile: *const libc::c_char = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
+        == (*conn).http_proxy.proxytype as libc::c_uint
         && ssl_connection_complete as libc::c_int as libc::c_uint
-            != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
-                {
-                    0 as libc::c_int
-                } else {
-                    1 as libc::c_int
-                }) as usize]
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
+            {
+                0 as libc::c_int
+            } else {
+                1 as libc::c_int
+            }) as usize]
                 .state as libc::c_uint
     {
         (*conn).proxy_ssl_config.CAfile
@@ -387,14 +378,12 @@ unsafe extern "C" fn cr_init_backend(
     let verifypeer: bool = if CURLPROXY_HTTPS as libc::c_int as libc::c_uint
         == (*conn).http_proxy.proxytype as libc::c_uint
         && ssl_connection_complete as libc::c_int as libc::c_uint
-            != (*conn)
-                .proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize]
-                    == -(1 as libc::c_int)
-                {
-                    0 as libc::c_int
-                } else {
-                    1 as libc::c_int
-                }) as usize]
+            != (*conn).proxy_ssl[(if (*conn).sock[1 as libc::c_int as usize] == -(1 as libc::c_int)
+            {
+                0 as libc::c_int
+            } else {
+                1 as libc::c_int
+            }) as usize]
                 .state as libc::c_uint
     {
         ((*conn).proxy_ssl_config).verifypeer() as libc::c_int
@@ -408,8 +397,7 @@ unsafe extern "C" fn cr_init_backend(
     let mut alpn: [rustls_slice_bytes; 2] = [
         {
             let mut init = rustls_slice_bytes {
-                data: b"http/1.1\0" as *const u8 as *const libc::c_char
-                    as *const uint8_t,
+                data: b"http/1.1\0" as *const u8 as *const libc::c_char as *const uint8_t,
                 len: 8 as libc::c_int as size_t,
             };
             init
@@ -444,33 +432,24 @@ unsafe extern "C" fn cr_init_backend(
             ),
         );
         if cr_hostname_is_ip(hostname) {
-            rustls_client_config_builder_set_enable_sni(
-                config_builder,
-                0 as libc::c_int != 0,
-            );
+            rustls_client_config_builder_set_enable_sni(config_builder, 0 as libc::c_int != 0);
             hostname = b"example.invalid\0" as *const u8 as *const libc::c_char;
         }
     } else if !ssl_cafile.is_null() {
-        result = rustls_client_config_builder_load_roots_from_file(
-            config_builder,
-            ssl_cafile,
-        ) as libc::c_int;
+        result = rustls_client_config_builder_load_roots_from_file(config_builder, ssl_cafile)
+            as libc::c_int;
         if result != RUSTLS_RESULT_OK as libc::c_int {
             Curl_failf(
                 data,
-                b"failed to load trusted certificates\0" as *const u8
-                    as *const libc::c_char,
+                b"failed to load trusted certificates\0" as *const u8 as *const libc::c_char,
             );
-            rustls_client_config_free(
-                rustls_client_config_builder_build(config_builder),
-            );
+            rustls_client_config_free(rustls_client_config_builder_build(config_builder));
             return CURLE_SSL_CACERT_BADFILE;
         }
     }
     let ref mut fresh0 = (*backend).config;
     *fresh0 = rustls_client_config_builder_build(config_builder);
-    result = rustls_client_connection_new((*backend).config, hostname, &mut rconn)
-        as libc::c_int;
+    result = rustls_client_connection_new((*backend).config, hostname, &mut rconn) as libc::c_int;
     if result != RUSTLS_RESULT_OK as libc::c_int {
         rustls_error(
             result as rustls_result,
@@ -502,8 +481,7 @@ unsafe extern "C" fn cr_set_negotiated_alpn(
     if protocol.is_null() {
         Curl_infof(
             data,
-            b"ALPN, server did not agree to a protocol\0" as *const u8
-                as *const libc::c_char,
+            b"ALPN, server did not agree to a protocol\0" as *const u8 as *const libc::c_char,
         );
         return;
     }
@@ -515,17 +493,19 @@ unsafe extern "C" fn cr_set_negotiated_alpn(
                 len,
             )
     {
-        Curl_infof(data, b"ALPN, negotiated h2\0" as *const u8 as *const libc::c_char);
+        Curl_infof(
+            data,
+            b"ALPN, negotiated h2\0" as *const u8 as *const libc::c_char,
+        );
         (*conn).negnpn = CURL_HTTP_VERSION_2_0 as libc::c_int;
     } else if len == 8 as libc::c_int as libc::c_ulong
-            && 0 as libc::c_int
-                == memcmp(
-                    b"http/1.1\0" as *const u8 as *const libc::c_char
-                        as *const libc::c_void,
-                    protocol as *const libc::c_void,
-                    len,
-                )
-        {
+        && 0 as libc::c_int
+            == memcmp(
+                b"http/1.1\0" as *const u8 as *const libc::c_char as *const libc::c_void,
+                protocol as *const libc::c_void,
+                len,
+            )
+    {
         Curl_infof(
             data,
             b"ALPN, negotiated http/1.1\0" as *const u8 as *const libc::c_char,
@@ -534,8 +514,7 @@ unsafe extern "C" fn cr_set_negotiated_alpn(
     } else {
         Curl_infof(
             data,
-            b"ALPN, negotiated an unrecognized protocol\0" as *const u8
-                as *const libc::c_char,
+            b"ALPN, negotiated an unrecognized protocol\0" as *const u8 as *const libc::c_char,
         );
     }
     Curl_multiuse_state(
@@ -553,9 +532,8 @@ unsafe extern "C" fn cr_connect_nonblocking(
     mut sockindex: libc::c_int,
     mut done: *mut bool,
 ) -> CURLcode {
-    let connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut sockfd: curl_socket_t = (*conn).sock[sockindex as usize];
     let backend: *mut ssl_backend_data = (*connssl).backend;
     let mut rconn: *mut rustls_connection = 0 as *mut rustls_connection;
@@ -566,9 +544,7 @@ unsafe extern "C" fn cr_connect_nonblocking(
     let mut wants_write: bool = false;
     let mut writefd: curl_socket_t = 0;
     let mut readfd: curl_socket_t = 0;
-    if ssl_connection_none as libc::c_int as libc::c_uint
-        == (*connssl).state as libc::c_uint
-    {
+    if ssl_connection_none as libc::c_int as libc::c_uint == (*connssl).state as libc::c_uint {
         result = cr_init_backend(data, conn, (*connssl).backend) as libc::c_int;
         if result != CURLE_OK as libc::c_int {
             return result as CURLcode;
@@ -578,7 +554,10 @@ unsafe extern "C" fn cr_connect_nonblocking(
     rconn = (*backend).conn;
     loop {
         if !rustls_connection_is_handshaking(rconn) {
-            Curl_infof(data, b"Done handshaking\0" as *const u8 as *const libc::c_char);
+            Curl_infof(
+                data,
+                b"Done handshaking\0" as *const u8 as *const libc::c_char,
+            );
             (*connssl).state = ssl_connection_complete;
             cr_set_negotiated_alpn(data, conn, rconn);
             let ref mut fresh2 = (*conn).recv[sockindex as usize];
@@ -627,8 +606,7 @@ unsafe extern "C" fn cr_connect_nonblocking(
         if what < 0 as libc::c_int {
             Curl_failf(
                 data,
-                b"select/poll on SSL socket, errno: %d\0" as *const u8
-                    as *const libc::c_char,
+                b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const libc::c_char,
                 *__errno_location(),
             );
             return CURLE_SSL_CONNECT_ERROR;
@@ -636,8 +614,7 @@ unsafe extern "C" fn cr_connect_nonblocking(
         if 0 as libc::c_int == what {
             Curl_infof(
                 data,
-                b"Curl_socket_check: %s would block\0" as *const u8
-                    as *const libc::c_char,
+                b"Curl_socket_check: %s would block\0" as *const u8 as *const libc::c_char,
                 if wants_read as libc::c_int != 0 && wants_write as libc::c_int != 0 {
                     b"writing and reading\0" as *const u8 as *const libc::c_char
                 } else if wants_write as libc::c_int != 0 {
@@ -652,8 +629,7 @@ unsafe extern "C" fn cr_connect_nonblocking(
         if wants_write {
             Curl_infof(
                 data,
-                b"rustls_connection wants us to write_tls.\0" as *const u8
-                    as *const libc::c_char,
+                b"rustls_connection wants us to write_tls.\0" as *const u8 as *const libc::c_char,
             );
             cr_send(
                 data,
@@ -668,14 +644,13 @@ unsafe extern "C" fn cr_connect_nonblocking(
                     b"writing would block\0" as *const u8 as *const libc::c_char,
                 );
             } else if tmperr as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint {
-                return tmperr
+                return tmperr;
             }
         }
         if wants_read {
             Curl_infof(
                 data,
-                b"rustls_connection wants us to read_tls.\0" as *const u8
-                    as *const libc::c_char,
+                b"rustls_connection wants us to read_tls.\0" as *const u8 as *const libc::c_char,
             );
             cr_recv(
                 data,
@@ -690,24 +665,21 @@ unsafe extern "C" fn cr_connect_nonblocking(
                     b"reading would block\0" as *const u8 as *const libc::c_char,
                 );
             } else if tmperr as libc::c_uint != CURLE_OK as libc::c_int as libc::c_uint {
-                if tmperr as libc::c_uint
-                    == CURLE_READ_ERROR as libc::c_int as libc::c_uint
-                {
-                    return CURLE_SSL_CONNECT_ERROR
+                if tmperr as libc::c_uint == CURLE_READ_ERROR as libc::c_int as libc::c_uint {
+                    return CURLE_SSL_CONNECT_ERROR;
                 } else {
-                    return tmperr
+                    return tmperr;
                 }
             }
         }
-    };
+    }
 }
 unsafe extern "C" fn cr_getsock(
     mut conn: *mut connectdata,
     mut socks: *mut curl_socket_t,
 ) -> libc::c_int {
-    let connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(0 as libc::c_int as isize) as *mut ssl_connect_data;
+    let connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(0 as libc::c_int as isize) as *mut ssl_connect_data;
     let mut sockfd: curl_socket_t = (*conn).sock[0 as libc::c_int as usize];
     let backend: *mut ssl_backend_data = (*connssl).backend;
     let mut rconn: *mut rustls_connection = (*backend).conn;
@@ -733,9 +705,8 @@ unsafe extern "C" fn cr_close(
     mut conn: *mut connectdata,
     mut sockindex: libc::c_int,
 ) {
-    let mut connssl: *mut ssl_connect_data = &mut *((*conn).ssl)
-        .as_mut_ptr()
-        .offset(sockindex as isize) as *mut ssl_connect_data;
+    let mut connssl: *mut ssl_connect_data =
+        &mut *((*conn).ssl).as_mut_ptr().offset(sockindex as isize) as *mut ssl_connect_data;
     let mut backend: *mut ssl_backend_data = (*connssl).backend;
     let mut tmperr: CURLcode = CURLE_OK;
     let mut n: ssize_t = 0 as libc::c_int as ssize_t;
@@ -777,17 +748,14 @@ pub static mut Curl_ssl_rustls: Curl_ssl = unsafe {
                 init
             },
             supports: ((1 as libc::c_int) << 5 as libc::c_int) as libc::c_uint,
-            sizeof_ssl_backend_data: ::std::mem::size_of::<ssl_backend_data>()
-                as libc::c_ulong,
+            sizeof_ssl_backend_data: ::std::mem::size_of::<ssl_backend_data>() as libc::c_ulong,
             init: Some(Curl_none_init as unsafe extern "C" fn() -> libc::c_int),
             cleanup: Some(Curl_none_cleanup as unsafe extern "C" fn() -> ()),
             version: Some(
-                rustls_version
-                    as unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t,
+                rustls_version as unsafe extern "C" fn(*mut libc::c_char, size_t) -> size_t,
             ),
             check_cxn: Some(
-                Curl_none_check_cxn
-                    as unsafe extern "C" fn(*mut connectdata) -> libc::c_int,
+                Curl_none_check_cxn as unsafe extern "C" fn(*mut connectdata) -> libc::c_int,
             ),
             shut_down: Some(
                 Curl_none_shutdown
@@ -798,16 +766,11 @@ pub static mut Curl_ssl_rustls: Curl_ssl = unsafe {
                     ) -> libc::c_int,
             ),
             data_pending: Some(
-                cr_data_pending
-                    as unsafe extern "C" fn(*const connectdata, libc::c_int) -> bool,
+                cr_data_pending as unsafe extern "C" fn(*const connectdata, libc::c_int) -> bool,
             ),
             random: Some(
                 Curl_none_random
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *mut libc::c_uchar,
-                        size_t,
-                    ) -> CURLcode,
+                    as unsafe extern "C" fn(*mut Curl_easy, *mut libc::c_uchar, size_t) -> CURLcode,
             ),
             cert_status_request: Some(
                 Curl_none_cert_status_request as unsafe extern "C" fn() -> bool,
@@ -831,46 +794,29 @@ pub static mut Curl_ssl_rustls: Curl_ssl = unsafe {
             ),
             getsock: Some(
                 cr_getsock
-                    as unsafe extern "C" fn(
-                        *mut connectdata,
-                        *mut curl_socket_t,
-                    ) -> libc::c_int,
+                    as unsafe extern "C" fn(*mut connectdata, *mut curl_socket_t) -> libc::c_int,
             ),
             get_internals: Some(
                 cr_get_internals
-                    as unsafe extern "C" fn(
-                        *mut ssl_connect_data,
-                        CURLINFO,
-                    ) -> *mut libc::c_void,
+                    as unsafe extern "C" fn(*mut ssl_connect_data, CURLINFO) -> *mut libc::c_void,
             ),
             close_one: Some(
                 cr_close
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *mut connectdata,
-                        libc::c_int,
-                    ) -> (),
+                    as unsafe extern "C" fn(*mut Curl_easy, *mut connectdata, libc::c_int) -> (),
             ),
-            close_all: Some(
-                Curl_none_close_all as unsafe extern "C" fn(*mut Curl_easy) -> (),
-            ),
+            close_all: Some(Curl_none_close_all as unsafe extern "C" fn(*mut Curl_easy) -> ()),
             session_free: Some(
                 Curl_none_session_free as unsafe extern "C" fn(*mut libc::c_void) -> (),
             ),
             set_engine: Some(
                 Curl_none_set_engine
-                    as unsafe extern "C" fn(
-                        *mut Curl_easy,
-                        *const libc::c_char,
-                    ) -> CURLcode,
+                    as unsafe extern "C" fn(*mut Curl_easy, *const libc::c_char) -> CURLcode,
             ),
             set_engine_default: Some(
-                Curl_none_set_engine_default
-                    as unsafe extern "C" fn(*mut Curl_easy) -> CURLcode,
+                Curl_none_set_engine_default as unsafe extern "C" fn(*mut Curl_easy) -> CURLcode,
             ),
             engines_list: Some(
-                Curl_none_engines_list
-                    as unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist,
+                Curl_none_engines_list as unsafe extern "C" fn(*mut Curl_easy) -> *mut curl_slist,
             ),
             false_start: Some(Curl_none_false_start as unsafe extern "C" fn() -> bool),
             sha256sum: None,
