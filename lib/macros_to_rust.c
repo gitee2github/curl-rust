@@ -1525,3 +1525,12 @@ int get_THREADING_SUPPORT()
     return 0;
 #endif
 }
+
+int get_USE_QUICHE()
+{
+#ifdef USE_QUICHE
+    return 1;
+#else
+    return 0;
+#endif
+}

@@ -732,15 +732,15 @@ extern "C" fn cert_stuff(
                 if cert_use_result != 1 as i32 {
                     unsafe {
                         Curl_failf(
-                             data,
-                             b"could not load PEM client certificate, OpenSSL error %s, (no key found, wrong pass phrase, or wrong file format?)\0"
-                                 as *const u8 as *const libc::c_char,
-                             ossl_strerror(
-                                 ERR_get_error(),
-                                 error_buffer.as_mut_ptr(),
-                                 ::std::mem::size_of::<[libc::c_char; 256]>() as u64,
-                             ),
-                         );
+                              data,
+                              b"could not load PEM client certificate, OpenSSL error %s, (no key found, wrong pass phrase, or wrong file format?)\0"
+                                  as *const u8 as *const libc::c_char,
+                              ossl_strerror(
+                                  ERR_get_error(),
+                                  error_buffer.as_mut_ptr(),
+                                  ::std::mem::size_of::<[libc::c_char; 256]>() as u64,
+                              ),
+                          );
                     }
                     return 0 as i32;
                 }
@@ -757,15 +757,15 @@ extern "C" fn cert_stuff(
                 if cert_use_result != 1 as i32 {
                     unsafe {
                         Curl_failf(
-                             data,
-                             b"could not load ASN1 client certificate, OpenSSL error %s, (no key found, wrong pass phrase, or wrong file format?)\0"
-                                 as *const u8 as *const libc::c_char,
-                             ossl_strerror(
-                                 ERR_get_error(),
-                                 error_buffer.as_mut_ptr(),
-                                 ::std::mem::size_of::<[libc::c_char; 256]>() as u64,
-                             ),
-                         );
+                              data,
+                              b"could not load ASN1 client certificate, OpenSSL error %s, (no key found, wrong pass phrase, or wrong file format?)\0"
+                                  as *const u8 as *const libc::c_char,
+                              ossl_strerror(
+                                  ERR_get_error(),
+                                  error_buffer.as_mut_ptr(),
+                                  ::std::mem::size_of::<[libc::c_char; 256]>() as u64,
+                              ),
+                          );
                     }
                     return 0 as i32;
                 }
@@ -996,11 +996,11 @@ extern "C" fn cert_stuff(
                     if unsafe { SSL_CTX_check_private_key(ctx) } == 0 {
                         unsafe {
                             Curl_failf(
-                            data,
-                            b"private key from PKCS12 file '%s' does not match certificate in same file\0"
-                                as *const u8 as *const libc::c_char,
-                            cert_file,
-                        );
+                             data,
+                             b"private key from PKCS12 file '%s' does not match certificate in same file\0"
+                                 as *const u8 as *const libc::c_char,
+                             cert_file,
+                         );
                         }
                         break 'fail;
                     }
@@ -1761,10 +1761,10 @@ extern "C" fn ossl_shutdown(
                         }
                         3 => {
                             Curl_infof(
-                                 data,
-                                 b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN|SSL_RECEIVED__SHUTDOWN\0"
-                                     as *const u8 as *const libc::c_char,
-                             );
+                                  data,
+                                  b"SSL_get_shutdown() returned SSL_SENT_SHUTDOWN|SSL_RECEIVED__SHUTDOWN\0"
+                                      as *const u8 as *const libc::c_char,
+                              );
                         }
                         _ => {}
                     }
@@ -2154,12 +2154,12 @@ extern "C" fn verifyhost(
                 {
                     unsafe {
                         Curl_failf(
-                        data,
-                        b"SSL: certificate subject name '%s' does not match target host name '%s'\0"
-                            as *const u8 as *const libc::c_char,
-                        peer_CN,
-                        dispname,
-                    );
+                         data,
+                         b"SSL: certificate subject name '%s' does not match target host name '%s'\0"
+                             as *const u8 as *const libc::c_char,
+                         peer_CN,
+                         dispname,
+                     );
                     }
                     result = CURLE_PEER_FAILED_VERIFICATION;
                 } else {
@@ -2949,7 +2949,7 @@ extern "C" fn ossl_new_session_cb(mut ssl: *mut SSL, mut ssl_sessionid: *mut SSL
     }
     return res;
 }
-
+// hanxj
 #[cfg(USE_OPENSSL)]
 extern "C" fn load_cacert_from_memory(
     mut ctx: *mut SSL_CTX,
@@ -3971,6 +3971,7 @@ extern "C" fn ossl_connect_step1(
         }
     }
     Curl_ssl_sessionid_unlock(data);
+    #[cfg(not(CURL_DISABLE_PROXY))]
     if unsafe { ((*conn).proxy_ssl[sockindex as usize]).use_0() } != 0 {
         let bio: *mut BIO = unsafe { BIO_new(BIO_f_ssl()) };
         let mut handle: *mut SSL =
@@ -3981,41 +3982,41 @@ extern "C" fn ossl_connect_step1(
             {
             } else {
                 __assert_fail(
-                b"ssl_connection_complete == conn->proxy_ssl[sockindex].state\0" as *const u8
-                    as *const libc::c_char,
-                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
-                3264 as u32,
-                (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
-                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
-                ))
-                .as_ptr(),
-            );
+                 b"ssl_connection_complete == conn->proxy_ssl[sockindex].state\0" as *const u8
+                     as *const libc::c_char,
+                 b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                 3264 as u32,
+                 (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
+                     b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                 ))
+                 .as_ptr(),
+             );
             }
             #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
             if !handle.is_null() {
             } else {
                 __assert_fail(
-                b"handle != ((void*)0)\0" as *const u8 as *const libc::c_char,
-                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
-                3265 as u32,
-                (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
-                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
-                ))
-                .as_ptr(),
-            );
+                 b"handle != ((void*)0)\0" as *const u8 as *const libc::c_char,
+                 b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                 3265 as u32,
+                 (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
+                     b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                 ))
+                 .as_ptr(),
+             );
             }
             #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
             if !bio.is_null() {
             } else {
                 __assert_fail(
-                b"bio != ((void*)0)\0" as *const u8 as *const libc::c_char,
-                b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
-                3266 as u32,
-                (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
-                    b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
-                ))
-                .as_ptr(),
-            );
+                 b"bio != ((void*)0)\0" as *const u8 as *const libc::c_char,
+                 b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+                 3266 as u32,
+                 (*::std::mem::transmute::<&[u8; 75], &[libc::c_char; 75]>(
+                     b"CURLcode ossl_connect_step1(struct Curl_easy *, struct connectdata *, int)\0",
+                 ))
+                 .as_ptr(),
+             );
             }
             BIO_ctrl(bio, 109 as i32, 0 as i64, handle as *mut libc::c_void);
             SSL_set_bio((*backend).handle, bio, bio);
@@ -4034,7 +4035,22 @@ extern "C" fn ossl_connect_step1(
         }
         return CURLE_SSL_CONNECT_ERROR;
     }
+
     unsafe {
+        #[cfg(CURL_DISABLE_PROXY)]
+        if SSL_set_fd((*backend).handle, sockfd) == 0 {
+            /* pass the raw socket into the SSL layers */
+            Curl_failf(
+                data,
+                b"SSL: SSL_set_fd failed: %s\0" as *const u8 as *const libc::c_char,
+                ossl_strerror(
+                    ERR_get_error(),
+                    error_buffer.as_mut_ptr(),
+                    ::std::mem::size_of::<[libc::c_char; 256]>() as u64,
+                ),
+            );
+            return CURLE_SSL_CONNECT_ERROR;
+        }
         (*connssl).connecting_state = ssl_connect_2;
     }
     return CURLE_OK;
@@ -4059,18 +4075,18 @@ extern "C" fn ossl_connect_step2(
         {
         } else {
             __assert_fail(
-             b"ssl_connect_2 == connssl->connecting_state || ssl_connect_2_reading == connssl->connecting_state || ssl_connect_2_writing == connssl->connecting_state\0"
-                 as *const u8 as *const libc::c_char,
-             b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
-             3292 as u32,
-             (*::std::mem::transmute::<
-                 &[u8; 75],
-                 &[libc::c_char; 75],
-             >(
-                 b"CURLcode ossl_connect_step2(struct Curl_easy *, struct connectdata *, int)\0",
-             ))
-                 .as_ptr(),
-         );
+              b"ssl_connect_2 == connssl->connecting_state || ssl_connect_2_reading == connssl->connecting_state || ssl_connect_2_writing == connssl->connecting_state\0"
+                  as *const u8 as *const libc::c_char,
+              b"vtls/openssl.c\0" as *const u8 as *const libc::c_char,
+              3292 as u32,
+              (*::std::mem::transmute::<
+                  &[u8; 75],
+                  &[libc::c_char; 75],
+              >(
+                  b"CURLcode ossl_connect_step2(struct Curl_easy *, struct connectdata *, int)\0",
+              ))
+                  .as_ptr(),
+          );
         }
         ERR_clear_error();
 
@@ -4110,11 +4126,11 @@ extern "C" fn ossl_connect_step2(
             let mut errdetail: u64 = 0;
             let mut error_buffer: [libc::c_char; 256] = unsafe {
                 *::std::mem::transmute::<
-                     &[u8; 256],
-                     &mut [libc::c_char; 256],
-                 >(
-                     b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
-                 )
+                      &[u8; 256],
+                      &mut [libc::c_char; 256],
+                  >(
+                      b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+                  )
             };
             let mut result: CURLcode = CURLE_OK;
             let mut lerr: i64 = 0;
@@ -4241,11 +4257,11 @@ extern "C" fn ossl_connect_step2(
                     #[cfg(CURL_DISABLE_PROXY)]
                     let port: i64 = (*conn).remote_port as i64;
                     let mut extramsg: [libc::c_char; 80] = *::std::mem::transmute::<
-                         &[u8; 80],
-                         &mut [libc::c_char; 80],
-                     >(
-                         b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
-                     );
+                          &[u8; 80],
+                          &mut [libc::c_char; 80],
+                      >(
+                          b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+                      );
                     let mut sockerr: i32 = *__errno_location();
                     if sockerr != 0 && detail == 5 as i32 {
                         Curl_strerror(
@@ -5077,11 +5093,11 @@ extern "C" fn servercert(
     let mut fp: *mut BIO = 0 as *mut BIO;
     let mut error_buffer: [libc::c_char; 256] = unsafe {
         *::std::mem::transmute::<
-             &[u8; 256],
-             &mut [libc::c_char; 256],
-         >(
-             b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
-         )
+              &[u8; 256],
+              &mut [libc::c_char; 256],
+          >(
+              b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+          )
     };
     let mut buffer: [libc::c_char; 2048] = [0; 2048];
     let mut ptr: *const libc::c_char = 0 as *const libc::c_char;
@@ -5421,7 +5437,7 @@ extern "C" fn servercert(
             } = lerr;
         }
         #[cfg(CURL_DISABLE_PROXY)]
-        if true {
+        unsafe {
             (*data).set.ssl.certverifyresult = lerr;
         }
         if lerr != 0 as i64 {
@@ -6115,12 +6131,12 @@ extern "C" fn ossl_recv(
                                 );
                             }
                             Curl_failf(
-                             data,
-                             b"OpenSSL SSL_read: %s, errno %d (Fatal because this is a curl debug build)\0"
-                                 as *const u8 as *const libc::c_char,
-                             error_buffer.as_mut_ptr(),
-                             sockerr_0,
-                         );
+                              data,
+                              b"OpenSSL SSL_read: %s, errno %d (Fatal because this is a curl debug build)\0"
+                                  as *const u8 as *const libc::c_char,
+                              error_buffer.as_mut_ptr(),
+                              sockerr_0,
+                          );
                             *curlcode = CURLE_RECV_ERROR;
                             return -(1 as i32) as ssize_t;
                         }

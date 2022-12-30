@@ -81,7 +81,7 @@ pub extern "C" fn Curl_mbedtlsthreadlock_thread_cleanup() -> i32 {
         if mutex_buf.is_null() {
             return 0; /* error, no threads locks defined */
         }
-    
+
         i = 0;
         while i < 2 {
             if pthread_mutex_destroy(&mut *mutex_buf.offset(i as isize)) != 0 {
@@ -89,7 +89,7 @@ pub extern "C" fn Curl_mbedtlsthreadlock_thread_cleanup() -> i32 {
             }
             i += 1;
         }
-    
+
         #[cfg(not(CURLDEBUG))]
         Curl_cfree.expect("non-null function pointer")(mutex_buf as *mut libc::c_void);
         #[cfg(CURLDEBUG)]

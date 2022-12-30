@@ -263,11 +263,9 @@ mod tests {
 
     #[test]
     fn test_keylog() {
-        unsafe {
-            Curl_tls_keylog_open();
-            Curl_tls_keylog_write_line(b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char);
-            assert_eq!(Curl_tls_keylog_enabled(), true);
-            Curl_tls_keylog_close();
-        }
+        Curl_tls_keylog_open();
+        Curl_tls_keylog_write_line(b"0123456789ABCDEF\0" as *const u8 as *const libc::c_char);
+        assert_eq!(Curl_tls_keylog_enabled(), true);
+        Curl_tls_keylog_close();
     }
 }
