@@ -769,12 +769,12 @@ extern "C" fn dup_nickname(
     if n.is_null() {
         unsafe {
             Curl_infof(
-             data,
-             b"warning: certificate file name \"%s\" handled as nickname; please use \"./%s\" to force file name\0"
-                 as *const u8 as *const libc::c_char,
-             str,
-             str,
-         );
+              data,
+              b"warning: certificate file name \"%s\" handled as nickname; please use \"./%s\" to force file name\0"
+                  as *const u8 as *const libc::c_char,
+              str,
+              str,
+          );
         }
         #[cfg(not(CURLDEBUG))]
         return unsafe { Curl_cstrdup.expect("non-null function pointer")(str) };
@@ -2908,10 +2908,10 @@ pub extern "C" fn Curl_nss_force_init(mut data: *mut Curl_easy) -> CURLcode {
         if !data.is_null() {
             unsafe {
                 Curl_failf(
-                 data,
-                 b"unable to initialize NSS, curl_global_init() should have been called with CURL_GLOBAL_SSL or CURL_GLOBAL_ALL\0"
-                     as *const u8 as *const libc::c_char,
-             );
+                  data,
+                  b"unable to initialize NSS, curl_global_init() should have been called with CURL_GLOBAL_SSL or CURL_GLOBAL_ALL\0"
+                      as *const u8 as *const libc::c_char,
+              );
             }
         }
         return CURLE_FAILED_INIT;
@@ -3461,7 +3461,7 @@ extern "C" fn nss_init_sslver(
         }
     };
     #[cfg(CURL_DISABLE_PROXY)]
-    let max: i64 = (*conn).ssl_config.version_max;
+    let max: i64 = unsafe { (*conn).ssl_config.version_max };
     let mut vrange: SSLVersionRange = SSLVersionRange { min: 0, max: 0 };
     match min {
         1 | 0 => {
@@ -4604,11 +4604,11 @@ extern "C" fn nss_setup_connect(
         if result as u32 == CURLE_FAILED_INIT as i32 as u32 {
             unsafe {
                 Curl_infof(
-                 data,
-                 b"WARNING: failed to load NSS PEM library %s. Using OpenSSL PEM certificates will not work.\0"
-                     as *const u8 as *const libc::c_char,
-                 pem_library,
-             );
+                  data,
+                  b"WARNING: failed to load NSS PEM library %s. Using OpenSSL PEM certificates will not work.\0"
+                      as *const u8 as *const libc::c_char,
+                  pem_library,
+              );
             }
         } else if result as u64 != 0 {
             break 'error;
@@ -5060,18 +5060,18 @@ extern "C" fn nss_setup_connect(
             } else {
                 unsafe {
                     __assert_fail(
-                     b"ssl_connection_complete == conn->proxy_ssl[sockindex].state\0"
-                         as *const u8 as *const libc::c_char,
-                     b"vtls/nss.c\0" as *const u8 as *const libc::c_char,
-                     2029 as libc::c_int as libc::c_uint,
-                     (*::std::mem::transmute::<
-                         &[u8; 74],
-                         &[libc::c_char; 74],
-                     >(
-                         b"CURLcode nss_setup_connect(struct Curl_easy *, struct connectdata *, int)\0",
-                     ))
-                         .as_ptr(),
-                 );
+                      b"ssl_connection_complete == conn->proxy_ssl[sockindex].state\0"
+                          as *const u8 as *const libc::c_char,
+                      b"vtls/nss.c\0" as *const u8 as *const libc::c_char,
+                      2029 as libc::c_int as libc::c_uint,
+                      (*::std::mem::transmute::<
+                          &[u8; 74],
+                          &[libc::c_char; 74],
+                      >(
+                          b"CURLcode nss_setup_connect(struct Curl_easy *, struct connectdata *, int)\0",
+                      ))
+                          .as_ptr(),
+                  );
                 }
             }
             #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
@@ -5079,18 +5079,18 @@ extern "C" fn nss_setup_connect(
             } else {
                 unsafe {
                     __assert_fail(
-                     b"conn->proxy_ssl[sockindex].backend->handle != ((void*)0)\0"
-                         as *const u8 as *const libc::c_char,
-                     b"vtls/nss.c\0" as *const u8 as *const libc::c_char,
-                     2030 as libc::c_int as libc::c_uint,
-                     (*::std::mem::transmute::<
-                         &[u8; 74],
-                         &[libc::c_char; 74],
-                     >(
-                         b"CURLcode nss_setup_connect(struct Curl_easy *, struct connectdata *, int)\0",
-                     ))
-                         .as_ptr(),
-                 );
+                      b"conn->proxy_ssl[sockindex].backend->handle != ((void*)0)\0"
+                          as *const u8 as *const libc::c_char,
+                      b"vtls/nss.c\0" as *const u8 as *const libc::c_char,
+                      2030 as libc::c_int as libc::c_uint,
+                      (*::std::mem::transmute::<
+                          &[u8; 74],
+                          &[libc::c_char; 74],
+                      >(
+                          b"CURLcode nss_setup_connect(struct Curl_easy *, struct connectdata *, int)\0",
+                      ))
+                          .as_ptr(),
+                  );
                 }
             }
             nspr_io = unsafe { (*(*conn).proxy_ssl[sockindex as usize].backend).nss_handle };
@@ -5186,7 +5186,7 @@ extern "C" fn nss_setup_connect(
             unsafe { (*data).set.ssl.key_passwd }
         };
         #[cfg(CURL_DISABLE_PROXY)]
-        let SSL_SET_OPTION_key_passwd = (*data).set.ssl.key_passwd;
+        let SSL_SET_OPTION_key_passwd = unsafe { (*data).set.ssl.key_passwd };
         if !SSL_SET_OPTION_key_passwd.is_null() {
             unsafe {
                 SSL_SetPKCS11PinArg(

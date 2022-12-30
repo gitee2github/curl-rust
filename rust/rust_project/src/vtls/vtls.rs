@@ -824,18 +824,18 @@ pub extern "C" fn Curl_ssl_getsessionid(
     } else {
         unsafe {
             __assert_fail(
-             b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
-                 as *const u8 as *const libc::c_char,
-             b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
-             424 as libc::c_uint,
-             (*::std::mem::transmute::<
-                 &[u8; 107],
-                 &[libc::c_char; 107],
-             >(
-                 b"_Bool Curl_ssl_getsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void **, size_t *, int)\0",
-             ))
-                 .as_ptr(),
-         );
+              b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
+                  as *const u8 as *const libc::c_char,
+              b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+              424 as libc::c_uint,
+              (*::std::mem::transmute::<
+                  &[u8; 107],
+                  &[libc::c_char; 107],
+              >(
+                  b"_Bool Curl_ssl_getsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void **, size_t *, int)\0",
+              ))
+                  .as_ptr(),
+          );
         }
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
@@ -1049,18 +1049,18 @@ pub extern "C" fn Curl_ssl_addsessionid(
     } else {
         unsafe {
             __assert_fail(
-             b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
-                 as *const u8 as *const libc::c_char,
-             b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
-             544 as i32 as libc::c_uint,
-             (*::std::mem::transmute::<
-                 &[u8; 107],
-                 &[libc::c_char; 107],
-             >(
-                 b"CURLcode Curl_ssl_addsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void *, size_t, int)\0",
-             ))
-                 .as_ptr(),
-            );
+              b"((CURLPROXY_HTTPS == conn->http_proxy.proxytype && ssl_connection_complete != conn->proxy_ssl[conn->sock[1] == -1 ? 0 : 1].state) ? data->set.proxy_ssl.primary.sessionid : data->set.ssl.primary.sessionid)\0"
+                  as *const u8 as *const libc::c_char,
+              b"vtls/vtls.c\0" as *const u8 as *const libc::c_char,
+              544 as i32 as libc::c_uint,
+              (*::std::mem::transmute::<
+                  &[u8; 107],
+                  &[libc::c_char; 107],
+              >(
+                  b"CURLcode Curl_ssl_addsessionid(struct Curl_easy *, struct connectdata *, const _Bool, void *, size_t, int)\0",
+              ))
+                  .as_ptr(),
+             );
         }
     }
     match () {

@@ -1136,14 +1136,14 @@ extern "C" fn wolfssl_connect_step3(
     } else {
         unsafe {
             __assert_fail(
-            b"ssl_connect_3 == connssl->connecting_state\0" as *const u8 as *const libc::c_char,
-            b"vtls/wolfssl.c\0" as *const u8 as *const libc::c_char,
-            730 as libc::c_int as libc::c_uint,
-            (*::std::mem::transmute::<&[u8; 78], &[libc::c_char; 78]>(
-                b"CURLcode wolfssl_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
-            ))
-            .as_ptr(),
-        );
+             b"ssl_connect_3 == connssl->connecting_state\0" as *const u8 as *const libc::c_char,
+             b"vtls/wolfssl.c\0" as *const u8 as *const libc::c_char,
+             730 as libc::c_int as libc::c_uint,
+             (*::std::mem::transmute::<&[u8; 78], &[libc::c_char; 78]>(
+                 b"CURLcode wolfssl_connect_step3(struct Curl_easy *, struct connectdata *, int)\0",
+             ))
+             .as_ptr(),
+         );
         }
     }
     #[cfg(not(CURL_DISABLE_PROXY))]
