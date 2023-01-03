@@ -2,14 +2,16 @@
 
 set +e
 
-# cd ../
+cd ../
 
-# make clean
+make clean
 
 aclocal
 automake
 
-LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
+# LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
+# LIBS=-ldl ./configure --with-openssl --with-gnutls=/home/hanxj/gnutls-3.6.16/build --disable-shared --without-ngtcp2
+LIBS=-ldl ./configure --with-bearssl --with-gnutls=/home/hanxj/gnutls-3.6.16/build --with-mbedtls --with-mesalink=/home/hanxj/mesalink/build --with-nss --with-openssl --with-wolfssl --with-rustls --disable-shared --without-ngtcp2
 cd lib
 make
 
@@ -34,7 +36,7 @@ cargo clean
 # cargo rustc --bin $bin_name -- -D warnings -v
 # done
 
-cargo build --release -v
+RUSTFLAGS="-Clink-arg=-Wl,--allow-multiple-definition" cargo build --release -v
 
 # RUST_BACKTRACE=1 cargo test --all -v -- --nocapture --test-threads=1
 # RUST_BACKTRACE=1 cargo test --all -- --nocapture
