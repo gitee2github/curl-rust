@@ -2,16 +2,14 @@
 
 set +e
 
-cd ../
+# cd ../
 
-make clean
+# make clean
 
 aclocal
 automake
 
-# LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
-# LIBS=-ldl ./configure --with-openssl --with-gnutls=/home/hanxj/gnutls-3.6.16/build --disable-shared --without-ngtcp2
-LIBS=-ldl ./configure --with-bearssl --with-gnutls=/home/hanxj/gnutls-3.6.16/build --with-mbedtls --with-mesalink=/home/hanxj/mesalink/build --with-nss --with-openssl --with-wolfssl --with-rustls --disable-shared --without-ngtcp2
+LIBS=-ldl ./configure --without-ssl --disable-shared --without-ngtcp2
 cd lib
 make
 
