@@ -12,7 +12,7 @@
  * Create: 2022-10-31
  * Description: virtual tls
  ******************************************************************************/
-use ::libc;
+use libc;
 use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
@@ -2539,33 +2539,108 @@ pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_mesalink as *const
 #[no_mangle]
 pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_bearssl as *const Curl_ssl };
 // TODO 这里的2得改掉，最好是省略数组长度，这里也得先注释了再测试
+const fn count_available_backends() -> usize {
+    let mut num: usize = 1;
+
+    if cfg!(USE_WOLFSSL) {
+        num += 1;
+    }
+    if cfg!(USE_SECTRANSP) {
+        num += 1;
+    }
+    if cfg!(USE_GNUTLS) {
+        num += 1;
+    }
+    if cfg!(USE_GSKIT) {
+        num += 1;
+    }
+    if cfg!(USE_MBEDTLS) {
+        num += 1;
+    }
+    if cfg!(USE_NSS) {
+        num += 1;
+    }
+    if cfg!(USE_OPENSSL) {
+        num += 1;
+    }
+    if cfg!(USE_SCHANNEL) {
+        num += 1;
+    }
+    if cfg!(USE_MESALINK) {
+        num += 1;
+    }
+    if cfg!(USE_BEARSSL) {
+        num += 1;
+    }
+    if cfg!(USE_RUSTLS) {
+        num += 1;
+    }
+    return num;
+}
+const count: usize = count_available_backends();
+
 #[cfg(USE_SSL)]
-static mut available_backends: [*const Curl_ssl; 2] = unsafe {
-    [
-        // #[cfg(USE_WOLFSSL)]
-        // &Curl_ssl_wolfssl as *const Curl_ssl,
-        // #[cfg(USE_SECTRANSP)]
-        // &Curl_ssl_sectransp as *const Curl_ssl,
-        // #[cfg(USE_GNUTLS)]
-        // &Curl_ssl_gnutls as *const Curl_ssl,
-        // #[cfg(USE_GSKIT)]
-        // &Curl_ssl_gskit as *const Curl_ssl,
-        // #[cfg(USE_MBEDTLS)]
-        // &Curl_ssl_mbedtls as *const Curl_ssl,
-        // #[cfg(USE_NSS)]
-        // &Curl_ssl_nss as *const Curl_ssl,
-        #[cfg(USE_OPENSSL)]
-        &Curl_ssl_openssl as *const Curl_ssl,
-        // #[cfg(USE_SCHANNEL)]
-        // &Curl_ssl_schannel as *const Curl_ssl,
-        // #[cfg(USE_MESALINK)]
-        // &Curl_ssl_mesalink as *const Curl_ssl,
-        // #[cfg(USE_BEARSSL)]
-        // &Curl_ssl_bearssl as *const Curl_ssl,
-        // #[cfg(USE_RUSTLS)]
-        // &Curl_ssl_rustls as *const Curl_ssl,
-        0 as *const Curl_ssl,
-    ]
+static mut available_backends: [*const Curl_ssl; count] = unsafe {
+    const count: usize = count_available_backends();
+    let mut array: [*const Curl_ssl; count] = [0 as *const Curl_ssl; count];
+    // array[count - 1] = 0 as *const Curl_ssl;
+    let mut i = 0;
+    #[cfg(USE_WOLFSSL)]
+    {
+        array[i] = &Curl_ssl_wolfssl as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_SECTRANSP)]
+    {
+        array[i] = &Curl_ssl_sectransp as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_GNUTLS)]
+    {
+        array[i] = &Curl_ssl_gnutls as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_GSKIT)]
+    {
+        array[i] = &Curl_ssl_gskit as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_MBEDTLS)]
+    {
+        array[i] = &Curl_ssl_mbedtls as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_NSS)]
+    {
+        array[i] = &Curl_ssl_nss as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_OPENSSL)]
+    {
+        array[i] = &Curl_ssl_openssl as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_SCHANNEL)]
+    {
+        array[i] = &Curl_ssl_schannel as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_MESALINK)]
+    {
+        array[i] = &Curl_ssl_mesalink as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_BEARSSL)]
+    {
+        array[i] = &Curl_ssl_bearssl as *const Curl_ssl;
+        i += 1;
+    }
+    #[cfg(USE_RUSTLS)]
+    {
+        array[i] = &Curl_ssl_rustls as *const Curl_ssl;
+        i += 1;
+    }
+    array
 };
 #[cfg(USE_SSL)]
 extern "C" fn multissl_version(mut buffer: *mut libc::c_char, mut size: size_t) -> size_t {
@@ -2714,11 +2789,12 @@ pub extern "C" fn curl_global_sslset(
     mut avail: *mut *mut *const curl_ssl_backend,
 ) -> CURLsslset {
     let mut i: i32 = 0;
+    const count: usize = count_available_backends();
     if !avail.is_null() {
         // TODO 这里最后的2也得根据开了多少个ssl进行更改
         unsafe {
-            *avail =
-                &mut available_backends as *mut [*const Curl_ssl; 2] as *mut *const curl_ssl_backend
+            *avail = &mut available_backends as *mut [*const Curl_ssl; count]
+                as *mut *const curl_ssl_backend
         };
     }
     if unsafe { Curl_ssl != &Curl_ssl_multi as *const Curl_ssl } {

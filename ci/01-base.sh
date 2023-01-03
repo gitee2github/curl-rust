@@ -34,7 +34,7 @@ cargo clean
 # cargo rustc --bin $bin_name -- -D warnings -v
 # done
 
-cargo build --release -v
+RUSTFLAGS="-Clink-arg=-Wl,--allow-multiple-definition" cargo build --release -v
 
 # RUST_BACKTRACE=1 cargo test --all -v -- --nocapture --test-threads=1
 # RUST_BACKTRACE=1 cargo test --all -- --nocapture
