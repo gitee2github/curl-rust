@@ -253,7 +253,7 @@ extern "C" fn http_setup_conn(mut data: *mut Curl_easy, mut conn: *mut connectda
  * prefix without colon!
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_checkProxyheaders(
     mut data: *mut Curl_easy,
     mut conn: *const connectdata,
@@ -301,7 +301,7 @@ pub extern "C" fn Curl_checkProxyheaders(
  * consists entirely of whitespace.
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_copy_header_value(mut header: *const libc::c_char) -> *mut libc::c_char {
     let mut start: *const libc::c_char = 0 as *const libc::c_char;
     let mut end: *const libc::c_char = 0 as *const libc::c_char;
@@ -719,7 +719,7 @@ extern "C" fn http_perhapsrewind(mut data: *mut Curl_easy, mut conn: *mut connec
  * picked.
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_auth_act(mut data: *mut Curl_easy) -> CURLcode {
     let mut conn: *mut connectdata = unsafe { (*data).conn };
     let mut pickhost: bool = false;
@@ -1060,7 +1060,7 @@ extern "C" fn output_auth_headers(
  */
 #[cfg(not(CURL_DISABLE_HTTP_AUTH))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_output_auth(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -1232,7 +1232,7 @@ extern "C" fn is_valid_auth_separator(mut ch: libc::c_char) -> libc::c_int {
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_input_auth(
     mut data: *mut Curl_easy,
     mut proxy: bool,
@@ -1710,7 +1710,7 @@ extern "C" fn readmoredata(
  */
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_buffer_send(
     mut in_0: *mut dynbuf,
     mut data: *mut Curl_easy,
@@ -2051,7 +2051,7 @@ pub extern "C" fn Curl_buffer_send(
  * Pass headers WITH the colon.
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_compareheader(
     mut headerline: *const libc::c_char, /* line to check */
     mut header: *const libc::c_char,     /* header keyword _with_ colon */
@@ -2113,7 +2113,7 @@ pub extern "C" fn Curl_compareheader(
  * the generic Curl_connect().
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_connect(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
     let mut result: CURLcode = CURLE_OK;
     let mut conn: *mut connectdata = unsafe { (*data).conn };
@@ -2339,7 +2339,7 @@ extern "C" fn https_getsock(
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_done(
     mut data: *mut Curl_easy,
     mut status: CURLcode,
@@ -2418,7 +2418,7 @@ pub extern "C" fn Curl_http_done(
  * 1.0.
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_use_http_1_1plus(
     mut data: *const Curl_easy,
     mut conn: *const connectdata,
@@ -2500,7 +2500,7 @@ extern "C" fn expect100(
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_compile_trailers(
     mut trailers: *mut curl_slist,
     mut b: *mut dynbuf,
@@ -2794,7 +2794,7 @@ const HEADER_CONNECT: u32 = 2; /* sending CONNECT to a proxy */
 
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_add_custom_headers(
     mut data: *mut Curl_easy,
     mut is_connect: bool,
@@ -3161,7 +3161,7 @@ pub extern "C" fn Curl_add_timecondition(
 
 #[cfg(all(not(CURL_DISABLE_PARSEDATE), not(USE_HYPER)))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_add_timecondition(
     mut data: *mut Curl_easy,
     mut req: *mut dynbuf,
@@ -3248,7 +3248,7 @@ const PROTO_FAMILY_HTTP: u32 = 1 << 0 | 1 << 1;
 const CURLPROTO_FTP: u32 = 1 << 2;
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_method(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -3310,7 +3310,7 @@ pub extern "C" fn Curl_http_method(
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_useragent(mut data: *mut Curl_easy) -> CURLcode {
     unsafe {
         /* The User-Agent string might have been allocated in url.c already, because
@@ -3336,7 +3336,7 @@ pub extern "C" fn Curl_http_useragent(mut data: *mut Curl_easy) -> CURLcode {
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_host(mut data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
     let mut ptr: *const libc::c_char = 0 as *const libc::c_char;
     unsafe {
@@ -3519,7 +3519,7 @@ pub extern "C" fn Curl_http_host(mut data: *mut Curl_easy, mut conn: *mut connec
  * Append the request-target to the HTTP request
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_target(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -3681,7 +3681,7 @@ pub extern "C" fn Curl_http_target(
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_body(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -3839,7 +3839,7 @@ pub extern "C" fn Curl_http_body(
 }
 
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_bodysend(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -4510,7 +4510,7 @@ pub extern "C" fn Curl_http_bodysend(
 
 #[cfg(not(CURL_DISABLE_COOKIES))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_cookies(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -4630,7 +4630,7 @@ pub extern "C" fn Curl_http_cookies(
     }
 }
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_range(mut data: *mut Curl_easy, mut httpreq: Curl_HttpReq) -> CURLcode {
     unsafe {
         if ((*data).state).use_range() != 0 {
@@ -4699,7 +4699,7 @@ pub extern "C" fn Curl_http_range(mut data: *mut Curl_easy, mut httpreq: Curl_Ht
     }
 }
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_resume(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -4780,7 +4780,7 @@ pub extern "C" fn Curl_http_resume(
     }
 }
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_firstwrite(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -4888,7 +4888,7 @@ pub extern "C" fn Curl_http_firstwrite(
 }
 #[cfg(HAVE_LIBZ)]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLcode {
     unsafe {
         if (Curl_checkheaders(data, b"TE\0" as *const u8 as *const libc::c_char)).is_null()
@@ -4943,7 +4943,7 @@ pub extern "C" fn Curl_transferencode(mut data: *mut Curl_easy) -> CURLcode {
 }
 #[cfg(not(USE_HYPER))]
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http(mut data: *mut Curl_easy, mut done: *mut bool) -> CURLcode {
     unsafe {
         let mut conn: *mut connectdata = (*data).conn;
@@ -5455,7 +5455,7 @@ extern "C" fn checkprotoprefix(
     }
 }
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_header(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -6068,7 +6068,7 @@ pub extern "C" fn Curl_http_header(
     return CURLE_OK;
 }
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_statusline(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
@@ -6152,7 +6152,7 @@ pub extern "C" fn Curl_http_statusline(
  * Read any HTTP header lines from the server and pass them to the client app.
  */
 #[no_mangle]
-#[allow(clippy::not_unsafe_ptr_arg_deref)] 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http_readwrite_headers(
     mut data: *mut Curl_easy,
     mut conn: *mut connectdata,
