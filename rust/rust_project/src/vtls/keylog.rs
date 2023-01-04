@@ -145,6 +145,7 @@ pub extern "C" fn Curl_tls_keylog_enabled() -> bool {
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_tls_keylog_write_line(mut line: *const libc::c_char) -> bool {
     /* The current maximum valid keylog line length LF and NUL is 195. */
     let mut linelen: size_t = 0;
@@ -182,6 +183,7 @@ pub extern "C" fn Curl_tls_keylog_write_line(mut line: *const libc::c_char) -> b
 }
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_tls_keylog_write(
     mut label: *const libc::c_char,
     mut client_random: *const u8,

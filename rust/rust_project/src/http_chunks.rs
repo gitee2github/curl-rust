@@ -53,6 +53,7 @@ use rust_ffi::src::ffi_struct::struct_define::*;
 
 */
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_httpchunk_init(mut data: *mut Curl_easy) {
     let mut conn: *mut connectdata = unsafe { (*data).conn };
     let mut chunk: *mut Curl_chunker = unsafe { &mut (*conn).chunk };
@@ -75,6 +76,7 @@ pub extern "C" fn Curl_httpchunk_init(mut data: *mut Curl_easy) {
  * For example, 0x0d and 0x0a are used instead of '\r' and '\n'.
  */
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_httpchunk_read(
     mut data: *mut Curl_easy,
     mut datap: *mut libc::c_char,

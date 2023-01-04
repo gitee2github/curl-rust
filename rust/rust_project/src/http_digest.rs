@@ -25,6 +25,7 @@ Proxy-Authenticate: Digest realm="testrealm", nonce="1053604598"
 */
 
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_input_digest(
     mut data: *mut Curl_easy,
     mut proxy: bool,
@@ -57,6 +58,7 @@ pub extern "C" fn Curl_input_digest(
     }
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_output_digest(
     mut data: *mut Curl_easy,
     mut proxy: bool,
@@ -208,6 +210,7 @@ pub extern "C" fn Curl_output_digest(
     }
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http_auth_cleanup_digest(mut data: *mut Curl_easy) {
     unsafe {
         Curl_auth_digest_cleanup(&mut (*data).state.digest);

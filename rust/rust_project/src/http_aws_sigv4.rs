@@ -48,6 +48,7 @@ extern "C" fn sha256_to_hex(mut dst: *mut libc::c_char, mut sha: *mut u8, mut ds
     }
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_output_aws_sigv4(mut data: *mut Curl_easy, mut proxy: bool) -> CURLcode {
     let mut current_block: u64;
     let mut ret: CURLcode = CURLE_OUT_OF_MEMORY;
@@ -156,6 +157,7 @@ pub extern "C" fn Curl_output_aws_sigv4(mut data: *mut Curl_easy, mut proxy: boo
     } else {
         unsafe { strlen(tmp0) }
     };
+    #[allow(clippy::never_loop)]
     'fail: loop {
         if len < 1 as i32 as u64 {
             unsafe {

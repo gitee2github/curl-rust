@@ -194,6 +194,7 @@ extern "C" fn load_file(mut file: *const libc::c_char) -> gnutls_datum_t {
         if f.is_null() {
             return loaded_file;
         }
+        #[allow(clippy::never_loop)]
         'out: loop {
             if !(fseek(f, 0 as i64, 2 as i32) != 0 as i32
                 || {

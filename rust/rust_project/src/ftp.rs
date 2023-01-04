@@ -748,6 +748,7 @@ extern "C" fn ftp_readresp(
  *
  */
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_GetFTPResponse(
     mut data: *mut Curl_easy,
     mut nreadp: *mut ssize_t, /* return number of bytes read */
@@ -5426,6 +5427,7 @@ extern "C" fn init_wc_data(mut data: *mut Curl_easy) -> CURLcode {
                 ) as *mut ftp_wc;
             }
         }
+        #[allow(clippy::never_loop)]
         'fail: loop {
             if ftpwc.is_null() {
                 result = CURLE_OUT_OF_MEMORY;

@@ -290,6 +290,7 @@ extern "C" fn load_cafile(
         ),
         &mut ca as *mut cafile_parser as *mut libc::c_void,
     );
+    #[allow(clippy::never_loop)]
     'fail: loop {
         loop {
             unsafe {
@@ -1413,6 +1414,7 @@ extern "C" fn bearssl_connect_common(
                 return ret;
             }
         }
+        #[allow(clippy::while_immutable_condition)]
         while ssl_connect_2 as u32 == (*connssl).connecting_state as u32
             || ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32
             || ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32

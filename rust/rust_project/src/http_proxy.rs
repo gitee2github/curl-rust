@@ -87,6 +87,7 @@ extern "C" fn https_proxy_connect(mut data: *mut Curl_easy, mut sockindex: i32) 
 
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_proxy_connect(mut data: *mut Curl_easy, mut sockindex: i32) -> CURLcode {
     let mut conn: *mut connectdata = unsafe { (*data).conn };
     if unsafe { (*conn).http_proxy.proxytype as u32 == CURLPROXY_HTTPS as u32 } {
@@ -157,6 +158,7 @@ pub extern "C" fn Curl_proxy_connect(mut data: *mut Curl_easy, mut sockindex: i3
 
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_connect_complete(mut conn: *mut connectdata) -> bool {
     unsafe {
         return ((*conn).connect_state).is_null()
@@ -165,6 +167,7 @@ pub extern "C" fn Curl_connect_complete(mut conn: *mut connectdata) -> bool {
 }
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_connect_ongoing(mut conn: *mut connectdata) -> bool {
     unsafe {
         return !((*conn).connect_state).is_null()
@@ -177,6 +180,7 @@ we're still sending the request, wait for write. */
 
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_connect_getsock(mut conn: *mut connectdata) -> i32 {
     let mut http: *mut HTTP = 0 as *mut HTTP;
     #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
@@ -1572,6 +1576,7 @@ extern "C" fn CONNECT(
 }
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_connect_free(mut data: *mut Curl_easy) {
     let mut conn: *mut connectdata = unsafe { (*data).conn };
     let mut s: *mut http_connect_state = unsafe { (*conn).connect_state };
@@ -1592,6 +1597,7 @@ pub extern "C" fn Curl_connect_free(mut data: *mut Curl_easy) {
 }
 #[cfg(all(not(CURL_DISABLE_PROXY), not(CURL_DISABLE_HTTP)))]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_proxyCONNECT(
     mut data: *mut Curl_easy,
     mut sockindex: i32,
