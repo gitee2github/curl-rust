@@ -55,6 +55,7 @@ pub extern "C" fn Curl_ftp_parselist_data_alloc() -> *mut ftp_parselist_data {
     };
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_ftp_parselist_data_free(mut parserp: *mut *mut ftp_parselist_data) {
     let mut parser: *mut ftp_parselist_data = unsafe { *parserp };
     if !parser.is_null() {
@@ -78,6 +79,7 @@ pub extern "C" fn Curl_ftp_parselist_data_free(mut parserp: *mut *mut ftp_parsel
     }
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_ftp_parselist_geterror(mut pl_data: *mut ftp_parselist_data) -> CURLcode {
     unsafe {
         return (*pl_data).error;
@@ -254,6 +256,7 @@ extern "C" fn ftp_pl_insert_finfo(mut data: *mut Curl_easy, mut infop: *mut file
     return CURLE_OK;
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_ftp_parselist(
     mut buffer: *mut libc::c_char,
     mut size: size_t,
@@ -269,7 +272,7 @@ pub extern "C" fn Curl_ftp_parselist(
     let mut i: u64 = 0 as i32 as u64;
     let mut result: CURLcode = CURLE_OK;
     let mut retsize: size_t = bufflen;
-
+    #[allow(clippy::never_loop)]
     'fail: loop {
         if unsafe { (*parser).error as u64 } != 0 {
             /* error in previous call */

@@ -17,6 +17,7 @@ use rust_ffi::src::ffi_alias::type_alias::*;
 use rust_ffi::src::ffi_fun::fun_call::*;
 use rust_ffi::src::ffi_struct::struct_define::*;
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_input_ntlm(
     mut data: *mut Curl_easy,
     mut proxy: bool, /* if proxy or not */
@@ -108,6 +109,7 @@ pub extern "C" fn Curl_input_ntlm(
     return result;
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) -> CURLcode {
     let mut base64: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut len: size_t = 0 as size_t;
@@ -361,6 +363,7 @@ pub extern "C" fn Curl_output_ntlm(mut data: *mut Curl_easy, mut proxy: bool) ->
     return result;
 }
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http_auth_cleanup_ntlm(mut conn: *mut connectdata) {
     unsafe {
         Curl_auth_cleanup_ntlm(&mut (*conn).ntlm);

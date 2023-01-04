@@ -1971,6 +1971,7 @@ extern "C" fn mbed_connect_common(
             return retcode;
         }
     }
+    #[allow(clippy::while_immutable_condition)]
     while ssl_connect_2 as i32 as u32 == unsafe { (*connssl).connecting_state as u32 }
         || ssl_connect_2_reading as i32 as u32 == unsafe { (*connssl).connecting_state as u32 }
         || ssl_connect_2_writing as i32 as u32 == unsafe { (*connssl).connecting_state as u32 }
