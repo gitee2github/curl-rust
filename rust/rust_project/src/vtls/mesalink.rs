@@ -1027,6 +1027,7 @@ extern "C" fn mesalink_connect_common(
             return result;
         }
     }
+    #[allow(clippy::while_immutable_condition)]
     while ssl_connect_2 as u32 == unsafe { (*connssl).connecting_state as u32 }
         || ssl_connect_2_reading as u32 == unsafe { (*connssl).connecting_state as u32 }
         || ssl_connect_2_writing as u32 == unsafe { (*connssl).connecting_state as u32 }
