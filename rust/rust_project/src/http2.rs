@@ -80,6 +80,7 @@ fn HEADER_OVERFLOW(nva: nghttp2_nv) -> bool {
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_init_state(mut state: *mut UrlState) {
     unsafe {
         (*state).stream_weight = NGHTTP2_DEFAULT_WEIGHT;
@@ -87,6 +88,7 @@ pub extern "C" fn Curl_http2_init_state(mut state: *mut UrlState) {
 }
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_init_userset(mut set: *mut UserDefined) {
     unsafe {
         (*set).stream_weight = NGHTTP2_DEFAULT_WEIGHT;
@@ -328,6 +330,7 @@ extern "C" fn http2_conncheck(
 /* called from http_setup_conn */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_setup_req(data: *mut Curl_easy) {
     unsafe {
         let mut http: *mut HTTP = (*data).req.p.http;
@@ -347,6 +350,7 @@ pub extern "C" fn Curl_http2_setup_req(data: *mut Curl_easy) {
 /* called from http_setup_conn */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_setup_conn(mut conn: *mut connectdata) {
     unsafe {
         (*conn).proto.httpc.settings.max_concurrent_streams = DEFAULT_MAX_CONCURRENT_STREAMS;
@@ -479,6 +483,7 @@ static mut Curl_handler_http2_ssl: Curl_handler = Curl_handler {
  */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_ver(p: *mut i8, len: size_t) {
     unsafe {
         let h2: *mut nghttp2_info = nghttp2_version(0);
@@ -542,6 +547,7 @@ extern "C" fn send_callback(
  */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn curl_pushheader_bynum(h: *mut curl_pushheaders, num: size_t) -> *mut i8 {
     unsafe {
         /* Verify that we got a good easy handle in the push header struct, mostly to
@@ -563,6 +569,7 @@ pub extern "C" fn curl_pushheader_bynum(h: *mut curl_pushheaders, num: size_t) -
  */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn curl_pushheader_byname(h: *mut curl_pushheaders, header: *const i8) -> *mut i8 {
     unsafe {
         /* Verify that we got a good easy handle in the push header struct,
@@ -693,7 +700,7 @@ extern "C" fn set_transfer_url(data: *mut Curl_easy, hp: *mut curl_pushheaders) 
         let mut url: *mut i8 = 0 as *mut i8;
         let mut rc: i32 = 0;
         v = curl_pushheader_byname(hp, b":scheme\0" as *const u8 as *const i8);
-
+        #[allow(clippy::never_loop)]
         'fail: loop {
             if !v.is_null() {
                 uc = curl_url_set(u, CURLUPART_SCHEME, v, 0);
@@ -754,6 +761,7 @@ extern "C" fn push_promise(
 ) -> i32 {
     unsafe {
         let mut rv: i32 = 0; /* one of the CURL_PUSH_* defines */
+        #[allow(clippy::never_loop)]
         'fail: loop {
             if ((*(*data).multi).push_cb).is_some() {
                 let mut stream: *mut HTTP = 0 as *mut HTTP;
@@ -798,7 +806,7 @@ extern "C" fn push_promise(
                     &mut heads,
                     (*(*data).multi).push_userp,
                 );
-                Curl_set_in_callback(data, 0 != 0);
+                Curl_set_in_callback(data, false);
                 /* free the headers again */
                 i = 0;
                 while i < (*stream).push_headers_used {
@@ -1653,6 +1661,7 @@ extern "C" fn populate_settings(data: *mut Curl_easy, mut httpc: *mut http_conn)
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http2_done(data: *mut Curl_easy, premature: bool) {
     unsafe {
         let mut http: *mut HTTP = (*data).req.p.http;
@@ -1923,6 +1932,7 @@ extern "C" fn http2_init(data: *mut Curl_easy, conn: *mut connectdata) -> CURLco
  */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http2_request_upgrade(req: *mut dynbuf, data: *mut Curl_easy) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
@@ -2091,6 +2101,7 @@ extern "C" fn h2_process_pending_input(
  */
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn Curl_http2_done_sending(
     data: *mut Curl_easy,
     conn: *mut connectdata,
@@ -2806,6 +2817,7 @@ unsafe extern "C" fn http2_send(
         }
         i = i.wrapping_add(1);
     }
+    #[allow(clippy::never_loop)]
     'fail: loop {
         if nheader < 2 as u64 {
             break 'fail;
@@ -3138,6 +3150,7 @@ unsafe extern "C" fn http2_send(
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_setup(data: *mut Curl_easy, mut conn: *mut connectdata) -> CURLcode {
     unsafe {
         let mut result: CURLcode = CURLE_OK;
@@ -3209,6 +3222,7 @@ pub extern "C" fn Curl_http2_setup(data: *mut Curl_easy, mut conn: *mut connectd
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_switched(
     data: *mut Curl_easy,
     mem: *const i8,
@@ -3382,6 +3396,7 @@ pub extern "C" fn Curl_http2_switched(
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_stream_pause(data: *mut Curl_easy, pause: bool) -> CURLcode {
     unsafe {
         #[cfg(all(DEBUGBUILD, HAVE_ASSERT_H))]
@@ -3472,6 +3487,7 @@ pub extern "C" fn Curl_http2_stream_pause(data: *mut Curl_easy, pause: bool) -> 
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_add_child(
     parent: *mut Curl_easy,
     child: *mut Curl_easy,
@@ -3560,6 +3576,7 @@ pub extern "C" fn Curl_http2_add_child(
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_remove_child(parent: *mut Curl_easy, child: *mut Curl_easy) {
     unsafe {
         let mut last: *mut Curl_http2_dep = 0 as *mut Curl_http2_dep;
@@ -3617,6 +3634,7 @@ pub extern "C" fn Curl_http2_remove_child(parent: *mut Curl_easy, child: *mut Cu
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_http2_cleanup_dependencies(data: *mut Curl_easy) {
     unsafe {
         while !((*data).set.stream_dependents).is_null() {
@@ -3635,6 +3653,7 @@ pub extern "C" fn Curl_http2_cleanup_dependencies(data: *mut Curl_easy) {
 
 #[cfg(USE_NGHTTP2)]
 #[no_mangle]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] 
 pub extern "C" fn Curl_h2_http_1_1_error(data: *mut Curl_easy) -> bool {
     unsafe {
         let stream: *mut HTTP = (*data).req.p.http;
