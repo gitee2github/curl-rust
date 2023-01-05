@@ -2261,6 +2261,7 @@ extern "C" fn check_issuer_cert(
     cert_issuer = unsafe { CERT_FindCertIssuer(cert, PR_Now(), certUsageObjectSigner) };
     proto_win = unsafe { SSL_RevealPinArg(sock) };
     issuer = unsafe { PK11_FindCertFromNickname(issuer_nickname, proto_win) };
+    #[allow(clippy::if_same_then_else)]
     if cert_issuer.is_null() || issuer.is_null() {
         res = SECFailure;
     } else if unsafe {
@@ -5601,6 +5602,7 @@ extern "C" fn nss_do_connect(
             if unsafe { PR_GetError() as i64 } == -(5998 as i64) {
                 return CURLE_AGAIN;
             } else {
+                #[allow(clippy::if_same_then_else)]
                 if SSL_SET_OPTION_certverifyresult == SSL_ERROR_BAD_CERT_DOMAIN as i64 {
                     result = CURLE_PEER_FAILED_VERIFICATION;
                 } else if SSL_SET_OPTION_certverifyresult != 0 as i64 {
