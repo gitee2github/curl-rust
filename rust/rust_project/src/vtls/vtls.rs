@@ -120,6 +120,7 @@ extern "C" fn safecmp(mut a: *mut libc::c_char, mut b: *mut libc::c_char) -> boo
     }
     return 0 as i32 != 0; /* no match */
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_config_matches(
     mut data: *mut ssl_primary_config,
@@ -149,6 +150,7 @@ pub extern "C" fn Curl_ssl_config_matches(
     }
     return 0 as i32 != 0;
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[no_mangle]
 pub extern "C" fn Curl_clone_primary_ssl_config(
     mut source: *mut ssl_primary_config,
@@ -418,6 +420,7 @@ pub extern "C" fn Curl_clone_primary_ssl_config(
     return 1 as i32 != 0;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[no_mangle]
 pub extern "C" fn Curl_free_primary_ssl_config(mut sslc: *mut ssl_primary_config) {
     unsafe {
@@ -650,6 +653,7 @@ extern "C" fn ssl_connect_init_proxy(mut conn: *mut connectdata, mut sockindex: 
     }
     return CURLE_OK;
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_connect(
@@ -689,6 +693,7 @@ pub extern "C" fn Curl_ssl_connect(
     return result;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_connect_nonblocking(
@@ -729,6 +734,7 @@ pub extern "C" fn Curl_ssl_connect_nonblocking(
     return result;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_sessionid_lock(mut data: *mut Curl_easy) {
@@ -741,6 +747,7 @@ pub extern "C" fn Curl_ssl_sessionid_lock(mut data: *mut Curl_easy) {
         }
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_sessionid_unlock(mut data: *mut Curl_easy) {
@@ -753,6 +760,7 @@ pub extern "C" fn Curl_ssl_sessionid_unlock(mut data: *mut Curl_easy) {
         }
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_getsessionid(
@@ -922,6 +930,7 @@ pub extern "C" fn Curl_ssl_getsessionid(
     return no_match;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_kill_session(mut session: *mut Curl_ssl_session) {
@@ -960,6 +969,7 @@ pub extern "C" fn Curl_ssl_kill_session(mut session: *mut Curl_ssl_session) {
     }
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_delsessionid(
@@ -983,6 +993,7 @@ pub extern "C" fn Curl_ssl_delsessionid(
         }
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_addsessionid(
@@ -1215,6 +1226,7 @@ pub extern "C" fn Curl_ssl_addsessionid(
     return CURLE_OK;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_associate_conn(mut data: *mut Curl_easy, mut conn: *mut connectdata) {
@@ -1231,6 +1243,7 @@ pub extern "C" fn Curl_ssl_associate_conn(mut data: *mut Curl_easy, mut conn: *m
         }
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_detach_conn(mut data: *mut Curl_easy, mut conn: *mut connectdata) {
@@ -1247,6 +1260,7 @@ pub extern "C" fn Curl_ssl_detach_conn(mut data: *mut Curl_easy, mut conn: *mut 
         }
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_close_all(mut data: *mut Curl_easy) {
@@ -1282,6 +1296,7 @@ pub extern "C" fn Curl_ssl_close_all(mut data: *mut Curl_easy) {
     }
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_getsock(
@@ -1303,6 +1318,7 @@ pub extern "C" fn Curl_ssl_getsock(
         return 0 as i32;
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_close(
@@ -1331,6 +1347,7 @@ pub extern "C" fn Curl_ssl_close(
     }
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_shutdown(
@@ -1370,6 +1387,7 @@ pub extern "C" fn Curl_ssl_shutdown(
     return CURLE_OK;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_set_engine(
@@ -1382,6 +1400,7 @@ pub extern "C" fn Curl_ssl_set_engine(
         return ((*Curl_ssl).set_engine).expect("non-null function pointer")(data, engine);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_set_engine_default(mut data: *mut Curl_easy) -> CURLcode {
@@ -1391,6 +1410,7 @@ pub extern "C" fn Curl_ssl_set_engine_default(mut data: *mut Curl_easy) -> CURLc
         return ((*Curl_ssl).set_engine_default).expect("non-null function pointer")(data);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_engines_list(mut data: *mut Curl_easy) -> *mut curl_slist {
@@ -1399,6 +1419,7 @@ pub extern "C" fn Curl_ssl_engines_list(mut data: *mut Curl_easy) -> *mut curl_s
         return ((*Curl_ssl).engines_list).expect("non-null function pointer")(data);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_initsessions(mut data: *mut Curl_easy, mut amount: size_t) -> CURLcode {
@@ -1456,6 +1477,7 @@ pub extern "C" fn Curl_ssl_version(mut buffer: *mut libc::c_char, mut size: size
         ((*Curl_ssl).version).expect("non-null function pointer")(buffer, size);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_check_cxn(mut conn: *mut connectdata) -> i32 {
@@ -1471,6 +1493,7 @@ pub extern "C" fn Curl_ssl_check_cxn(mut conn: *mut connectdata) -> i32 {
         return ((*Curl_ssl).check_cxn).expect("non-null function pointer")(conn);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_data_pending(mut conn: *const connectdata, mut connindex: i32) -> bool {
@@ -1478,6 +1501,7 @@ pub extern "C" fn Curl_ssl_data_pending(mut conn: *const connectdata, mut connin
         return ((*Curl_ssl).data_pending).expect("non-null function pointer")(conn, connindex);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_free_certinfo(mut data: *mut Curl_easy) {
@@ -1504,7 +1528,7 @@ pub extern "C" fn Curl_ssl_free_certinfo(mut data: *mut Curl_easy) {
         }
     }
 }
-
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_init_certinfo(mut data: *mut Curl_easy, mut num: i32) -> CURLcode {
@@ -1546,6 +1570,7 @@ pub extern "C" fn Curl_ssl_init_certinfo(mut data: *mut Curl_easy, mut num: i32)
     return CURLE_OK;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_push_certinfo_len(
@@ -1629,6 +1654,7 @@ pub extern "C" fn Curl_ssl_push_certinfo_len(
     return result;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_push_certinfo(
@@ -1646,6 +1672,7 @@ pub extern "C" fn Curl_ssl_push_certinfo(
         return Curl_ssl_push_certinfo_len(data, certnum, label, value, valuelen);
     }
 }
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_ssl_random(
@@ -1766,6 +1793,7 @@ extern "C" fn pubkey_pem_to_der(
     return result;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn Curl_pin_peer_pubkey(
@@ -2781,6 +2809,7 @@ extern "C" fn multissl_setup(mut backend: *const Curl_ssl) -> i32 {
     return 0 as i32;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[cfg(USE_SSL)]
 #[no_mangle]
 pub extern "C" fn curl_global_sslset(
