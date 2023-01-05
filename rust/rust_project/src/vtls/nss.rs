@@ -1224,6 +1224,7 @@ extern "C" fn nss_load_crl(mut crlfilename: *const libc::c_char) -> CURLcode {
         return CURLE_SSL_CRL_BADFILE;
     }
     // 创建一个循环
+    #[allow(clippy::never_loop)]
     'fail: loop {
         if PR_SUCCESS as i32 != unsafe { PR_GetOpenFileInfo(infile, &mut info) as i32 } {
             break 'fail;
@@ -1850,6 +1851,7 @@ extern "C" fn CanFalseStartCallback(
     }
     // 创建一个循环
     // 循环开始
+    #[allow(clippy::never_loop)]
     'end: loop {
         /* Prevent version downgrade attacks from TLS 1.2, and avoid False Start for
          * TLS 1.3 and later. See https://bugzilla.mozilla.org/show_bug.cgi?id=861310
@@ -2900,6 +2902,7 @@ extern "C" fn nss_init() -> i32 {
     return 1 as i32;
 }
 
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[no_mangle]
 /* data might be NULL */
 pub extern "C" fn Curl_nss_force_init(mut data: *mut Curl_easy) -> CURLcode {
@@ -4574,6 +4577,7 @@ extern "C" fn nss_setup_connect(
     result = nss_setup(data);
     // 创建一个循环
     // 循环开始
+    #[allow(clippy::never_loop)]
     'error: loop {
         if result as u64 != 0 {
             unsafe {
@@ -5559,6 +5563,7 @@ extern "C" fn nss_do_connect(
     let mut result: CURLcode = CURLE_SSL_CONNECT_ERROR;
     let mut timeout: PRUint32 = 0;
     let time_left: timediff_t = unsafe { Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0) };
+    #[allow(clippy::never_loop)]
     'error: loop {
         if time_left < 0 as i64 {
             unsafe {

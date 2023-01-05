@@ -483,6 +483,7 @@ extern "C" fn SSL_CTX_use_certificate_blob(
     if in_0.is_null() {
         return CURLE_OUT_OF_MEMORY as i32;
     }
+    #[allow(clippy::never_loop)]
     'end: loop {
         if type_0 == 2 as i32 {
             /* j = ERR_R_ASN1_LIB; */
@@ -537,6 +538,7 @@ extern "C" fn SSL_CTX_use_PrivateKey_blob(
     if in_0.is_null() {
         return CURLE_OUT_OF_MEMORY as i32;
     }
+    #[allow(clippy::never_loop)]
     'end: loop {
         if type_0 == 1 as i32 {
             pkey = unsafe {
@@ -603,6 +605,7 @@ extern "C" fn SSL_CTX_use_certificate_chain_blob(
             key_passwd as *mut libc::c_void,
         );
     }
+    #[allow(clippy::never_loop)]
     'end: loop {
         if x.is_null() {
             ret = 0 as i32;
@@ -2218,6 +2221,7 @@ extern "C" fn verifystatus(
             &mut status as *mut *mut u8 as *mut libc::c_void,
         )
     };
+    #[allow(clippy::never_loop)]
     'end: loop {
         if status.is_null() {
             unsafe {
@@ -5693,6 +5697,7 @@ extern "C" fn ossl_connect_common(
         }
     }
     unsafe {
+        #[allow(clippy::while_immutable_condition)]
         while ssl_connect_2 as u32 == (*connssl).connecting_state as u32
             || ssl_connect_2_reading as u32 == (*connssl).connecting_state as u32
             || ssl_connect_2_writing as u32 == (*connssl).connecting_state as u32
