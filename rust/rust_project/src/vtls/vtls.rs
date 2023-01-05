@@ -2566,7 +2566,7 @@ pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_mesalink as *const
 ))]
 #[no_mangle]
 pub static mut Curl_ssl: *const Curl_ssl = unsafe { &Curl_ssl_bearssl as *const Curl_ssl };
-// TODO 这里的2得改掉，最好是省略数组长度，这里也得先注释了再测试
+// 这里对源码进行了修改
 const fn count_available_backends() -> usize {
     let mut num: usize = 1;
 
@@ -2820,7 +2820,7 @@ pub extern "C" fn curl_global_sslset(
     let mut i: i32 = 0;
     const count: usize = count_available_backends();
     if !avail.is_null() {
-        // TODO 这里最后的2也得根据开了多少个ssl进行更改
+        // 这里对源码进行了更改
         unsafe {
             *avail = &mut available_backends as *mut [*const Curl_ssl; count]
                 as *mut *const curl_ssl_backend
