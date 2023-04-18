@@ -134,7 +134,7 @@ extern "C" fn br_ssl_engine_get_selected_protocol(
     unsafe {
         k = (*ctx).selected_protocol as u32;
         return if k == 0 as u32 || k == 0xffff as u32 {
-            0 as *const i8
+            0 as *const libc::c_char
         } else {
             *((*ctx).protocol_names).offset(k.wrapping_sub(1 as u32) as isize)
         };
@@ -241,7 +241,7 @@ extern "C" fn load_cafile(
     let mut fp: *mut FILE = 0 as *mut FILE;
     let mut buf: [u8; 8192] = [0; 8192];
     let mut p: *const u8 = 0 as *const u8;
-    let mut name: *const i8 = 0 as *const i8;
+    let mut name: *const i8 = 0 as *const libc::c_char;
     let mut n: size_t = 0;
     let mut i: size_t = 0;
     let mut pushed: size_t = 0;
@@ -264,7 +264,7 @@ extern "C" fn load_cafile(
     }
     unsafe {
         if (*source).type_0 == 1 as i32 {
-            fp = fopen((*source).data, b"rb\0" as *const u8 as *const i8);
+            fp = fopen((*source).data, b"rb\0" as *const u8 as *const libc::c_char);
             if fp.is_null() {
                 return CURLE_SSL_CACERT_BADFILE;
             }
@@ -326,8 +326,8 @@ extern "C" fn load_cafile(
                     1 => {
                         name = br_pem_decoder_name(&mut pc);
                         unsafe {
-                            if !(strcmp(name, b"CERTIFICATE\0" as *const u8 as *const i8) != 0
-                                && strcmp(name, b"X509 CERTIFICATE\0" as *const u8 as *const i8)
+                            if !(strcmp(name, b"CERTIFICATE\0" as *const u8 as *const libc::c_char) != 0
+                                && strcmp(name, b"X509 CERTIFICATE\0" as *const u8 as *const libc::c_char)
                                     != 0)
                             {
                                 br_x509_decoder_init(
@@ -548,7 +548,7 @@ extern "C" fn x509_start_chain(mut ctx: *mut *const br_x509_class, mut server_na
     let mut x509: *mut x509_context = ctx as *mut x509_context;
     unsafe {
         if !(*x509).verifyhost {
-            server_name = 0 as *const i8;
+            server_name = 0 as *const libc::c_char;
         }
         ((*(*x509).minimal.vtable).start_chain).expect("non-null function pointer")(
             &mut (*x509).minimal.vtable,
@@ -755,14 +755,14 @@ extern "C" fn bearssl_connect_step1(
             2 => {
                 Curl_failf(
                     data,
-                    b"BearSSL does not support SSLv2\0" as *const u8 as *const i8,
+                    b"BearSSL does not support SSLv2\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
             3 => {
                 Curl_failf(
                     data,
-                    b"BearSSL does not support SSLv3\0" as *const u8 as *const i8,
+                    b"BearSSL does not support SSLv3\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
@@ -785,7 +785,7 @@ extern "C" fn bearssl_connect_step1(
             _ => {
                 Curl_failf(
                     data,
-                    b"BearSSL: unknown CURLOPT_SSLVERSION\0" as *const u8 as *const i8,
+                    b"BearSSL: unknown CURLOPT_SSLVERSION\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
@@ -794,7 +794,7 @@ extern "C" fn bearssl_connect_step1(
             let mut source: cafile_source = {
                 cafile_source {
                     type_0: 2 as i32,
-                    data: (*ca_info_blob).data as *const i8,
+                    data: (*ca_info_blob).data as *const libc::c_char,
                     len: (*ca_info_blob).len,
                 }
             };
@@ -807,14 +807,14 @@ extern "C" fn bearssl_connect_step1(
                 if verifypeer {
                     Curl_failf(
                         data,
-                        b"error importing CA certificate blob\0" as *const u8 as *const i8,
+                        b"error importing CA certificate blob\0" as *const u8 as *const libc::c_char,
                     );
                     return ret;
                 }
                 Curl_infof(
                     data,
                     b"error importing CA certificate blob, continuing anyway\0" as *const u8
-                        as *const i8,
+                    as *const libc::c_char,
                 );
             }
         }
@@ -836,7 +836,7 @@ extern "C" fn bearssl_connect_step1(
                     Curl_failf(
                         data,
                         b"error setting certificate verify locations. CAfile: %s\0" as *const u8
-                            as *const i8,
+                            as *const libc::c_char,
                         ssl_cafile,
                     );
                     return ret;
@@ -845,7 +845,7 @@ extern "C" fn bearssl_connect_step1(
                 Curl_infof(
                     data,
                     b"error setting certificate verify locations, continuing anyway:\0" as *const u8
-                        as *const i8,
+                    as *const libc::c_char,
                 );
             }
         }
@@ -911,7 +911,7 @@ extern "C" fn bearssl_connect_step1(
                 );
                 Curl_infof(
                     data,
-                    b"BearSSL: re-using session ID\0" as *const u8 as *const i8,
+                    b"BearSSL: re-using session ID\0" as *const u8 as *const libc::c_char,
                 );
             }
             Curl_ssl_sessionid_unlock(data);
@@ -942,11 +942,11 @@ extern "C" fn bearssl_connect_step1(
                     {
                         let fresh11 = cur;
                         cur = cur + 1;
-                        (*backend).protocols[fresh11 as usize] = b"h2\0" as *const u8 as *const i8;
+                        (*backend).protocols[fresh11 as usize] = b"h2\0" as *const u8 as *const libc::c_char;
                         Curl_infof(
                             data,
-                            b"ALPN, offering %s\0" as *const u8 as *const i8,
-                            b"h2\0" as *const u8 as *const i8,
+                            b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
+                            b"h2\0" as *const u8 as *const libc::c_char,
                         );
                     }
                 }
@@ -955,11 +955,11 @@ extern "C" fn bearssl_connect_step1(
             }
             let fresh13 = cur;
             cur = cur + 1;
-            (*backend).protocols[fresh13 as usize] = b"http/1.1\0" as *const u8 as *const i8;
+            (*backend).protocols[fresh13 as usize] = b"http/1.1\0" as *const u8 as *const libc::c_char;
             Curl_infof(
                 data,
-                b"ALPN, offering %s\0" as *const u8 as *const i8,
-                b"http/1.1\0" as *const u8 as *const i8,
+                b"ALPN, offering %s\0" as *const u8 as *const libc::c_char,
+                b"http/1.1\0" as *const u8 as *const libc::c_char,
             );
             br_ssl_engine_set_protocol_names(
                 &mut (*backend).bear_ctx.eng,
@@ -992,11 +992,11 @@ extern "C" fn bearssl_connect_step1(
                 Curl_failf(
                     data,
                     b"BearSSL: host verification of IP address is not supported\0" as *const u8
-                        as *const i8,
+                        as *const libc::c_char,
                 );
                 return CURLE_PEER_FAILED_VERIFICATION;
             }
-            hostname = 0 as *const i8;
+            hostname = 0 as *const libc::c_char;
         }
         if br_ssl_client_reset(&mut (*backend).bear_ctx, hostname, 0 as i32) == 0 {
             return CURLE_FAILED_INIT;
@@ -1034,7 +1034,7 @@ extern "C" fn bearssl_run_until(
                             Curl_failf(
                                 data,
                                 b"SSL: connection closed during handshake\0" as *const u8
-                                    as *const i8,
+                                    as *const libc::c_char,
                             );
                             return CURLE_SSL_CONNECT_ERROR;
                         }
@@ -1044,7 +1044,7 @@ extern "C" fn bearssl_run_until(
                         Curl_failf(
                             data,
                             b"SSL: X.509 verification: certificate is expired or not yet valid\0"
-                                as *const u8 as *const i8,
+                                as *const u8 as *const libc::c_char,
                         );
                         return CURLE_PEER_FAILED_VERIFICATION;
                     }
@@ -1052,7 +1052,7 @@ extern "C" fn bearssl_run_until(
                         Curl_failf(
                          data,
                          b"SSL: X.509 verification: expected server name was not found in the chain\0"
-                             as *const u8 as *const i8,
+                             as *const u8 as *const libc::c_char,
                      );
                         return CURLE_PEER_FAILED_VERIFICATION;
                     }
@@ -1060,7 +1060,7 @@ extern "C" fn bearssl_run_until(
                         Curl_failf(
                         data,
                         b"SSL: X.509 verification: chain could not be linked to a trust anchor\0"
-                            as *const u8 as *const i8,
+                            as *const u8 as *const libc::c_char,
                     );
                         return CURLE_PEER_FAILED_VERIFICATION;
                     }
@@ -1094,7 +1094,7 @@ extern "C" fn bearssl_run_until(
                 if ret == 0 as i64 {
                     Curl_failf(
                         data,
-                        b"SSL: EOF without close notify\0" as *const u8 as *const i8,
+                        b"SSL: EOF without close notify\0" as *const u8 as *const libc::c_char,
                     );
                     return CURLE_READ_ERROR;
                 }
@@ -1131,7 +1131,7 @@ extern "C" fn bearssl_connect_step2(
             if br_ssl_engine_current_state(&mut (*backend).bear_ctx.eng) == 0x1 as u32 {
                 Curl_failf(
                     data,
-                    b"SSL: connection closed during handshake\0" as *const u8 as *const i8,
+                    b"SSL: connection closed during handshake\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
@@ -1171,16 +1171,16 @@ extern "C" fn bearssl_connect_step3(
         );
         }
         if ((*conn).bits).tls_enable_alpn() != 0 {
-            let mut protocol: *const i8 = 0 as *const i8;
+            let mut protocol: *const i8 = 0 as *const libc::c_char;
             protocol = br_ssl_engine_get_selected_protocol(&mut (*backend).bear_ctx.eng);
             if !protocol.is_null() {
                 Curl_infof(
                     data,
-                    b"ALPN, server accepted to use %s\0" as *const u8 as *const i8,
+                    b"ALPN, server accepted to use %s\0" as *const u8 as *const libc::c_char,
                     protocol,
                 );
                 #[cfg(USE_HTTP2)]
-                let USE_HTTP2_flag = strcmp(protocol, b"h2\0" as *const u8 as *const i8) == 0;
+                let USE_HTTP2_flag = strcmp(protocol, b"h2\0" as *const u8 as *const libc::c_char) == 0;
                 #[cfg(not(USE_HTTP2))]
                 let USE_HTTP2_flag = false;
                 if USE_HTTP2_flag {
@@ -1192,12 +1192,12 @@ extern "C" fn bearssl_connect_step3(
                         #[cfg(not(USE_HTTP2))]
                         _ => {}
                     }
-                } else if strcmp(protocol, b"http/1.1\0" as *const u8 as *const i8) == 0 {
+                } else if strcmp(protocol, b"http/1.1\0" as *const u8 as *const libc::c_char) == 0 {
                     (*conn).negnpn = CURL_HTTP_VERSION_1_1 as i32;
                 } else {
                     Curl_infof(
                         data,
-                        b"ALPN, unrecognized protocol %s\0" as *const u8 as *const i8,
+                        b"ALPN, unrecognized protocol %s\0" as *const u8 as *const libc::c_char,
                         protocol,
                     );
                 }
@@ -1212,7 +1212,7 @@ extern "C" fn bearssl_connect_step3(
             } else {
                 Curl_infof(
                     data,
-                    b"ALPN, server did not agree to a protocol\0" as *const u8 as *const i8,
+                    b"ALPN, server did not agree to a protocol\0" as *const u8 as *const libc::c_char,
                 );
             }
         }
@@ -1337,7 +1337,7 @@ extern "C" fn bearssl_send(
             if app.is_null() {
                 Curl_failf(
                     data,
-                    b"SSL: connection closed during write\0" as *const u8 as *const i8,
+                    b"SSL: connection closed during write\0" as *const u8 as *const libc::c_char,
                 );
                 *err = CURLE_SEND_ERROR;
                 return -(1 as i32) as ssize_t;
@@ -1423,7 +1423,7 @@ extern "C" fn bearssl_connect_common(
             timeout_ms = Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0);
             if timeout_ms < 0 as i64 {
                 /* no need to continue if time already is up */
-                Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
+                Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const libc::c_char);
                 return CURLE_OPERATION_TIMEDOUT;
             }
             /* if ssl is expecting something, check if it's available. */
@@ -1456,7 +1456,7 @@ extern "C" fn bearssl_connect_common(
                     /* fatal error */
                     Curl_failf(
                         data,
-                        b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const i8,
+                        b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const libc::c_char,
                         *__errno_location(),
                     );
                     return CURLE_SSL_CONNECT_ERROR;
@@ -1467,7 +1467,7 @@ extern "C" fn bearssl_connect_common(
                             *done = 0 as i32 != 0;
                             return CURLE_OK;
                         } else {
-                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
+                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const libc::c_char);
                             return CURLE_OPERATION_TIMEDOUT;
                         }
                     }
@@ -1530,7 +1530,7 @@ extern "C" fn bearssl_connect_common(
 
 extern "C" fn bearssl_version(mut buffer: *mut i8, mut size: size_t) -> size_t {
     unsafe {
-        return curl_msnprintf(buffer, size, b"BearSSL\0" as *const u8 as *const i8) as size_t;
+        return curl_msnprintf(buffer, size, b"BearSSL\0" as *const u8 as *const libc::c_char) as size_t;
     }
 }
 extern "C" fn bearssl_data_pending(mut conn: *const connectdata, mut connindex: i32) -> bool {
@@ -1688,7 +1688,7 @@ pub static mut Curl_ssl_bearssl: Curl_ssl = Curl_ssl {
     info: {
         curl_ssl_backend {
             id: CURLSSLBACKEND_BEARSSL,
-            name: b"bearssl\0" as *const u8 as *const i8,
+            name: b"bearssl\0" as *const u8 as *const libc::c_char,
         }
     },
     supports: ((1 as i32) << 6 as i32) as u32,
