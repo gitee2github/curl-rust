@@ -23,10 +23,10 @@ extern "C" fn do_file_type(mut type_0: *const i8) -> i32 {
     if type_0.is_null() || unsafe { *type_0.offset(0 as isize) == 0 } {
         return MESALINK_FILETYPE_PEM as i32;
     }
-    if unsafe { Curl_strcasecompare(type_0, b"PEM\0" as *const u8 as *const i8) } != 0 {
+    if unsafe { Curl_strcasecompare(type_0, b"PEM\0" as *const u8 as *const libc::c_char) } != 0 {
         return MESALINK_FILETYPE_PEM as i32;
     }
-    if unsafe { Curl_strcasecompare(type_0, b"DER\0" as *const u8 as *const i8) } != 0 {
+    if unsafe { Curl_strcasecompare(type_0, b"DER\0" as *const u8 as *const libc::c_char) } != 0 {
         return MESALINK_FILETYPE_ASN1 as i32;
     }
     return -(1 as i32);
@@ -102,7 +102,7 @@ extern "C" fn mesalink_connect_step1(
             Curl_failf(
                 data,
                 b"MesaLink does not support to set maximum SSL/TLS version\0" as *const u8
-                    as *const i8,
+                    as *const libc::c_char,
             );
         }
         return CURLE_SSL_CONNECT_ERROR;
@@ -132,7 +132,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"MesaLink does not support SSL 3.0, TLS 1.0, or TLS 1.1\0" as *const u8
-                        as *const i8,
+                        as *const libc::c_char,
                 );
             }
             return CURLE_NOT_BUILT_IN;
@@ -147,7 +147,7 @@ extern "C" fn mesalink_connect_step1(
             unsafe {
                 Curl_failf(
                     data,
-                    b"MesaLink does not support SSLv2\0" as *const u8 as *const i8,
+                    b"MesaLink does not support SSLv2\0" as *const u8 as *const libc::c_char,
                 );
             }
             return CURLE_SSL_CONNECT_ERROR;
@@ -157,7 +157,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"Unrecognized parameter passed via CURLOPT_SSLVERSION\0" as *const u8
-                        as *const i8,
+                        as *const libc::c_char,
                 );
             }
             return CURLE_SSL_CONNECT_ERROR;
@@ -167,7 +167,7 @@ extern "C" fn mesalink_connect_step1(
         unsafe {
             Curl_failf(
                 data,
-                b"SSL: couldn't create a method!\0" as *const u8 as *const i8,
+                b"SSL: couldn't create a method!\0" as *const u8 as *const libc::c_char,
             );
         }
         return CURLE_OUT_OF_MEMORY;
@@ -182,7 +182,7 @@ extern "C" fn mesalink_connect_step1(
         unsafe {
             Curl_failf(
                 data,
-                b"SSL: couldn't create a context!\0" as *const u8 as *const i8,
+                b"SSL: couldn't create a context!\0" as *const u8 as *const libc::c_char,
             );
         }
         return CURLE_OUT_OF_MEMORY;
@@ -308,16 +308,16 @@ extern "C" fn mesalink_connect_step1(
                     Curl_failf(
                         data,
                         b"error setting certificate verify locations:  CAfile: %s CApath: %s\0"
-                            as *const u8 as *const i8,
+                            as *const u8 as *const libc::c_char,
                         if CURL_DISABLE_PROXY_CAfile_1 {
-                            CURL_DISABLE_PROXY_CAfile_2 as *const i8
+                            CURL_DISABLE_PROXY_CAfile_2 as *const libc::c_char
                         } else {
-                            b"none\0" as *const u8 as *const i8
+                            b"none\0" as *const u8 as *const libc::c_char
                         },
                         if CURL_DISABLE_PROXY_CApath_1 {
-                            CURL_DISABLE_PROXY_CApath_2 as *const i8
+                            CURL_DISABLE_PROXY_CApath_2 as *const libc::c_char
                         } else {
-                            b"none\0" as *const u8 as *const i8
+                            b"none\0" as *const u8 as *const libc::c_char
                         },
                     );
                 }
@@ -327,36 +327,36 @@ extern "C" fn mesalink_connect_step1(
                 Curl_infof(
                     data,
                     b"error setting certificate verify locations, continuing anyway:\0" as *const u8
-                        as *const i8,
+                        as *const libc::c_char,
                 );
             }
         } else {
             unsafe {
                 Curl_infof(
                     data,
-                    b"successfully set certificate verify locations:\0" as *const u8 as *const i8,
+                    b"successfully set certificate verify locations:\0" as *const u8 as *const libc::c_char,
                 );
             }
         }
         unsafe {
             Curl_infof(
                 data,
-                b" CAfile: %s\0" as *const u8 as *const i8,
+                b" CAfile: %s\0" as *const u8 as *const libc::c_char,
                 if CURL_DISABLE_PROXY_CAfile_1 {
-                    CURL_DISABLE_PROXY_CAfile_2 as *const i8
+                    CURL_DISABLE_PROXY_CAfile_2 as *const libc::c_char
                 } else {
-                    b"none\0" as *const u8 as *const i8
+                    b"none\0" as *const u8 as *const libc::c_char
                 },
             );
         }
         unsafe {
             Curl_infof(
                 data,
-                b" CApath: %s\0" as *const u8 as *const i8,
+                b" CApath: %s\0" as *const u8 as *const libc::c_char,
                 if CURL_DISABLE_PROXY_CApath_1 {
-                    CURL_DISABLE_PROXY_CApath_2 as *const i8
+                    CURL_DISABLE_PROXY_CApath_2 as *const libc::c_char
                 } else {
-                    b"none\0" as *const u8 as *const i8
+                    b"none\0" as *const u8 as *const libc::c_char
                 },
             );
         }
@@ -434,7 +434,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"unable to use client certificate (no key or wrong pass phrase?)\0"
-                        as *const u8 as *const i8,
+                        as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
@@ -477,13 +477,13 @@ extern "C" fn mesalink_connect_step1(
             {
                 Curl_failf(
                     data,
-                    b"unable to set private key\0" as *const u8 as *const i8,
+                    b"unable to set private key\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
             Curl_infof(
                 data,
-                b"client cert: %s\0" as *const u8 as *const i8,
+                b"client cert: %s\0" as *const u8 as *const libc::c_char,
                 if !if CURLPROXY_HTTPS as u32 == (*conn).http_proxy.proxytype as u32
                     && ssl_connection_complete as u32
                         != (*conn).proxy_ssl[(if (*conn).sock[1 as usize] == -(1 as i32) {
@@ -511,9 +511,9 @@ extern "C" fn mesalink_connect_step1(
                         (*conn).proxy_ssl_config.clientcert
                     } else {
                         (*conn).ssl_config.clientcert
-                    }) as *const i8
+                    }) as *const libc::c_char
                 } else {
-                    b"none\0" as *const u8 as *const i8
+                    b"none\0" as *const u8 as *const libc::c_char
                 },
             );
         }
@@ -532,7 +532,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"unable to use client certificate (no key or wrong pass phrase?)\0"
-                        as *const u8 as *const i8,
+                        as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
@@ -545,17 +545,17 @@ extern "C" fn mesalink_connect_step1(
             {
                 Curl_failf(
                     data,
-                    b"unable to set private key\0" as *const u8 as *const i8,
+                    b"unable to set private key\0" as *const u8 as *const libc::c_char,
                 );
                 return CURLE_SSL_CONNECT_ERROR;
             }
             Curl_infof(
                 data,
-                b"client cert: %s\0" as *const u8 as *const i8,
+                b"client cert: %s\0" as *const u8 as *const libc::c_char,
                 if !((*conn).ssl_config.clientcert).is_null() {
-                    (*conn).ssl_config.clientcert as *const i8
+                    (*conn).ssl_config.clientcert as *const libc::c_char
                 } else {
-                    b"none\0" as *const u8 as *const i8
+                    b"none\0" as *const u8 as *const libc::c_char
                 },
             );
         }
@@ -589,7 +589,7 @@ extern "C" fn mesalink_connect_step1(
         unsafe {
             Curl_infof(
                 data,
-                b"Cipher selection: %s\0" as *const u8 as *const i8,
+                b"Cipher selection: %s\0" as *const u8 as *const libc::c_char,
                 ciphers,
             );
         }
@@ -603,7 +603,7 @@ extern "C" fn mesalink_connect_step1(
         if ((*(*connssl).backend).mesalink_handle).is_null() {
             Curl_failf(
                 data,
-                b"SSL: couldn't create a context (handle)!\0" as *const u8 as *const i8,
+                b"SSL: couldn't create a context (handle)!\0" as *const u8 as *const libc::c_char,
             );
             return CURLE_OUT_OF_MEMORY;
         }
@@ -640,7 +640,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"WARNING: failed to configure server name indication (SNI) TLS extension\n\0"
-                        as *const u8 as *const i8,
+                        as *const u8 as *const libc::c_char,
                 );
             }
             return CURLE_SSL_CONNECT_ERROR;
@@ -679,7 +679,7 @@ extern "C" fn mesalink_connect_step1(
                 Curl_failf(
                     data,
                     b"ERROR: MesaLink does not accept an IP address as a hostname\n\0" as *const u8
-                        as *const i8,
+                        as *const libc::c_char,
                 );
             }
             return CURLE_SSL_CONNECT_ERROR;
@@ -692,7 +692,7 @@ extern "C" fn mesalink_connect_step1(
             != MESALINK_SUCCESS as i32
     } {
         unsafe {
-            Curl_failf(data, b"SSL: SSL_set_fd failed\0" as *const u8 as *const i8);
+            Curl_failf(data, b"SSL: SSL_set_fd failed\0" as *const u8 as *const libc::c_char);
         }
         return CURLE_SSL_CONNECT_ERROR;
     }
@@ -731,7 +731,7 @@ extern "C" fn mesalink_connect_step2(
             unsafe {
                 Curl_failf(
                     data,
-                    b"SSL_connect failed with error %d: %s\0" as *const u8 as *const i8,
+                    b"SSL_connect failed with error %d: %s\0" as *const u8 as *const libc::c_char,
                     detail,
                     mesalink_ERR_error_string_n(
                         detail as u64,
@@ -764,7 +764,7 @@ extern "C" fn mesalink_connect_step2(
                 detail &= !(0xff as i32);
                 if detail == TLS_ERROR_WEBPKI_ERRORS as i32 {
                     unsafe {
-                        Curl_failf(data, b"Cert verify failed\0" as *const u8 as *const i8);
+                        Curl_failf(data, b"Cert verify failed\0" as *const u8 as *const libc::c_char);
                     }
                     return CURLE_PEER_FAILED_VERIFICATION;
                 }
@@ -776,7 +776,7 @@ extern "C" fn mesalink_connect_step2(
         (*connssl).connecting_state = ssl_connect_3;
         Curl_infof(
             data,
-            b"SSL connection using %s / %s\0" as *const u8 as *const i8,
+            b"SSL connection using %s / %s\0" as *const u8 as *const libc::c_char,
             mesalink_SSL_get_version((*(*connssl).backend).mesalink_handle),
             mesalink_SSL_get_cipher_name((*(*connssl).backend).mesalink_handle),
         );
@@ -853,7 +853,7 @@ extern "C" fn mesalink_send(
                 unsafe {
                     Curl_failf(
                         data,
-                        b"SSL write: %s, errno %d\0" as *const u8 as *const i8,
+                        b"SSL write: %s, errno %d\0" as *const u8 as *const libc::c_char,
                         mesalink_ERR_error_string_n(
                             err as u64,
                             error_buffer.as_mut_ptr(),
@@ -932,7 +932,7 @@ extern "C" fn mesalink_recv(
                 unsafe {
                     Curl_failf(
                         data,
-                        b"SSL read: %s, errno %d\0" as *const u8 as *const i8,
+                        b"SSL read: %s, errno %d\0" as *const u8 as *const libc::c_char,
                         mesalink_ERR_error_string_n(
                             err as u64,
                             error_buffer.as_mut_ptr(),
@@ -955,8 +955,8 @@ extern "C" fn mesalink_version(mut buffer: *mut i8, mut size: size_t) -> size_t 
         return curl_msnprintf(
             buffer,
             size,
-            b"MesaLink/%s\0" as *const u8 as *const i8,
-            b"0.10.1\0" as *const u8 as *const i8,
+            b"MesaLink/%s\0" as *const u8 as *const libc::c_char,
+            b"0.10.1\0" as *const u8 as *const libc::c_char,
         ) as size_t;
     }
 }
@@ -1018,7 +1018,7 @@ extern "C" fn mesalink_connect_common(
         if timeout_ms < 0 as i64 {
             /* no need to continue if time already is up */
             unsafe {
-                Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
+                Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const libc::c_char);
             }
             return CURLE_OPERATION_TIMEDOUT;
         }
@@ -1036,7 +1036,7 @@ extern "C" fn mesalink_connect_common(
         timeout_ms = unsafe { Curl_timeleft(data, 0 as *mut curltime, 1 as i32 != 0) };
         if timeout_ms < 0 as i64 {
             /* no need to continue if time already is up */
-            unsafe { Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8) };
+            unsafe { Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const libc::c_char) };
             return CURLE_OPERATION_TIMEDOUT;
         }
         /* if ssl is expecting something, check if it's available. */
@@ -1073,7 +1073,7 @@ extern "C" fn mesalink_connect_common(
                 unsafe {
                     Curl_failf(
                         data,
-                        b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const i8,
+                        b"select/poll on SSL socket, errno: %d\0" as *const u8 as *const libc::c_char,
                         *__errno_location(),
                     );
                 }
@@ -1088,7 +1088,7 @@ extern "C" fn mesalink_connect_common(
                     } else {
                         /* timeout */
                         unsafe {
-                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const i8);
+                            Curl_failf(data, b"SSL connection timeout\0" as *const u8 as *const libc::c_char);
                         }
                         return CURLE_OPERATION_TIMEDOUT;
                     }
@@ -1198,7 +1198,7 @@ pub static mut Curl_ssl_mesalink: Curl_ssl = Curl_ssl {
     info: {
         curl_ssl_backend {
             id: CURLSSLBACKEND_MESALINK,
-            name: b"MesaLink\0" as *const u8 as *const i8,
+            name: b"MesaLink\0" as *const u8 as *const libc::c_char,
         }
     },
     supports: ((1 as i32) << 3 as i32) as u32,
